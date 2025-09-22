@@ -59,7 +59,6 @@ export default function PersianHeader() {
             </div>
           </div>
           
-          <span className="text-sm" data-testid="text-login-signup">ورود / ثبت نام</span>
         </div>
       </nav>
     </header>

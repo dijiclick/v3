@@ -42,7 +42,7 @@ export default function PersianFooter() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-700 text-white py-10">
+      <footer className="bg-red-500 text-white py-10">
         <div className="max-w-6xl mx-auto px-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-8 text-center">
             {/* درباره لیمیت پس */}
@@ -76,7 +76,7 @@ export default function PersianFooter() {
           </div>
           
           {/* Footer Bottom */}
-          <div className="border-t border-slate-600 pt-5 text-center">
+          <div className="border-t border-red-600 pt-5 text-center">
             <p className="text-gray-400 text-xs" data-testid="footer-copyright">
               &copy; ۲۰۲۵ لیمیت پس. تمامی حقوق محفوظ است.
             </p>

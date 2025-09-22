@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Page } from "@shared/schema";
 
 export default function PersianHeader() {
   const [currentLang, setCurrentLang] = useState("fa");
+
+  // Fetch navigation pages from API
+  const { data: pages = [] } = useQuery<Page[]>({
+    queryKey: ['/api/pages'],
+  });
+
+  // Filter and sort pages for navigation
+  const navigationPages = pages
+    .filter(page => page.status === 'published' && page.showInNavigation)
+    .sort((a, b) => (a.navigationOrder || 0) - (b.navigationOrder || 0));
 
   return (
     <header className="bg-red-500 py-3 text-white font-vazir" dir="rtl">
@@ -12,20 +24,18 @@ export default function PersianHeader() {
           لیمیت پس
         </div>
         
-        {/* Navigation Links */}
+        {/* Dynamic Navigation Links */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity" data-testid="link-support">
-            صفحه اصلی
-          </Link>
-          <Link href="/user-guide" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity" data-testid="link-user-guide">
-            نحوه استفاده
-          </Link>
-          <Link href="/seller" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity" data-testid="link-seller">
-            همکاری در فروش
-          </Link>
-          <Link href="/support" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity" data-testid="link-home">
-            پشتیبانی
-          </Link>
+          {navigationPages.map((page) => (
+            <Link 
+              key={page.id}
+              href={page.slug === 'home' ? '/' : `/${page.slug}`}
+              className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity" 
+              data-testid={`link-${page.slug}`}
+            >
+              {page.title}
+            </Link>
+          ))}
         </div>
 
         {/* User Controls */}

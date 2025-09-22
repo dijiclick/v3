@@ -202,7 +202,7 @@ export default function CMSPage({
             {page.content && (
               <div className="cms-content-body">
                 <CMSContentRenderer 
-                  content={page.content} 
+                  content={page.content as any} 
                   className=""
                 />
               </div>
@@ -234,7 +234,7 @@ export default function CMSPage({
           {page.content && (
             <div className="cms-content-body">
               <CMSContentRenderer 
-                content={page.content} 
+                content={page.content as any} 
                 className=""
               />
             </div>

@@ -20,6 +20,28 @@ import AdminCategories from "@/pages/AdminCategories";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
+import CMSPage from "@/components/CMSPage";
+import { useParams } from "wouter";
+
+// Component to handle dynamic page routes
+function DynamicPageRoute() {
+  const params = useParams();
+  const pageSlug = params.slug;
+
+  if (!pageSlug) {
+    return (
+      <PersianLayout>
+        <NotFound />
+      </PersianLayout>
+    );
+  }
+
+  return (
+    <PersianLayout>
+      <CMSPage slug={pageSlug} />
+    </PersianLayout>
+  );
+}
 
 function AdminRouter() {
   return (
@@ -80,6 +102,9 @@ function PublicRouter() {
           <ProductDetails />
         </PersianLayout>
       </Route>
+      
+      {/* Dynamic CMS page routes */}
+      <Route path="/:slug" component={DynamicPageRoute} />
       
       {/* 404 page */}
       <Route>

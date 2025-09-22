@@ -6,6 +6,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // Default for 
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-secret-key";
 const SESSION_LIFETIME = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
+// Enforce strong admin password in production
+if (process.env.NODE_ENV === 'production' && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin123')) {
+  console.error('SECURITY ERROR: ADMIN_PASSWORD environment variable must be set to a strong password in production.');
+  console.error('Please set ADMIN_PASSWORD to a secure password and restart the application.');
+  process.exit(1);
+}
+
 // In-memory session store
 interface Session {
   sessionId: string;

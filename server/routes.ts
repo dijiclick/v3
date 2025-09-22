@@ -44,10 +44,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/admin/logout", (req, res) => {
     const sessionId = req.cookies.admin_session;
+    
+    // Add CSRF protection to logout to prevent forced logout CSRF attacks
     if (sessionId) {
-      sessionStore.deleteSession(sessionId);
+      const session = sessionStore.getSession(sessionId);
+      if (session) {
+        const csrfTokenFromHeader = req.headers['x-csrf-token'] as string;
+        const csrfTokenFromCookie = req.cookies.csrf_token;
+        
+        if (csrfTokenFromHeader && csrfTokenFromCookie && 
+            csrfTokenFromHeader === csrfTokenFromCookie &&
+            csrfTokenFromHeader === session.csrfToken) {
+          sessionStore.deleteSession(sessionId);
+        }
+      }
     }
     
+    // Always clear cookies regardless of CSRF validation
     res.clearCookie('admin_session');
     res.clearCookie('csrf_token');
     res.json({ message: "Logged out successfully" });

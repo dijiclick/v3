@@ -63,8 +63,14 @@ export function useAdminAuth() {
 
   const logout = async () => {
     try {
+      const headers: Record<string, string> = {};
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
+      
       await fetch('/api/admin/logout', {
         method: 'POST',
+        headers,
         credentials: 'include',
       });
     } catch (error) {

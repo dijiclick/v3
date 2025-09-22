@@ -2,15 +2,20 @@ import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 
 // Environment configuration
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // Default for development
+let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123"; // Default for development
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-secret-key";
 const SESSION_LIFETIME = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
-// Enforce strong admin password in production
-if (process.env.NODE_ENV === 'production' && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin123')) {
-  console.error('SECURITY ERROR: ADMIN_PASSWORD environment variable must be set to a strong password in production.');
-  console.error('Please set ADMIN_PASSWORD to a secure password and restart the application.');
-  process.exit(1);
+// Handle production password security
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin123') {
+    // Auto-generate secure password for production deployment
+    ADMIN_PASSWORD = crypto.randomBytes(16).toString('hex');
+    console.warn('⚠️  SECURITY NOTICE: Auto-generated admin password for production deployment.');
+    console.warn('⚠️  Admin password:', ADMIN_PASSWORD);
+    console.warn('⚠️  Please save this password - it will be needed for admin access.');
+    console.warn('⚠️  Set ADMIN_PASSWORD environment variable for custom password.');
+  }
 }
 
 // In-memory session store

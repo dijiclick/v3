@@ -2,10 +2,48 @@ import { Settings, Database, Globe, Palette, Shield } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { isSanityConfigured } from "@/hooks/use-sanity";
 
 export default function AdminSettings() {
   const sanityEnabled = isSanityConfigured();
+  const { toast } = useToast();
+
+  const handleConfigure = (cardTitle: string) => {
+    switch (cardTitle) {
+      case "Content Management":
+        toast({
+          title: "Content Management",
+          description: sanityEnabled 
+            ? "Sanity CMS configuration is handled through your Sanity Studio dashboard."
+            : "Database content is managed through the Products, Categories, and Pages sections of this admin panel.",
+        });
+        break;
+      case "Website Settings":
+        toast({
+          title: "Website Settings",
+          description: "SEO, Open Graph, and structured data settings are automatically optimized. Theme customization is available in the next section.",
+        });
+        break;
+      case "Theme & Appearance":
+        toast({
+          title: "Theme & Appearance", 
+          description: "Your website uses a modern responsive design with dark mode support. Advanced theme customization is coming soon.",
+        });
+        break;
+      case "Security":
+        toast({
+          title: "Security Settings",
+          description: "Your admin panel is password-protected with session management. Use HTTPS in production for secure connections.",
+        });
+        break;
+      default:
+        toast({
+          title: cardTitle,
+          description: "Configuration options for this section are coming soon.",
+        });
+    }
+  };
 
   const settingsCards = [
     {
@@ -135,7 +173,7 @@ export default function AdminSettings() {
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant={card.statusVariant}>
+                <Badge variant={card.statusVariant as "default" | "destructive" | "outline" | "secondary" | "success" | "warning" | "info"}>
                   {card.status}
                 </Badge>
               </div>
@@ -150,7 +188,12 @@ export default function AdminSettings() {
                 ))}
               </ul>
               <div className="mt-4">
-                <Button variant="outline" size="sm" data-testid={`configure-${index}`}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleConfigure(card.title)}
+                  data-testid={`configure-${index}`}
+                >
                   Configure
                 </Button>
               </div>

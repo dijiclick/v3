@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
 import { storage } from "./storage";
 import { insertProductSchema, insertCategorySchema, insertPageSchema } from "@shared/schema";
 
@@ -115,6 +117,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.status(500).json({ message: "Error deleting product: " + error.message });
     }
+  });
+
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: 'public/uploads/',
+      filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, uniqueName);
+      }
+    }),
+    fileFilter: (req, file, cb) => {
+      // Allow only images
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+      }
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    }
+  });
+
+  // Blog content management endpoints
+  app.patch("/api/products/:id/blog", async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const { blogContent } = req.body;
+      
+      if (!blogContent) {
+        return res.status(400).json({ message: "Blog content is required" });
+      }
+
+      const product = await storage.updateProduct(productId, { blogContent });
+      res.json({ message: "Blog content updated successfully", blogContent: product.blogContent });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error updating blog content: " + error.message });
+    }
+  });
+
+  // Image upload endpoint for blog editor
+  app.post("/api/uploads/image", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ 
+        success: true, 
+        imageUrl,
+        message: "Image uploaded successfully" 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error uploading image: " + error.message });
+    }
+  });
+
+  // Serve uploaded files statically
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
   });
 
   // Health check endpoint for deployment diagnostics

@@ -86,6 +86,7 @@ export class DatabaseStorage implements IStorage {
         benefitsSection: products.benefitsSection,
         sidebarContent: products.sidebarContent,
         footerCTA: products.footerCTA,
+        blogContent: products.blogContent,
         createdAt: products.createdAt,
       })
       .from(products)

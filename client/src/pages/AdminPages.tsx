@@ -181,7 +181,20 @@ export default function AdminPages() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <FileText className="h-5 w-5 text-gray-400" />
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <h3 
+                        className="text-lg font-semibold text-gray-900 dark:text-white cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => handleEditPage(page)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleEditPage(page);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        data-testid={`page-title-${page.id}`}
+                        aria-label={`Edit page: ${page.title}`}
+                      >
                         {page.title}
                       </h3>
                       <Badge 

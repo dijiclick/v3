@@ -53,7 +53,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Admin Access</CardTitle>
+            <CardTitle className="text-2xl">Limitpass</CardTitle>
             <CardDescription>
               Enter the admin password to access the dashboard
             </CardDescription>

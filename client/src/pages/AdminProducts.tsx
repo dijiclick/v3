@@ -220,11 +220,11 @@ export default function AdminProducts() {
                   <div className="col-span-1 md:col-span-2 flex items-center">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-gray-900 dark:text-white">
-                        ${product.price}
+                        {Math.round(parseFloat(product.price)).toLocaleString('fa-IR')} T
                       </span>
                       {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
                         <span className="text-sm text-gray-500 line-through">
-                          ${product.originalPrice}
+                          {Math.round(parseFloat(product.originalPrice)).toLocaleString('fa-IR')} T
                         </span>
                       )}
                     </div>
@@ -240,14 +240,13 @@ export default function AdminProducts() {
                             Featured
                           </Badge>
                         )}
-                        {!product.inStock && (
-                          <Badge variant="destructive" className="text-xs">
-                            Out of Stock
+                        {product.inStock ? (
+                          <Badge className="bg-green-500 hover:bg-green-600 text-xs">
+                            Published
                           </Badge>
-                        )}
-                        {product.inStock && !product.featured && (
+                        ) : (
                           <Badge variant="secondary" className="text-xs">
-                            In Stock
+                            Draft
                           </Badge>
                         )}
                       </div>

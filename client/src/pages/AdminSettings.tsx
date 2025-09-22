@@ -13,7 +13,7 @@ export default function AdminSettings() {
       description: "Configure your content source and CMS settings",
       icon: Database,
       status: sanityEnabled ? "Sanity CMS" : "Database",
-      statusColor: sanityEnabled ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800",
+      statusVariant: sanityEnabled ? "success" : "info" as const,
       items: [
         `Content Source: ${sanityEnabled ? "Sanity CMS" : "PostgreSQL Database"}`,
         `Auto-sync: ${sanityEnabled ? "Enabled" : "Manual"}`,
@@ -25,7 +25,7 @@ export default function AdminSettings() {
       description: "General website configuration and preferences", 
       icon: Globe,
       status: "Active",
-      statusColor: "bg-green-100 text-green-800",
+      statusVariant: "success" as const,
       items: [
         "SEO Optimization: Enabled",
         "Open Graph Tags: Configured",
@@ -38,7 +38,7 @@ export default function AdminSettings() {
       description: "Customize the look and feel of your website",
       icon: Palette,
       status: "Default Theme",
-      statusColor: "bg-purple-100 text-purple-800",
+      statusVariant: "secondary" as const,
       items: [
         "Color Scheme: Professional Blue",
         "Dark Mode: Supported",
@@ -51,7 +51,7 @@ export default function AdminSettings() {
       description: "Admin access and security settings",
       icon: Shield,
       status: "Protected",
-      statusColor: "bg-orange-100 text-orange-800",
+      statusVariant: "warning" as const,
       items: [
         "Admin Authentication: Password Protected",
         "Session Management: Browser Storage",
@@ -135,7 +135,7 @@ export default function AdminSettings() {
                     </CardDescription>
                   </div>
                 </div>
-                <Badge className={card.statusColor}>
+                <Badge variant={card.statusVariant}>
                   {card.status}
                 </Badge>
               </div>
@@ -181,7 +181,7 @@ export default function AdminSettings() {
                   }
                 </p>
               </div>
-              <Badge className={sanityEnabled ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}>
+              <Badge variant={sanityEnabled ? "success" : "info"}>
                 {sanityEnabled ? "CMS Active" : "Database Mode"}
               </Badge>
             </div>

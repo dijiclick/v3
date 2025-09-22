@@ -77,7 +77,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               variant="ghost"
               size="icon"
               onClick={handleToggleWishlist}
-              className="bg-card text-foreground p-2 rounded-full shadow-md hover:bg-muted transition-colors"
+              className="bg-card text-foreground p-2 rounded-full hover:bg-muted transition-colors"
               data-testid={`wishlist-button-${product.id}`}
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-accent' : ''}`} />
@@ -87,12 +87,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {hasDiscount && (
-              <Badge variant="destructive" className="bg-accent text-accent-foreground" data-testid={`sale-badge-${product.id}`}>
+              <Badge variant="destructive" data-testid={`sale-badge-${product.id}`}>
                 Sale
               </Badge>
             )}
             {product.featured && (
-              <Badge className="bg-primary text-primary-foreground" data-testid={`featured-badge-${product.id}`}>
+              <Badge variant="default" data-testid={`featured-badge-${product.id}`}>
                 Featured
               </Badge>
             )}
@@ -173,7 +173,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               variant="ghost"
               size="icon"
               onClick={handleToggleWishlist}
-              className="bg-card text-foreground p-2 rounded-full shadow-md hover:bg-muted transition-colors"
+              className="bg-card text-foreground p-2 rounded-full hover:bg-muted transition-colors"
               data-testid={`wishlist-button-${product.id}`}
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-accent' : ''}`} />
@@ -183,12 +183,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {hasDiscount && (
-              <Badge variant="destructive" className="bg-accent text-accent-foreground" data-testid={`sale-badge-${product.id}`}>
+              <Badge variant="destructive" data-testid={`sale-badge-${product.id}`}>
                 Sale
               </Badge>
             )}
             {product.featured && (
-              <Badge className="bg-primary text-primary-foreground" data-testid={`featured-badge-${product.id}`}>
+              <Badge variant="default" data-testid={`featured-badge-${product.id}`}>
                 Featured
               </Badge>
             )}

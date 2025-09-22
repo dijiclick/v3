@@ -248,13 +248,13 @@ export default function AdminProducts() {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         {product.featured && (
-                          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-xs">
+                          <Badge variant="warning" className="text-xs">
                             <Star className="h-3 w-3 mr-1" />
                             Featured
                           </Badge>
                         )}
                         {product.inStock ? (
-                          <Badge className="bg-green-500 hover:bg-green-600 text-xs">
+                          <Badge variant="success" className="text-xs">
                             Published
                           </Badge>
                         ) : (

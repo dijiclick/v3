@@ -504,7 +504,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>{isEditMode ? 'Edit Product' : 'Add New Product'}</CardTitle>
       </CardHeader>

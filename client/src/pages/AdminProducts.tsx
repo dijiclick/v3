@@ -200,7 +200,20 @@ export default function AdminProducts() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                      <h3 
+                        className="font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
+                        onClick={() => setEditingProduct(product as any)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setEditingProduct(product as any);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Edit product: ${product.title}`}
+                        data-testid={`product-title-${product.id}`}
+                      >
                         {product.title}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">

@@ -270,7 +270,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         faqs: [],
         recommendations: [],
       },
-      blogContent: isEditMode ? (product.blogContent as string) || "" : "",
+      blogContent: isEditMode ? (product as any).blogContent || "" : "",
     },
   });
 
@@ -741,7 +741,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                       <div>
                         <Label htmlFor="basic-categoryId">Category *</Label>
                         <Select 
-                          value={form.watch("categoryId")} 
+                          value={form.watch("categoryId") || ""} 
                           onValueChange={(value) => form.setValue("categoryId", value)}
                         >
                           <SelectTrigger data-testid="product-category-select">
@@ -809,7 +809,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="basic-inStock"
-                          checked={form.watch("inStock")}
+                          checked={!!form.watch("inStock")}
                           onCheckedChange={(checked) => form.setValue("inStock", checked as boolean)}
                           data-testid="product-in-stock-checkbox"
                         />
@@ -819,7 +819,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="basic-featured"
-                          checked={form.watch("featured")}
+                          checked={!!form.watch("featured")}
                           onCheckedChange={(checked) => form.setValue("featured", checked as boolean)}
                           data-testid="product-featured-checkbox"
                         />

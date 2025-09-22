@@ -35,7 +35,7 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
 
   // Convert price to Persian format
   const numericPrice = parseFloat(product.price.replace(/[^\d.-]/g, ''));
-  const persianPrice = Math.round(numericPrice / 1000); // Convert to thousands
+  const persianPrice = Math.round(numericPrice); // Keep original price
 
   // Determine category and type based on product content
   let category = "software";
@@ -60,7 +60,7 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     name: product.title,
     type,
     price: persianPrice.toLocaleString('fa-IR'),
-    period: "هزار تومان / ماه",
+    period: "تومان / ماه",
     logo,
     features,
     category,

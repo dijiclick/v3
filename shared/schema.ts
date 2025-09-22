@@ -41,6 +41,7 @@ export const products = pgTable("products", {
   benefitsSection: jsonb("benefits_section"),
   sidebarContent: jsonb("sidebar_content"),
   footerCTA: jsonb("footer_cta"),
+  blogContent: jsonb("blog_content"), // Rich text blog content in Gutenberg-style format
   createdAt: timestamp("created_at").defaultNow(),
 });
 

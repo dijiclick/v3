@@ -147,7 +147,7 @@ export default function AdminProducts() {
         </CardContent>
       </Card>
 
-      {/* Products Grid */}
+      {/* Products List */}
       {filteredProducts.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
@@ -169,80 +169,57 @@ export default function AdminProducts() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="products-grid">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Product Image */}
-              <div className="aspect-square relative bg-gray-100 dark:bg-gray-800">
-                {product.image ? (
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-                
-                {/* Status Badges */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  {product.featured && (
-                    <Badge className="bg-yellow-500 hover:bg-yellow-600">
-                      <Star className="h-3 w-3 mr-1" />
-                      Featured
-                    </Badge>
-                  )}
-                  {!product.inStock && (
-                    <Badge variant="destructive">
-                      Out of Stock
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="absolute top-2 right-2 flex flex-col gap-1">
-                  <Button size="sm" variant="secondary" className="h-8 w-8 p-0" data-testid={`view-product-${product.id}`}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="h-8 w-8 p-0" 
-                    onClick={() => setEditingProduct(product as any)}
-                    data-testid={`edit-product-${product.id}`}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    className="h-8 w-8 p-0" 
-                    onClick={() => handleDeleteProduct(product as any)}
-                    data-testid={`delete-product-${product.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Product Info */}
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">
-                      {product.title}
-                    </h3>
+        <Card>
+          <CardContent className="p-0">
+            {/* Table Header */}
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 border-b bg-gray-50 dark:bg-gray-800">
+              <div className="col-span-4 text-sm font-medium text-gray-700 dark:text-gray-300">Product</div>
+              <div className="col-span-2 text-sm font-medium text-gray-700 dark:text-gray-300">Category</div>
+              <div className="col-span-2 text-sm font-medium text-gray-700 dark:text-gray-300">Price</div>
+              <div className="col-span-2 text-sm font-medium text-gray-700 dark:text-gray-300">Status</div>
+              <div className="col-span-2 text-sm font-medium text-gray-700 dark:text-gray-300 text-right">Actions</div>
+            </div>
+            
+            {/* Product List */}
+            <div className="divide-y" data-testid="products-list">
+              {filteredProducts.map((product) => (
+                <div key={product.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  {/* Product Info (Image + Title) */}
+                  <div className="col-span-1 md:col-span-4 flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        {product.description?.substring(0, 60)}...
+                      </p>
+                    </div>
                   </div>
                   
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {getCategoryName(product.categoryId)}
-                  </p>
+                  {/* Category */}
+                  <div className="col-span-1 md:col-span-2 flex items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {getCategoryName(product.categoryId)}
+                    </span>
+                  </div>
                   
-                  <div className="flex items-center justify-between">
+                  {/* Price */}
+                  <div className="col-span-1 md:col-span-2 flex items-center">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                      <span className="font-semibold text-gray-900 dark:text-white">
                         ${product.price}
                       </span>
                       {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
@@ -251,21 +228,69 @@ export default function AdminProducts() {
                         </span>
                       )}
                     </div>
-                    
-                    {product.rating && parseFloat(product.rating) > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current text-yellow-400" />
-                        <span className="text-xs text-gray-500">
-                          {product.rating} ({product.reviewCount || 0})
-                        </span>
+                  </div>
+                  
+                  {/* Status & Rating */}
+                  <div className="col-span-1 md:col-span-2 flex items-center">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        {product.featured && (
+                          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-xs">
+                            <Star className="h-3 w-3 mr-1" />
+                            Featured
+                          </Badge>
+                        )}
+                        {!product.inStock && (
+                          <Badge variant="destructive" className="text-xs">
+                            Out of Stock
+                          </Badge>
+                        )}
+                        {product.inStock && !product.featured && (
+                          <Badge variant="secondary" className="text-xs">
+                            In Stock
+                          </Badge>
+                        )}
                       </div>
-                    )}
+                      {product.rating && parseFloat(product.rating) > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Star className="h-3 w-3 fill-current text-yellow-400" />
+                          <span className="text-xs text-gray-500">
+                            {product.rating} ({product.reviewCount || 0})
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2">
+                    <Button size="sm" variant="secondary" className="h-8 w-8 p-0" data-testid={`view-product-${product.id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => setEditingProduct(product as any)}
+                      data-testid={`edit-product-${product.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleDeleteProduct(product as any)}
+                      data-testid={`delete-product-${product.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Add Product Dialog */}

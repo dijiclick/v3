@@ -31,7 +31,7 @@ export const products = pgTable("products", {
   inStock: boolean("in_stock").default(true),
   featured: boolean("featured").default(false),
   featuredAreaText: text("featured_area_text"),
-  layoutStyle: text("layout_style").default("traditional"),
+  layoutStyle: text("layout_style").default("chatgpt"),
   tags: text("tags").array(),
   // ChatGPT-style layout fields
   heroSection: jsonb("hero_section"),
@@ -167,7 +167,7 @@ export const insertProductSchema = createInsertSchema(products).omit({
   createdAt: true,
 }).extend({
   featuredAreaText: z.string().optional(),
-  layoutStyle: z.enum(["traditional", "chatgpt"]).optional().default("traditional"),
+  layoutStyle: z.string().optional().default("chatgpt"),
   heroSection: heroSectionSchema,
   pricingPlans: z.array(pricingPlanSchema).optional(),
   screenshots: z.array(screenshotSchema).optional(),

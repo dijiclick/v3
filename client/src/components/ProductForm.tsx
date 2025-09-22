@@ -136,7 +136,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: product.featured ?? false,
       tags: product.tags?.join(", ") || "",
       featuredAreaText: product.featuredAreaText || "",
-      layoutStyle: (product.layoutStyle as "traditional" | "chatgpt") || "traditional",
+      layoutStyle: "chatgpt",
       heroSection: product.heroSection ? {
         titleOverride: (product.heroSection as any)?.titleOverride || "",
         subtitle: (product.heroSection as any)?.subtitle || "",
@@ -238,7 +238,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: false,
       tags: "",
       featuredAreaText: "",
-      layoutStyle: "traditional",
+      layoutStyle: "chatgpt",
       heroSection: {
         titleOverride: "",
         subtitle: "",
@@ -510,9 +510,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic fields for Traditional layout only */}
-          {form.watch("layoutStyle") === "traditional" && (
-            <>
+          {/* Basic fields - always shown */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="title">Product Title *</Label>
@@ -665,37 +663,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               </p>
             </div>
           )}
-            </>
-          )}
 
-          {/* Layout Style Selector */}
-          <div>
-            <Label htmlFor="layoutStyle">Layout Style</Label>
-            <Select 
-              value={form.watch("layoutStyle") || "traditional"} 
-              onValueChange={(value) => form.setValue("layoutStyle", value as "traditional" | "chatgpt")}
-            >
-              <SelectTrigger data-testid="product-layout-style-select">
-                <SelectValue placeholder="Select layout style" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="traditional">Traditional E-commerce Layout</SelectItem>
-                <SelectItem value="chatgpt">ChatGPT Page Layout</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-gray-500 mt-1">
-              {form.watch("layoutStyle") === "traditional" 
-                ? "Standard product layout with basic information"
-                : "Advanced layout with hero sections, pricing plans, and detailed content blocks"
-              }
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Conditional ChatGPT-style fields */}
-          {form.watch("layoutStyle") === "chatgpt" && (
-            <div className="space-y-6">
+          {/* ChatGPT-style fields - always shown */}
+          <div className="space-y-6">
               <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
                   ChatGPT-style Layout Configuration
@@ -1763,7 +1733,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 </Tabs>
               </div>
             </div>
-          )}
 
           <div className="flex gap-4 pt-4">
             <Button

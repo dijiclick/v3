@@ -2,10 +2,72 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
+import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { insertProductSchema, insertCategorySchema, insertPageSchema } from "@shared/schema";
+import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add cookie parser middleware
+  app.use(cookieParser());
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Admin authentication routes
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { password } = req.body;
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      
+      // Rate limiting check
+      if (!sessionStore.checkRateLimit(clientIP)) {
+        return res.status(429).json({ message: "Too many login attempts. Please try again later." });
+      }
+      
+      if (!password || !verifyPassword(password)) {
+        return res.status(401).json({ message: "Invalid password" });
+      }
+      
+      // Create new session
+      const session = sessionStore.createSession();
+      
+      // Set secure cookies
+      res.cookie('admin_session', session.sessionId, getCookieOptions(isProduction));
+      res.cookie('csrf_token', session.csrfToken, getCSRFCookieOptions(isProduction));
+      
+      res.json({ message: "Login successful", csrfToken: session.csrfToken });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.post("/api/admin/logout", (req, res) => {
+    const sessionId = req.cookies.admin_session;
+    if (sessionId) {
+      sessionStore.deleteSession(sessionId);
+    }
+    
+    res.clearCookie('admin_session');
+    res.clearCookie('csrf_token');
+    res.json({ message: "Logged out successfully" });
+  });
+  
+  app.get("/api/admin/me", (req, res) => {
+    const sessionId = req.cookies.admin_session;
+    if (!sessionId) {
+      return res.json({ isAuthenticated: false });
+    }
+    
+    const session = sessionStore.getSession(sessionId);
+    if (!session) {
+      res.clearCookie('admin_session');
+      res.clearCookie('csrf_token');
+      return res.json({ isAuthenticated: false });
+    }
+    
+    res.json({ isAuthenticated: true, csrfToken: session.csrfToken });
+  });
   // Product routes
   app.get("/api/products", async (req, res) => {
     try {
@@ -62,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", requireAdmin, async (req, res) => {
     try {
       const result = insertProductSchema.safeParse(req.body);
       if (!result.success) {
@@ -76,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", async (req, res) => {
+  app.put("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       const productId = req.params.id;
       const result = insertProductSchema.partial().safeParse(req.body);
@@ -91,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/products/:id", async (req, res) => {
+  app.patch("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       const productId = req.params.id;
       const result = insertProductSchema.partial().safeParse(req.body);
@@ -106,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", async (req, res) => {
+  app.delete("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       const productId = req.params.id;
       await storage.deleteProduct(productId);
@@ -142,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Blog content management endpoints
-  app.patch("/api/products/:id/blog", async (req, res) => {
+  app.patch("/api/products/:id/blog", requireAdmin, async (req, res) => {
     try {
       const productId = req.params.id;
       const { blogContent } = req.body;
@@ -159,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Image upload endpoint for blog editor
-  app.post("/api/uploads/image", upload.single('image'), async (req, res) => {
+  app.post("/api/uploads/image", requireAdmin, upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No image file provided" });
@@ -222,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/categories", async (req, res) => {
+  app.post("/api/categories", requireAdmin, async (req, res) => {
     try {
       const result = insertCategorySchema.safeParse(req.body);
       if (!result.success) {
@@ -236,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/categories/:id", async (req, res) => {
+  app.put("/api/categories/:id", requireAdmin, async (req, res) => {
     try {
       const categoryId = req.params.id;
       const result = insertCategorySchema.partial().safeParse(req.body);
@@ -254,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/categories/:id", async (req, res) => {
+  app.delete("/api/categories/:id", requireAdmin, async (req, res) => {
     try {
       const categoryId = req.params.id;
       const deleted = await storage.deleteCategory(categoryId);
@@ -301,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pages", async (req, res) => {
+  app.post("/api/pages", requireAdmin, async (req, res) => {
     try {
       const result = insertPageSchema.safeParse(req.body);
       if (!result.success) {
@@ -318,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/pages/:id", async (req, res) => {
+  app.patch("/api/pages/:id", requireAdmin, async (req, res) => {
     try {
       const pageId = req.params.id;
       const result = insertPageSchema.partial().safeParse(req.body);
@@ -339,7 +401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/pages/:id", async (req, res) => {
+  app.delete("/api/pages/:id", requireAdmin, async (req, res) => {
     try {
       const pageId = req.params.id;
       const deleted = await storage.deletePage(pageId);

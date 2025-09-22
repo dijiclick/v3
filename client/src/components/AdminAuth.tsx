@@ -22,16 +22,19 @@ export default function AdminAuth({ children }: AdminAuthProps) {
     setIsSubmitting(true);
     setError("");
 
-    // Simulate a brief delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (login(password)) {
-      setPassword("");
-    } else {
-      setError("Invalid password. Please try again.");
+    try {
+      const result = await login(password);
+      
+      if (result.success) {
+        setPassword("");
+      } else {
+        setError(result.error || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   if (isLoading) {

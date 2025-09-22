@@ -1,0 +1,114 @@
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Layout from "@/components/Layout";
+import PersianLayout from "@/components/PersianLayout";
+import AdminLayout from "@/components/AdminLayout";
+import AdminAuth from "@/components/AdminAuth";
+import Home from "@/pages/Home";
+import Support from "@/pages/Support";
+import UserGuide from "@/pages/UserGuide";
+import Seller from "@/pages/Seller";
+import ChatGPTPage from "@/pages/ChatGPTPage";
+import ProductDetails from "@/pages/ProductDetails";
+import ProductCatalog from "@/components/ProductCatalog";
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminProducts from "@/pages/AdminProducts";
+import AdminCategories from "@/pages/AdminCategories";
+import AdminPages from "@/pages/AdminPages";
+import AdminSettings from "@/pages/AdminSettings";
+import NotFound from "@/pages/not-found";
+
+function AdminRouter() {
+  return (
+    <AdminAuth>
+      <AdminLayout>
+        <Switch>
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/categories" component={AdminCategories} />
+          <Route path="/admin/pages" component={AdminPages} />
+          <Route path="/admin/settings" component={AdminSettings} />
+        </Switch>
+      </AdminLayout>
+    </AdminAuth>
+  );
+}
+
+function PublicRouter() {
+  return (
+    <Switch>
+      {/* Persian pages using Persian layout */}
+      <Route path="/">
+        <PersianLayout>
+          <Home />
+        </PersianLayout>
+      </Route>
+      <Route path="/support">
+        <PersianLayout>
+          <Support />
+        </PersianLayout>
+      </Route>
+      <Route path="/user-guide">
+        <PersianLayout>
+          <UserGuide />
+        </PersianLayout>
+      </Route>
+      <Route path="/seller">
+        <PersianLayout>
+          <Seller />
+        </PersianLayout>
+      </Route>
+      <Route path="/chatgpt">
+        <PersianLayout>
+          <ChatGPTPage />
+        </PersianLayout>
+      </Route>
+      
+      {/* E-commerce pages using Persian layout */}
+      <Route path="/products">
+        <PersianLayout>
+          <ProductCatalog />
+        </PersianLayout>
+      </Route>
+      
+      {/* New product detail route with category/product slug */}
+      <Route path="/:categorySlug/:productSlug">
+        <PersianLayout>
+          <ProductDetails />
+        </PersianLayout>
+      </Route>
+      
+      {/* 404 page */}
+      <Route>
+        <PersianLayout>
+          <NotFound />
+        </PersianLayout>
+      </Route>
+    </Switch>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/admin/*?" component={AdminRouter} />
+      <Route component={PublicRouter} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

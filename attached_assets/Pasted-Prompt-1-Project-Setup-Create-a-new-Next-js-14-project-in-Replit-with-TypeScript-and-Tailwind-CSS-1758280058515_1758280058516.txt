@@ -1,0 +1,16 @@
+Prompt 1 - Project Setup:
+Create a new Next.js 14 project in Replit with TypeScript and Tailwind CSS. Set up the basic project structure with pages, components, and styles folders. Include a package.json with all necessary dependencies for Next.js, Tailwind, and prepare for Sanity integration.
+Prompt 2 - Tailwind Configuration:
+Configure Tailwind CSS for the Next.js project. Set up tailwind.config.js with custom colors, fonts, and spacing that match modern e-commerce design. Create a globals.css file with base styles and custom CSS variables for the product shop theme.
+Prompt 3 - Convert HTML Structure:
+Convert this HTML structure [paste your HTML] into Next.js components. Create separate components for Header, Footer, ProductCard, Hero section, and main layout. Use Tailwind classes instead of custom CSS, maintaining the same visual design but with responsive utilities.
+Prompt 4 - Sanity Studio Setup:
+Set up Sanity Studio for content management. Create schemas for Product, Category, and Page content types. Include fields for product images, descriptions, prices, SEO metadata, and page builder components. Configure the studio to run alongside the Next.js app.
+Prompt 5 - Sanity Client Integration:
+Create Sanity client configuration and data fetching functions. Set up getStaticProps and getStaticPaths for product pages. Create utility functions to fetch products, categories, and page content from Sanity with proper TypeScript types.
+Prompt 6 - Dynamic Pages:
+Create dynamic product pages using [slug].tsx. Implement static generation for all product pages with fallback. Add proper meta tags, structured data (JSON-LD), and Open Graph tags for SEO optimization.
+Prompt 7 - Component Library:
+Build reusable UI components using Tailwind: Button, Card, Modal, Image with Next/Image optimization, Loading states, and Form components. Make them fully responsive and accessible.
+Prompt 8 - Performance Optimization:
+Optimize the site for Core Web Vitals: implement lazy loading, optimize images with Next/Image, add proper caching headers, minimize bundle size, and set up automatic sitemap generation.

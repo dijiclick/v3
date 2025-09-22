@@ -194,6 +194,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/products/:id/duplicate", requireAdmin, async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const duplicatedProduct = await storage.duplicateProduct(productId);
+      res.status(201).json(duplicatedProduct);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Error duplicating product: " + error.message });
+    }
+  });
+
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.diskStorage({

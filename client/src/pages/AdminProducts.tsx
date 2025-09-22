@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Star, Package, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Star, Package, X, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,8 +81,33 @@ export default function AdminProducts() {
     },
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return apiRequest('POST', `/api/products/${productId}/duplicate`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: "Success",
+        description: "Product duplicated successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to duplicate product: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteProduct = (product: Product) => {
     setDeletingProduct(product as any);
+  };
+
+  const handleDuplicateProduct = (product: Product) => {
+    duplicateMutation.mutate(product.id);
   };
 
   const confirmDelete = () => {
@@ -302,6 +327,16 @@ export default function AdminProducts() {
                       data-testid={`edit-product-${product.id}`}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-8 w-8 p-0" 
+                      onClick={() => handleDuplicateProduct(product as any)}
+                      disabled={duplicateMutation.isPending}
+                      data-testid={`duplicate-product-${product.id}`}
+                    >
+                      <Copy className="h-4 w-4" />
                     </Button>
                     <Button 
                       size="sm" 

@@ -15,6 +15,7 @@ export interface IStorage {
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
   getFeaturedProducts(): Promise<Product[]>;
   getProductsByCategory(categoryId: string): Promise<Product[]>;
+  duplicateProduct(id: string): Promise<Product>;
   
   getCategories(): Promise<Category[]>;
   getCategory(id: string): Promise<Category | undefined>;
@@ -115,6 +116,52 @@ export class DatabaseStorage implements IStorage {
     if (result.rowCount === 0) {
       throw new Error(`Product with id ${id} not found`);
     }
+  }
+
+  async duplicateProduct(id: string): Promise<Product> {
+    // Get the original product
+    const originalProduct = await this.getProduct(id);
+    if (!originalProduct) {
+      throw new Error(`Product with id ${id} not found`);
+    }
+
+    // Generate a unique slug
+    let newSlug = `${originalProduct.slug}-copy`;
+    let counter = 1;
+    
+    while (await this.getProductBySlug(newSlug)) {
+      newSlug = `${originalProduct.slug}-copy-${counter}`;
+      counter++;
+    }
+
+    // Create the duplicate product with new slug and without id/createdAt
+    const duplicateData = {
+      title: `${originalProduct.title} (Copy)`,
+      slug: newSlug,
+      description: originalProduct.description,
+      price: originalProduct.price,
+      originalPrice: originalProduct.originalPrice,
+      categoryId: originalProduct.categoryId,
+      image: originalProduct.image,
+      rating: originalProduct.rating,
+      reviewCount: originalProduct.reviewCount,
+      inStock: originalProduct.inStock,
+      featured: false, // New duplicates are not featured by default
+      featuredAreaText: originalProduct.featuredAreaText,
+      layoutStyle: originalProduct.layoutStyle,
+      tags: originalProduct.tags,
+      heroSection: originalProduct.heroSection,
+      pricingPlans: originalProduct.pricingPlans,
+      screenshots: originalProduct.screenshots,
+      statisticsSection: originalProduct.statisticsSection,
+      benefitsSection: originalProduct.benefitsSection,
+      sidebarContent: originalProduct.sidebarContent,
+      footerCTA: originalProduct.footerCTA,
+      blogContent: originalProduct.blogContent,
+    };
+
+    const [newProduct] = await db.insert(products).values(duplicateData).returning();
+    return newProduct;
   }
 
   async getFeaturedProducts(): Promise<Product[]> {

@@ -227,6 +227,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         faqs: [],
         recommendations: [],
       },
+      blogContent: (product as any).blogContent || "",
     } : {
       title: "",
       description: "",
@@ -270,7 +271,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         faqs: [],
         recommendations: [],
       },
-      blogContent: isEditMode ? (product as any).blogContent || "" : "",
+      blogContent: "",
     },
   });
 

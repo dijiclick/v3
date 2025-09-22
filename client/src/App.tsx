@@ -20,28 +20,6 @@ import AdminCategories from "@/pages/AdminCategories";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
-import CMSPage from "@/components/CMSPage";
-import { useParams } from "wouter";
-
-// Component to handle dynamic page routes
-function DynamicPageRoute() {
-  const params = useParams();
-  const pageSlug = params.slug;
-
-  if (!pageSlug) {
-    return (
-      <PersianLayout>
-        <NotFound />
-      </PersianLayout>
-    );
-  }
-
-  return (
-    <PersianLayout>
-      <CMSPage slug={pageSlug} />
-    </PersianLayout>
-  );
-}
 
 function AdminRouter() {
   return (
@@ -68,6 +46,21 @@ function PublicRouter() {
           <Home />
         </PersianLayout>
       </Route>
+      <Route path="/support">
+        <PersianLayout>
+          <Support />
+        </PersianLayout>
+      </Route>
+      <Route path="/user-guide">
+        <PersianLayout>
+          <UserGuide />
+        </PersianLayout>
+      </Route>
+      <Route path="/seller">
+        <PersianLayout>
+          <Seller />
+        </PersianLayout>
+      </Route>
       <Route path="/chatgpt">
         <PersianLayout>
           <ChatGPTPage />
@@ -87,9 +80,6 @@ function PublicRouter() {
           <ProductDetails />
         </PersianLayout>
       </Route>
-      
-      {/* Dynamic CMS page routes */}
-      <Route path="/:slug" component={DynamicPageRoute} />
       
       {/* 404 page */}
       <Route>

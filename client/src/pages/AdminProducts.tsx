@@ -243,7 +243,7 @@ export default function AdminProducts() {
                     </div>
                   </div>
                   
-                  {/* Status & Rating */}
+                  {/* Status */}
                   <div className="col-span-1 md:col-span-2 flex items-center">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
@@ -263,14 +263,6 @@ export default function AdminProducts() {
                           </Badge>
                         )}
                       </div>
-                      {product.rating && parseFloat(product.rating) > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-current text-yellow-400" />
-                          <span className="text-xs text-gray-500">
-                            {product.rating} ({product.reviewCount || 0})
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
                   

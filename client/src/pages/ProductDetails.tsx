@@ -4,20 +4,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useSEO } from "@/hooks/use-seo";
 import { useProductByCategoryAndSlug } from "@/lib/content-service";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { cartManager } from "@/lib/cart";
-import { BlogEditor } from "@/components/BlogEditor";
-import { Edit3, Eye } from "lucide-react";
 
 export default function ProductDetails() {
   const [, params] = useRoute("/:categorySlug/:productSlug");
   const { toast } = useToast();
-  const { isAuthenticated: isAdmin } = useAdminAuth();
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [blogContent, setBlogContent] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
   const { data: product, isLoading, error } = useProductByCategoryAndSlug(params?.categorySlug || "", params?.productSlug || "");
 
@@ -203,164 +196,95 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Blog Content Section */}
+        {/* Content Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_1.5fr] gap-10 mb-16">
-          {/* Blog Content Area */}
-          <div>
-            {isAdmin && (
-              <div className="mb-4 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (isEditMode) {
-                      setBlogContent(product?.blogContent || "");
-                    }
-                    setIsEditMode(!isEditMode);
-                  }}
-                  data-testid="toggle-edit-mode"
-                >
-                  {isEditMode ? (
-                    <>
-                      <Eye className="w-4 h-4 ml-2" />
-                      حالت مشاهده
-                    </>
-                  ) : (
-                    <>
-                      <Edit3 className="w-4 h-4 ml-2" />
-                      ویرایش محتوا
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {isAdmin && isEditMode ? (
-              <BlogEditor
-                content={blogContent || product?.blogContent || ""}
-                onChange={setBlogContent}
-                onSave={async () => {
-                  if (!product) return;
-                  setIsSaving(true);
-                  try {
-                    const response = await fetch(`/api/products/${product.id}/blog`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ blogContent })
-                    });
-                    
-                    if (response.ok) {
-                      toast({
-                        title: "محتوا ذخیره شد",
-                        description: "محتوای وبلاگ با موفقیت ذخیره شد"
-                      });
-                      setIsEditMode(false);
-                      // Optionally refresh the product data
-                      window.location.reload();
-                    } else {
-                      throw new Error('Failed to save');
-                    }
-                  } catch (error) {
-                    toast({
-                      title: "خطا در ذخیره",
-                      description: "مشکلی در ذخیره محتوا رخ داد",
-                      variant: "destructive"
-                    });
-                  } finally {
-                    setIsSaving(false);
-                  }
-                }}
-                isLoading={isSaving}
+          {/* Main Content Area */}
+          <div className="bg-white p-8 rounded-2xl shadow-lg" data-testid="blog-content-display">
+            {product?.blogContent ? (
+              <div 
+                className="prose prose-lg max-w-none text-right"
+                dangerouslySetInnerHTML={{ __html: product.blogContent }}
               />
             ) : (
-              <div className="bg-white p-8 rounded-2xl shadow-lg" data-testid="blog-content-display">
-                {product?.blogContent ? (
-                  <div 
-                    className="prose prose-lg max-w-none text-right"
-                    dangerouslySetInnerHTML={{ __html: product.blogContent }}
-                  />
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Default content when no blog content exists */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">✓</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">کیفیت پریمیوم</div>
-                            <div className="text-xs text-gray-500">بهترین کیفیت موجود</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">دسترسی کامل به تمام امکانات</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Default content when no blog content exists */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">✓</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">کیفیت پریمیوم</div>
+                        <div className="text-xs text-gray-500">بهترین کیفیت موجود</div>
                       </div>
                     </div>
-
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm">⚡</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">سرعت بالا</div>
-                            <div className="text-xs text-gray-500">بدون محدودیت سرعت</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">تجربه روان و بدون وقفه</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm">🔒</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">امنیت بالا</div>
-                            <div className="text-xs text-gray-500">محافظت کامل اطلاعات</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">حریم خصوصی شما محفوظ است</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-teal-50 to-cyan-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">💬</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">پشتیبانی</div>
-                            <div className="text-xs text-gray-500">۲۴ ساعته و ۷ روز هفته</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">همیشه در کنار شما هستیم</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">🎯</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">تضمین کیفیت</div>
-                            <div className="text-xs text-gray-500">رضایت ۱۰۰٪ تضمینی</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">در صورت عدم رضایت، پول برگردانده می‌شود</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-br from-yellow-50 to-amber-100 p-6 rounded-2xl">
-                      <div className="bg-white rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-white text-sm">🚀</div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-800">فعالسازی فوری</div>
-                            <div className="text-xs text-gray-500">بلافاصله پس از خرید</div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-600 text-right">کمتر از ۱۰ دقیقه آماده</div>
-                      </div>
-                    </div>
+                    <div className="text-xs text-gray-600 text-right">دسترسی کامل به تمام امکانات</div>
                   </div>
-                )}
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm">⚡</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">سرعت بالا</div>
+                        <div className="text-xs text-gray-500">بدون محدودیت سرعت</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 text-right">تجربه روان و بدون وقفه</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm">🔒</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">امنیت بالا</div>
+                        <div className="text-xs text-gray-500">محافظت کامل اطلاعات</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 text-right">حریم خصوصی شما محفوظ است</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-teal-50 to-cyan-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">💬</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">پشتیبانی</div>
+                        <div className="text-xs text-gray-500">۲۴ ساعته و ۷ روز هفته</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 text-right">همیشه در کنار شما هستیم</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">🎯</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">تضمین کیفیت</div>
+                        <div className="text-xs text-gray-500">رضایت ۱۰۰٪ تضمینی</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 text-right">در صورت عدم رضایت، پول برگردانده می‌شود</div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-yellow-50 to-amber-100 p-6 rounded-2xl">
+                  <div className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-white text-sm">🚀</div>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-800">فعالسازی فوری</div>
+                        <div className="text-xs text-gray-500">بلافاصله پس از خرید</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 text-right">کمتر از ۱۰ دقیقه آماده</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

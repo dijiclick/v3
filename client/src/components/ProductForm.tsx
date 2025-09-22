@@ -32,6 +32,7 @@ import {
   type InsertProduct
 } from "@shared/schema";
 import { Plus, Trash2, Move } from "lucide-react";
+import { BlogEditor } from "@/components/BlogEditor";
 
 // Create form schema that extends insertProductSchema with proper validation
 const productFormSchema = insertProductSchema.extend({
@@ -42,6 +43,8 @@ const productFormSchema = insertProductSchema.extend({
   tags: z.string().optional(),
   // Override image to allow empty string
   image: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  // Add blog content as string for the editor
+  blogContent: z.string().optional(),
 }).refine((data) => {
   // Validate that required fields are provided
   return data.title && data.description && data.price && data.categoryId;
@@ -267,6 +270,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         faqs: [],
         recommendations: [],
       },
+      blogContent: isEditMode ? (product.blogContent as string) || "" : "",
     },
   });
 
@@ -701,7 +705,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 </p>
                 
                 <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+                  <TabsList className="grid w-full grid-cols-5 lg:grid-cols-9">
                     <TabsTrigger value="basic">Basic Info</TabsTrigger>
                     <TabsTrigger value="hero">Hero</TabsTrigger>
                     <TabsTrigger value="pricing">Pricing</TabsTrigger>
@@ -710,6 +714,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     <TabsTrigger value="benefits">Benefits</TabsTrigger>
                     <TabsTrigger value="sidebar">Sidebar</TabsTrigger>
                     <TabsTrigger value="footer">Footer CTA</TabsTrigger>
+                    <TabsTrigger value="blog">Blog Content</TabsTrigger>
                   </TabsList>
 
                   {/* Basic Info Tab */}
@@ -1716,6 +1721,42 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                             <p>No recommendations added yet. Click "Add Recommendation" to get started.</p>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Blog Content Tab */}
+                  <TabsContent value="blog" className="space-y-4">
+                    <div className="mb-4">
+                      <h4 className="text-md font-medium mb-2">Blog Content</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Create rich content using the WordPress Gutenberg-style editor. This content will be displayed on the product details page.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <BlogEditor
+                        content={form.watch('blogContent') || ""}
+                        onChange={(content) => {
+                          form.setValue('blogContent', content, { shouldValidate: true });
+                        }}
+                        onSave={() => {
+                          // Save handled by main form submission
+                          toast({
+                            title: "Content Updated",
+                            description: "Blog content has been updated in the form. Remember to save the product to persist changes.",
+                          });
+                        }}
+                      />
+
+                      <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+                        <h5 className="font-medium mb-2">📝 Blog Content Tips:</h5>
+                        <ul className="space-y-1 list-disc list-inside">
+                          <li>Use formatting tools to create engaging content</li>
+                          <li>Upload images to enhance your product descriptions</li>
+                          <li>Content will appear in the main product details section</li>
+                          <li>Don't forget to save the entire product form when done</li>
+                        </ul>
                       </div>
                     </div>
                   </TabsContent>

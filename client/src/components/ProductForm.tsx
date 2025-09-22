@@ -35,7 +35,10 @@ import { Plus, Trash2, Move } from "lucide-react";
 import { BlogEditor } from "@/components/BlogEditor";
 
 // Create form schema that extends insertProductSchema with proper validation
-const productFormSchema = insertProductSchema.extend({
+const productFormSchema = insertProductSchema.omit({
+  // Omit slug since it's auto-generated from title
+  slug: true,
+}).extend({
   // Override price to be string for form input (will convert to decimal on submit)
   price: z.string().min(1, "Price is required"),
   originalPrice: z.string().optional(),
@@ -424,12 +427,13 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
         .replace(/\s+/g, '-') // Replace spaces with hyphens
         .replace(/-+/g, '-') // Replace multiple hyphens with single
-        .trim(); // Remove leading/trailing whitespace
+        .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+        .trim() || 'product'; // Fallback to 'product' if empty
 
       const productData = {
         ...data,
-        // Add slug for new products
-        ...(slug && { slug }),
+        // Add slug for new products (always include for new products)
+        ...(isEditMode ? {} : { slug }),
         // Convert prices to proper format for server (decimal fields)
         price: parseFloat(data.price) || 0,
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : undefined,

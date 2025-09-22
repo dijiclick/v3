@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
+        default: "bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
         destructive:
-          "bg-gradient-to-r from-destructive to-red-600 text-destructive-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
+          "bg-destructive text-destructive-foreground shadow-lg hover:bg-destructive/90 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
         outline:
           "border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/50 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transform",
         secondary:
-          "bg-gradient-to-r from-secondary to-secondary/90 text-secondary-foreground shadow-md hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
+          "bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/90 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
         ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98] transform",
         link: "text-primary underline-offset-4 hover:underline hover:scale-[1.02] active:scale-[0.98] transform",
-        gradient: "bg-gradient-to-r from-primary via-blue-600 to-purple-600 text-white shadow-xl hover:shadow-2xl hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] transform relative overflow-hidden",
-        modern: "bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-100 dark:to-slate-200 text-white dark:text-slate-900 shadow-xl hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
+        gradient: "bg-primary text-white shadow-xl hover:bg-primary/90 hover:shadow-2xl hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] transform relative overflow-hidden",
+        modern: "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xl hover:bg-slate-800 dark:hover:bg-slate-200 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transform",
         glass: "bg-white/10 backdrop-blur-md border border-white/20 text-foreground shadow-lg hover:bg-white/20 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transform",
       },
       size: {

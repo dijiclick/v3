@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Plus, Search, Eye, Edit, Trash2, Star, Package, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Star, Package, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useProducts, useCategories } from "@/lib/content-service";
@@ -55,6 +56,26 @@ export default function AdminProducts() {
       toast({
         title: "Error",
         description: `Failed to delete product: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ productId, inStock }: { productId: string; inStock: boolean }) => {
+      return apiRequest('PATCH', `/api/products/${productId}`, { inStock });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: "Success",
+        description: "Product status updated successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to update product status: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -245,32 +266,34 @@ export default function AdminProducts() {
                   
                   {/* Status */}
                   <div className="col-span-1 md:col-span-2 flex items-center">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        {product.featured && (
-                          <Badge variant="warning" className="text-xs">
-                            <Star className="h-3 w-3 mr-1" />
-                            Featured
-                          </Badge>
-                        )}
-                        {product.inStock ? (
-                          <Badge variant="success" className="text-xs">
-                            Published
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs">
-                            Draft
-                          </Badge>
-                        )}
-                      </div>
+                    <div className="flex flex-col gap-2">
+                      {product.featured && (
+                        <Badge variant="warning" className="text-xs">
+                          <Star className="h-3 w-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      <Select
+                        value={product.inStock ? "published" : "unpublished"}
+                        onValueChange={(value) => {
+                          const inStock = value === "published";
+                          updateStatusMutation.mutate({ productId: product.id, inStock });
+                        }}
+                        disabled={updateStatusMutation.isPending}
+                      >
+                        <SelectTrigger className="w-28 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="published">Published</SelectItem>
+                          <SelectItem value="unpublished">Unpublished</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   
                   {/* Actions */}
                   <div className="col-span-1 md:col-span-2 flex items-center justify-end gap-2">
-                    <Button size="sm" variant="secondary" className="h-8 w-8 p-0" data-testid={`view-product-${product.id}`}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
                     <Button 
                       size="sm" 
                       variant="secondary" 

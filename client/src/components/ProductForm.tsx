@@ -431,8 +431,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         // Add slug for new products
         ...(slug && { slug }),
         // Convert prices to proper format for server (decimal fields)
-        price: data.price,
-        originalPrice: data.originalPrice || undefined,
+        price: parseFloat(data.price) || 0,
+        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : undefined,
         // Convert tags from comma-separated string to array for server
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
         

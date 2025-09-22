@@ -434,9 +434,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         ...data,
         // Add slug for new products (always include for new products)
         ...(isEditMode ? {} : { slug }),
-        // Convert prices to proper format for server (decimal fields)
-        price: parseFloat(data.price) || 0,
-        originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : undefined,
+        // Keep prices as strings for decimal fields in database
+        price: data.price || "0",
+        originalPrice: data.originalPrice || undefined,
         // Convert tags from comma-separated string to array for server
         tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
         

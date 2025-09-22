@@ -203,7 +203,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePage(id: string): Promise<boolean> {
     const result = await db.delete(pages).where(eq(pages.id, id));
-    return result.rowCount > 0;
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   // Initialize database with sample data if empty

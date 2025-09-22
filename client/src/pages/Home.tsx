@@ -223,7 +223,7 @@ export default function Home() {
       <main className="bg-white -mt-5 pt-10 pb-10 rounded-t-3xl min-h-screen">
         <div className="max-w-7xl mx-auto px-5">
           {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-10">
             {displayedServices.map((service) => (
               <div
                 key={service.id}

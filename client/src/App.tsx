@@ -68,21 +68,6 @@ function PublicRouter() {
           <Home />
         </PersianLayout>
       </Route>
-      <Route path="/support">
-        <PersianLayout>
-          <Support />
-        </PersianLayout>
-      </Route>
-      <Route path="/user-guide">
-        <PersianLayout>
-          <UserGuide />
-        </PersianLayout>
-      </Route>
-      <Route path="/seller">
-        <PersianLayout>
-          <Seller />
-        </PersianLayout>
-      </Route>
       <Route path="/chatgpt">
         <PersianLayout>
           <ChatGPTPage />

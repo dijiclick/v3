@@ -50,22 +50,31 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
   else if (titleToCheck.includes('youtube') || titleToCheck.includes('یوتیوب')) logo = '📺';
   else if (titleToCheck.includes('adobe') || titleToCheck.includes('ادوبی')) logo = '🎨';
 
-  // Determine category and type based on product content
+  // Use actual category from database if available, otherwise fallback to title-based detection
   let category = "software";
   let type = "سرویس پریمیوم";
   
-  if (titleToCheck.includes('جی‌پی‌تی') || titleToCheck.includes('chatgpt')) {
-    category = "ai";
-    type = "هوش مصنوعی";
-  } else if (titleToCheck.includes('نتفلیکس') || titleToCheck.includes('یوتیوب') || titleToCheck.includes('آمازون')) {
-    category = "svod"; 
-    type = "پلتفرم ویدئو";
-  } else if (titleToCheck.includes('اسپاتیفای') || titleToCheck.includes('اپل موزیک')) {
-    category = "music";
-    type = "پلتفرم موسیقی";
-  } else if (titleToCheck.includes('ادوبی')) {
-    category = "creative";
-    type = "نرم‌افزار طراحی";
+  if (product.categoryId) {
+    const productCategory = categories.find(cat => cat.id === product.categoryId);
+    if (productCategory) {
+      category = productCategory.slug;
+      type = productCategory.name;
+    }
+  } else {
+    // Fallback to title-based detection for products without categoryId
+    if (titleToCheck.includes('جی‌پی‌تی') || titleToCheck.includes('chatgpt')) {
+      category = "ai";
+      type = "هوش مصنوعی";
+    } else if (titleToCheck.includes('نتفلیکس') || titleToCheck.includes('یوتیوب') || titleToCheck.includes('آمازون')) {
+      category = "svod"; 
+      type = "پلتفرم ویدئو";
+    } else if (titleToCheck.includes('اسپاتیفای') || titleToCheck.includes('اپل موزیک')) {
+      category = "music";
+      type = "پلتفرم موسیقی";
+    } else if (titleToCheck.includes('ادوبی')) {
+      category = "creative";
+      type = "نرم‌افزار طراحی";
+    }
   }
 
   return {
@@ -92,17 +101,20 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
 // No additional products for load more functionality
 const additionalProducts: ServiceCard[] = [];
 
-const filterCategories = [
-  { id: "all", label: "همه", icon: "⚡" },
-  { id: "svod", label: "پلتفرم ویدئو", icon: "🎬" },
-  { id: "music", label: "موسیقی", icon: "🎵" },
-  { id: "ai", label: "هوش مصنوعی", icon: "🤖" },
-  { id: "software", label: "نرم‌افزار", icon: "💻" },
-  { id: "seo", label: "پکیج های سئو", icon: "📈" },
-  { id: "creative", label: "گرافیک", icon: "🎨" },
-  { id: "education", label: "آموزش", icon: "📚" },
-  { id: "cloud", label: "جدید", icon: "☁️" }
-];
+// Icon mapping by category slug
+const categoryIconMap: Record<string, string> = {
+  svod: "🎬",
+  music: "🎵",
+  ai: "🤖",
+  software: "💻",
+  seo: "📈",
+  creative: "🎨",
+  education: "📚",
+  cloud: "☁️"
+};
+
+// Fallback icon for categories not in the mapping
+const fallbackIcon = "📦";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,6 +136,8 @@ export default function Home() {
       if (category) {
         return `/${category.slug}/${service.slug}`;
       }
+    } else if (service.slug && service.category) {
+      return `/${service.category}/${service.slug}`;
     }
     return "#";
   }, [categories]);
@@ -136,12 +150,29 @@ export default function Home() {
     }
   }, [getProductUrl, setLocation]);
 
+  // Build dynamic filter categories from database categories
+  const filterCategories = useMemo(() => {
+    const dynamicCategories = [
+      { id: "all", label: "همه", icon: "⚡" }
+    ];
+    
+    // Add database categories
+    categories.forEach(category => {
+      dynamicCategories.push({
+        id: category.slug,
+        label: category.name,
+        icon: categoryIconMap[category.slug] || fallbackIcon
+      });
+    });
+    
+    return dynamicCategories;
+  }, [categories]);
+
   // Memoize the transformation of products to service cards
   const services = useMemo(() => {
     if (products.length > 0 && categories.length > 0) {
-      // Filter for featured products only
-      const featuredProducts = products.filter(product => product.featured);
-      return featuredProducts.map(product => transformProductToServiceCard(product, categories));
+      // Show all products (removed featured-only filter)
+      return products.map(product => transformProductToServiceCard(product, categories));
     }
     return [];
   }, [products, categories]);
@@ -269,9 +300,19 @@ export default function Home() {
       {/* Main Content */}
       <main className="bg-white -mt-5 pt-10 pb-10 rounded-t-3xl min-h-screen">
         <div className="max-w-7xl mx-auto px-5">
+          {/* Loading States */}
+          {(categoriesLoading || productsLoading) && (
+            <div className="text-center py-20">
+              <div className="inline-flex items-center gap-3 text-gray-600">
+                <span className="text-3xl animate-spin">⏳</span>
+                <p className="text-lg font-medium">در حال بارگذاری محصولات...</p>
+              </div>
+            </div>
+          )}
+
           {/* Services Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-10">
-            {displayedServices.map((service) => (
+            {!categoriesLoading && !productsLoading && displayedServices.map((service) => (
               <div
                 key={service.id}
                 className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative cursor-pointer"

@@ -24,10 +24,10 @@ export default function AdminProductEdit() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" dir="rtl">
+      <div className="flex items-center justify-center min-h-screen" dir="ltr">
         <div className="flex items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span>در حال بارگذاری محصول...</span>
+          <span>Loading product...</span>
         </div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function AdminProductEdit() {
 
   if (error || !product) {
     return (
-      <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="rtl">
+      <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
@@ -45,19 +45,19 @@ export default function AdminProductEdit() {
             data-testid="button-back"
           >
             <ArrowLeft className="h-4 w-4" />
-            بازگشت به فهرست محصولات
+            Back to Products List
           </Button>
         </div>
         <div className="text-center py-12">
-          <h2 className="text-2xl font-bold text-destructive">خطا در بارگذاری محصول</h2>
-          <p className="text-muted-foreground mt-2">محصول مورد نظر یافت نشد یا خطایی رخ داده است.</p>
+          <h2 className="text-2xl font-bold text-destructive">Error Loading Product</h2>
+          <p className="text-muted-foreground mt-2">Product not found or an error occurred.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="rtl">
+    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
@@ -67,11 +67,11 @@ export default function AdminProductEdit() {
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4" />
-          بازگشت به فهرست محصولات
+          Back to Products List
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">ویرایش محصول</h1>
-          <p className="text-muted-foreground">ویرایش اطلاعات محصول: {product.title}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
+          <p className="text-muted-foreground">Edit product information: {product.title}</p>
         </div>
       </div>
 

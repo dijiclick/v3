@@ -15,7 +15,7 @@ export default function AdminProductAdd() {
   };
 
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="rtl">
+    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
@@ -25,11 +25,11 @@ export default function AdminProductAdd() {
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4" />
-          بازگشت به فهرست محصولات
+          Back to Products List
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">افزودن محصول جدید</h1>
-          <p className="text-muted-foreground">محصول جدید خود را به فروشگاه اضافه کنید</p>
+          <h1 className="text-3xl font-bold tracking-tight">Add New Product</h1>
+          <p className="text-muted-foreground">Add your new product to the store</p>
         </div>
       </div>
 

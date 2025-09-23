@@ -21,12 +21,12 @@ import SEOPreview from "@/components/SEOPreview";
 import { type Product, insertProductSchema } from "@shared/schema";
 import { Plus, Trash2, Save, RotateCcw } from "lucide-react";
 
-// Persian-localized form validation schema based on shared schema
+// English-localized form validation schema based on shared schema
 const productFormSchema = insertProductSchema.extend({
-  title: z.string().min(1, "عنوان الزامی است"),
-  slug: z.string().min(1, "نام مستعار الزامی است").regex(/^[a-z0-9-]+$/, "نام مستعار باید URL-safe باشد"),
-  price: z.string().min(1, "قیمت الزامی است"),
-  categoryId: z.string().min(1, "دسته‌بندی الزامی است"),
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be URL-safe"),
+  price: z.string().min(1, "Price is required"),
+  categoryId: z.string().min(1, "Category is required"),
   featuredFeatures: z.array(z.string().min(1)).optional(),
   tags: z.array(z.string()).optional(),
 });
@@ -183,8 +183,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         queryClient.invalidateQueries({ queryKey: ['/api/products', product.id] });
       }
       toast({
-        title: "موفقیت",
-        description: isEditMode ? "محصول با موفقیت بروزرسانی شد!" : "محصول با موفقیت ایجاد شد!",
+        title: "Success",
+        description: isEditMode ? "Product updated successfully!" : "Product created successfully!",
       });
       if (!isEditMode) {
         form.reset();
@@ -193,8 +193,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     },
     onError: (error) => {
       toast({
-        title: "خطا",
-        description: `خطا در ${isEditMode ? 'بروزرسانی' : 'ایجاد'} محصول: ${error.message}`,
+        title: "Error",
+        description: `Error ${isEditMode ? 'updating' : 'creating'} product: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -209,17 +209,17 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold">
-            {isEditMode ? 'ویرایش محصول' : 'افزودن محصول جدید'}
+            {isEditMode ? 'Edit Product' : 'Add New Product'}
           </CardTitle>
           <div className="flex items-center gap-2">
             {autoSaveIndicator && (
               <Badge variant="secondary" className="animate-pulse">
-                در حال ذخیره خودکار...
+                Auto-saving...
               </Badge>
             )}
             {productMutation.isPending && (
               <Badge variant="default">
-                در حال پردازش...
+                Processing...
               </Badge>
             )}
           </div>
@@ -235,40 +235,40 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-basic"
               >
-                <span className="text-sm font-medium">اطلاعات پایه</span>
-                <span className="text-xs opacity-70">عنوان، نام مستعار، توضیحات</span>
+                <span className="text-sm font-medium">Basic Information</span>
+                <span className="text-xs opacity-70">Title, slug, description</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="pricing" 
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-pricing"
               >
-                <span className="text-sm font-medium">قیمت‌گذاری</span>
-                <span className="text-xs opacity-70">قیمت، تخفیف، موجودی</span>
+                <span className="text-sm font-medium">Pricing</span>
+                <span className="text-xs opacity-70">Price, discount, stock</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="content" 
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-content"
               >
-                <span className="text-sm font-medium">محتوا</span>
-                <span className="text-xs opacity-70">توضیحات کامل، تصاویر</span>
+                <span className="text-sm font-medium">Content</span>
+                <span className="text-xs opacity-70">Full description, images</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="featured" 
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-featured"
               >
-                <span className="text-sm font-medium">محصول ویژه</span>
-                <span className="text-xs opacity-70">تنظیمات ویژگی‌ها</span>
+                <span className="text-sm font-medium">Featured Product</span>
+                <span className="text-xs opacity-70">Feature settings</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="seo" 
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-seo"
               >
-                <span className="text-sm font-medium">پیش‌نمایش SEO</span>
-                <span className="text-xs opacity-70">بهینه‌سازی موتور جستجو</span>
+                <span className="text-sm font-medium">SEO Preview</span>
+                <span className="text-xs opacity-70">Search engine optimization</span>
               </TabsTrigger>
             </TabsList>
 
@@ -277,18 +277,18 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="title" className="text-sm font-medium">
-                    عنوان محصول *
+                    Product Title *
                   </Label>
                   <Input
                     id="title"
                     {...form.register("title")}
-                    placeholder="عنوان محصول را وارد کنید"
+                    placeholder="Enter product title"
                     className="mt-1"
                     data-testid="input-title"
-                    dir="rtl"
+                    dir="ltr"
                   />
                   {form.formState.errors.title && (
-                    <p className="text-sm text-red-600 mt-1" dir="rtl">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.title.message}
                     </p>
                   )}
@@ -296,7 +296,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
                 <div>
                   <Label htmlFor="slug" className="text-sm font-medium">
-                    نام مستعار (Slug) *
+                    Slug *
                   </Label>
                   <Input
                     id="slug"
@@ -306,11 +306,11 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     data-testid="input-slug"
                     dir="ltr"
                   />
-                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                    از عنوان به طور خودکار تولید می‌شود
+                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                    Auto-generated from title
                   </p>
                   {form.formState.errors.slug && (
-                    <p className="text-sm text-red-600 mt-1" dir="rtl">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.slug.message}
                     </p>
                   )}
@@ -319,26 +319,26 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
               <div>
                 <Label htmlFor="shortDescription" className="text-sm font-medium">
-                  توضیحات کوتاه
+                  Short Description
                 </Label>
                 <Textarea
                   id="shortDescription"
                   {...form.register("shortDescription")}
-                  placeholder="توضیحات کوتاه محصول (2-3 خط)"
+                  placeholder="Brief product description (2-3 lines)"
                   rows={3}
                   className="mt-1"
                   data-testid="textarea-short-description"
-                  dir="rtl"
+                  dir="ltr"
                 />
-                <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                  این متن زیر عنوان محصول نمایش داده می‌شود
+                <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                  This text will be displayed below the product title
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="buyLink" className="text-sm font-medium">
-                    لینک خرید
+                    Purchase Link
                   </Label>
                   <Input
                     id="buyLink"
@@ -350,7 +350,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     dir="ltr"
                   />
                   {form.formState.errors.buyLink && (
-                    <p className="text-sm text-red-600 mt-1" dir="rtl">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.buyLink.message}
                     </p>
                   )}
@@ -358,14 +358,14 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
                 <div>
                   <Label htmlFor="categoryId" className="text-sm font-medium">
-                    دسته‌بندی *
+                    Category *
                   </Label>
                   <Select 
                     value={form.watch("categoryId") || ""} 
                     onValueChange={(value) => form.setValue("categoryId", value)}
                   >
                     <SelectTrigger className="mt-1" data-testid="select-category">
-                      <SelectValue placeholder="دسته‌بندی را انتخاب کنید" />
+                      <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
@@ -376,7 +376,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </SelectContent>
                   </Select>
                   {form.formState.errors.categoryId && (
-                    <p className="text-sm text-red-600 mt-1" dir="rtl">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.categoryId.message}
                     </p>
                   )}
@@ -386,7 +386,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               {/* Tags Section */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <Label className="text-sm font-medium">برچسب‌ها</Label>
+                  <Label className="text-sm font-medium">Tags</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -395,7 +395,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     data-testid="button-add-tag"
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    افزودن برچسب
+                    Add Tag
                   </Button>
                 </div>
                 
@@ -404,10 +404,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     <div key={field.id} className="flex gap-2">
                       <Input
                         {...form.register(`tags.${index}` as const)}
-                        placeholder="برچسب جدید"
+                        placeholder="New tag"
                         className="flex-1"
                         data-testid={`input-tag-${index}`}
-                        dir="rtl"
+                        dir="ltr"
                       />
                       <Button
                         type="button"
@@ -421,8 +421,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </div>
                   ))}
                   {tags.fields.length === 0 && (
-                    <p className="text-sm text-gray-500 italic text-center py-4" dir="rtl">
-                      هنوز برچسبی اضافه نشده است. برای شروع روی "افزودن برچسب" کلیک کنید.
+                    <p className="text-sm text-gray-500 italic text-center py-4" dir="ltr">
+                      No tags added yet. Click "Add Tag" to get started.
                     </p>
                   )}
                 </div>
@@ -434,7 +434,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="price" className="text-sm font-medium">
-                    قیمت جدید *
+                    Current Price *
                   </Label>
                   <Input
                     id="price"
@@ -446,11 +446,11 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     data-testid="input-price"
                     dir="ltr"
                   />
-                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                    قیمت اصلی محصول
+                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                    Product's current price
                   </p>
                   {form.formState.errors.price && (
-                    <p className="text-sm text-red-600 mt-1" dir="rtl">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.price.message}
                     </p>
                   )}
@@ -458,7 +458,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
                 <div>
                   <Label htmlFor="originalPrice" className="text-sm font-medium">
-                    قیمت قبلی
+                    Original Price
                   </Label>
                   <Input
                     id="originalPrice"
@@ -470,8 +470,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     data-testid="input-original-price"
                     dir="ltr"
                   />
-                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                    قیمت قبل از تخفیف (اختیاری)
+                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                    Price before discount (optional)
                   </p>
                 </div>
               </div>
@@ -479,15 +479,15 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div>
                   <Label htmlFor="inStock" className="text-sm font-medium">
-                    وضعیت موجودی
+                    Stock Status
                   </Label>
-                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                    آیا این محصول در حال حاضر موجود است؟
+                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                    Is this product currently available?
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-sm ${!form.watch("inStock") ? "font-medium text-red-600" : "text-gray-500"}`}>
-                    ناموجود
+                    Out of Stock
                   </span>
                   <Switch
                     checked={form.watch("inStock") ?? true}
@@ -495,7 +495,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     data-testid="switch-in-stock"
                   />
                   <span className={`text-sm ${form.watch("inStock") ? "font-medium text-green-600" : "text-gray-500"}`}>
-                    موجود
+                    In Stock
                   </span>
                 </div>
               </div>
@@ -505,7 +505,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
             <TabsContent value="content" className="space-y-6 mt-6">
               <div>
                 <Label htmlFor="image" className="text-sm font-medium">
-                  تصویر اصلی محصول
+                  Product Main Image
                 </Label>
                 <Input
                   id="image"
@@ -516,44 +516,44 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   data-testid="input-image"
                   dir="ltr"
                 />
-                <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                  لینک تصویر اصلی محصول
+                <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                  URL to the product's main image
                 </p>
               </div>
 
               <div>
                 <Label className="text-sm font-medium block mb-3">
-                  توضیحات کامل محصول
+                  Full Product Description
                 </Label>
                 <RichTextEditor
                   value={form.watch("mainDescription")}
                   onChange={(value) => form.setValue("mainDescription", value)}
-                  placeholder="توضیحات کامل محصول را با امکان آپلود تصویر وارد کنید..."
+                  placeholder="Enter full product description with image upload support..."
                   className="min-h-[300px]"
                   productId={product?.id}
                   data-testid="rich-editor-main-description"
                 />
-                <p className="text-xs text-gray-500 mt-2" dir="rtl">
-                  از ویرایشگر متن غنی برای فرمت‌بندی و آپلود تصویر استفاده کنید
+                <p className="text-xs text-gray-500 mt-2" dir="ltr">
+                  Use the rich text editor for formatting and image uploads
                 </p>
               </div>
 
               {/* Backward compatibility description field */}
               <div>
                 <Label htmlFor="description" className="text-sm font-medium">
-                  توضیحات ساده (سازگاری با نسخه قبل)
+                  Simple Description (Legacy Compatibility)
                 </Label>
                 <Textarea
                   id="description"
                   {...form.register("description")}
-                  placeholder="توضیحات ساده محصول"
+                  placeholder="Simple product description"
                   rows={4}
                   className="mt-1"
                   data-testid="textarea-description"
-                  dir="rtl"
+                  dir="ltr"
                 />
-                <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                  این فیلد برای سازگاری با نسخه قبل نگه داشته شده است
+                <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                  This field is kept for backward compatibility
                 </p>
               </div>
             </TabsContent>
@@ -563,10 +563,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <div>
                   <Label htmlFor="featured" className="text-sm font-medium">
-                    محصول ویژه
+                    Featured Product
                   </Label>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1" dir="rtl">
-                    آیا این محصول به عنوان محصول ویژه نمایش داده شود؟
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1" dir="ltr">
+                    Should this product be displayed as a featured product?
                   </p>
                 </div>
                 <Switch
@@ -580,25 +580,25 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 <div className="space-y-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
                   <div>
                     <Label htmlFor="featuredTitle" className="text-sm font-medium">
-                      عنوان محصول ویژه
+                      Featured Product Title
                     </Label>
                     <Input
                       id="featuredTitle"
                       {...form.register("featuredTitle")}
-                      placeholder="عنوان ویژه (پیش‌فرض: عنوان اصلی محصول)"
+                      placeholder="Special title (default: main product title)"
                       className="mt-1"
                       data-testid="input-featured-title"
-                      dir="rtl"
+                      dir="ltr"
                     />
-                    <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                      در صورت خالی بودن، عنوان اصلی محصول استفاده می‌شود
+                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                      If left empty, the main product title will be used
                     </p>
                   </div>
 
                   {/* Featured Features Array */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <Label className="text-sm font-medium">ویژگی‌های منحصر به فرد</Label>
+                      <Label className="text-sm font-medium">Unique Features</Label>
                       <Button
                         type="button"
                         variant="outline"
@@ -607,7 +607,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                         data-testid="button-add-featured-feature"
                       >
                         <Plus className="h-4 w-4 mr-1" />
-                        افزودن ویژگی
+                        Add Feature
                       </Button>
                     </div>
                     
@@ -616,10 +616,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                         <div key={field.id} className="flex gap-2">
                           <Input
                             {...form.register(`featuredFeatures.${index}` as const)}
-                            placeholder="ویژگی جدید"
+                            placeholder="New feature"
                             className="flex-1"
                             data-testid={`input-featured-feature-${index}`}
-                            dir="rtl"
+                            dir="ltr"
                           />
                           <Button
                             type="button"
@@ -633,8 +633,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                         </div>
                       ))}
                       {featuredFeatures.fields.length === 0 && (
-                        <p className="text-sm text-gray-500 italic text-center py-4" dir="rtl">
-                          هنوز ویژگی‌ای اضافه نشده است. برای شروع روی "افزودن ویژگی" کلیک کنید.
+                        <p className="text-sm text-gray-500 italic text-center py-4" dir="ltr">
+                          No features added yet. Click "Add Feature" to get started.
                         </p>
                       )}
                     </div>
@@ -642,19 +642,19 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
                   <div>
                     <Label htmlFor="featuredAreaText" className="text-sm font-medium">
-                      متن ناحیه ویژه
+                      Featured Area Text
                     </Label>
                     <Textarea
                       id="featuredAreaText"
                       {...form.register("featuredAreaText")}
-                      placeholder="متن اضافی برای نمایش در بخش محصولات ویژه"
+                      placeholder="Additional text for display in the featured products section"
                       rows={3}
                       className="mt-1"
                       data-testid="textarea-featured-area-text"
-                      dir="rtl"
+                      dir="ltr"
                     />
-                    <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                      این متن در بخش محصولات ویژه نمایش داده می‌شود
+                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                      This text will be displayed in the featured products section
                     </p>
                   </div>
                 </div>
@@ -691,12 +691,12 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               {productMutation.isPending ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  در حال پردازش...
+                  Processing...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  {isEditMode ? 'بروزرسانی محصول' : 'ایجاد محصول'}
+                  {isEditMode ? 'Update Product' : 'Create Product'}
                 </>
               )}
             </Button>
@@ -710,7 +710,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               data-testid="button-reset"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              بازنشانی
+              Reset
             </Button>
             
             {onCancel && (
@@ -722,7 +722,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 className="flex-1 sm:flex-none sm:min-w-[120px]"
                 data-testid="button-cancel"
               >
-                انصراف
+                Cancel
               </Button>
             )}
           </div>

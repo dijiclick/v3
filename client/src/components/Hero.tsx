@@ -35,22 +35,18 @@ export default function Hero() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-countries">+۱۸۰</div>
+                <div className="text-2xl font-bold text-primary" data-testid="stat-orders">10k</div>
+                <div className="text-sm text-muted-foreground">سفارش</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary" data-testid="stat-users">2500</div>
+                <div className="text-sm text-muted-foreground">کاربر</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary" data-testid="stat-countries">5</div>
                 <div className="text-sm text-muted-foreground">کشور</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-users">+۱۰K</div>
-                <div className="text-sm text-muted-foreground">کاربر فعال</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-satisfaction">۹۸٪</div>
-                <div className="text-sm text-muted-foreground">رضایت کاربران</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-orders">+۱۰۰K</div>
-                <div className="text-sm text-muted-foreground">سفارش موفق</div>
               </div>
             </div>
           </div>

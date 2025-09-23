@@ -47,7 +47,6 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
             <div 
               className="text-blue-600 text-lg font-medium hover:underline cursor-pointer mb-2 leading-tight"
               data-testid="seo-title-preview"
-              dir="rtl"
             >
               {seoTitle}
             </div>
@@ -56,7 +55,6 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
             <div 
               className="text-gray-600 text-sm leading-relaxed"
               data-testid="seo-description-preview"
-              dir="rtl"
             >
               {seoDescription}
             </div>

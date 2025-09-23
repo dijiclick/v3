@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useProducts, useCategories } from "@/lib/content-service";
 
+// Utility function to format prices in Persian Toman
+const formatPersianPrice = (price: string | null): string => {
+  if (!price) return "0";
+  const numericPrice = parseFloat(price.replace(/[^\d.-]/g, ''));
+  return Math.round(numericPrice).toLocaleString('fa-IR');
+};
+
 export default function AdminDashboard() {
   const { data: products = [] } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -63,7 +70,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="ltr">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="admin-dashboard-title">
@@ -140,7 +147,7 @@ export default function AdminDashboard() {
                           {product.title}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          ${product.price} • {product.inStock ? 'In Stock' : 'Out of Stock'}
+                          {formatPersianPrice(product.price)} تومان • {product.inStock ? 'In Stock' : 'Out of Stock'}
                         </p>
                       </div>
                     </div>

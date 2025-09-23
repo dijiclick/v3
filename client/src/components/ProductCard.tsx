@@ -45,10 +45,9 @@ const renderRichText = (richText: any): string => {
 
 interface ProductCardProps {
   product: Product;
-  showShortDescription?: boolean;
 }
 
-export default function ProductCard({ product, showShortDescription = true }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const { toast } = useToast();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -179,7 +178,7 @@ export default function ProductCard({ product, showShortDescription = true }: Pr
             </h3>
             
             {/* Short Description */}
-            {showShortDescription && product.shortDescription && (
+            {product.shortDescription && (
               <div 
                 className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
                   !product.inStock ? 'text-gray-400' : ''
@@ -363,7 +362,7 @@ export default function ProductCard({ product, showShortDescription = true }: Pr
             </h3>
             
             {/* Short Description */}
-            {showShortDescription && product.shortDescription && (
+            {product.shortDescription && (
               <div 
                 className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
                   !product.inStock ? 'text-gray-400' : ''

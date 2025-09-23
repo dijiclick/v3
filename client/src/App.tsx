@@ -16,6 +16,8 @@ import ProductDetails from "@/pages/ProductDetails";
 import ProductCatalog from "@/components/ProductCatalog";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProducts from "@/pages/AdminProducts";
+import AdminProductAdd from "@/pages/AdminProductAdd";
+import AdminProductEdit from "@/pages/AdminProductEdit";
 import AdminCategories from "@/pages/AdminCategories";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
@@ -28,6 +30,8 @@ function AdminRouter() {
         <Switch>
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/products/add" component={AdminProductAdd} />
+          <Route path="/admin/products/edit/:id" component={AdminProductEdit} />
           <Route path="/admin/categories" component={AdminCategories} />
           <Route path="/admin/pages" component={AdminPages} />
           <Route path="/admin/settings" component={AdminSettings} />

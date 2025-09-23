@@ -1,25 +1,23 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Plus, Search, Edit, Trash2, Star, Package, X, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useProducts, useCategories } from "@/lib/content-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Product } from "@shared/schema";
-import ProductForm from "@/components/ProductForm";
 
 export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [, setLocation] = useLocation();
   
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
@@ -150,7 +148,7 @@ export default function AdminProducts() {
         </div>
         <Button 
           className="sm:w-auto" 
-          onClick={() => setShowAddForm(true)}
+          onClick={() => setLocation("/admin/products/add")}
           data-testid="add-product-button"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -207,7 +205,10 @@ export default function AdminProducts() {
                 : "Get started by creating your first product"}
             </p>
             {(!searchTerm && selectedCategory === "all") && (
-              <Button data-testid="add-first-product">
+              <Button 
+                onClick={() => setLocation("/admin/products/add")}
+                data-testid="add-first-product"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Your First Product
               </Button>
@@ -248,11 +249,11 @@ export default function AdminProducts() {
                     <div className="flex-1 min-w-0">
                       <h3 
                         className="font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
-                        onClick={() => setEditingProduct(product as any)}
+                        onClick={() => setLocation(`/admin/products/edit/${product.id}`)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            setEditingProduct(product as any);
+                            setLocation(`/admin/products/edit/${product.id}`);
                           }
                         }}
                         role="button"
@@ -323,7 +324,7 @@ export default function AdminProducts() {
                       size="sm" 
                       variant="secondary" 
                       className="h-8 w-8 p-0" 
-                      onClick={() => setEditingProduct(product as any)}
+                      onClick={() => setLocation(`/admin/products/edit/${product.id}`)}
                       data-testid={`edit-product-${product.id}`}
                     >
                       <Edit className="h-4 w-4" />
@@ -359,34 +360,6 @@ export default function AdminProducts() {
         </Card>
       )}
 
-      {/* Add Product Dialog */}
-      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-          </DialogHeader>
-          <ProductForm
-            onSuccess={() => setShowAddForm(false)}
-            onCancel={() => setShowAddForm(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Product Dialog */}
-      <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-          </DialogHeader>
-          {editingProduct && (
-            <ProductForm
-              product={editingProduct}
-              onSuccess={() => setEditingProduct(null)}
-              onCancel={() => setEditingProduct(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingProduct} onOpenChange={(open) => !open && setDeletingProduct(null)}>

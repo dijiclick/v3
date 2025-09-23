@@ -8,15 +8,13 @@ const SESSION_LIFETIME = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
 // Handle production password security
 if (process.env.NODE_ENV === 'production') {
-  if (!process.env.ADMIN_PASSWORD) {
-    // Keep admin123 as demo password for production demo purposes
-    console.warn('⚠️  SECURITY NOTICE: Using demo password "admin123" in production.');
-    console.warn('⚠️  For production use, set ADMIN_PASSWORD environment variable to a secure password.');
-    console.warn('⚠️  Demo password should only be used for demonstration purposes.');
-  } else if (process.env.ADMIN_PASSWORD === 'admin123') {
-    console.warn('⚠️  SECURITY WARNING: Demo password "admin123" is being used in production.');
-    console.warn('⚠️  This is only recommended for demonstration purposes.');
-    console.warn('⚠️  Please use a secure password for production deployment.');
+  if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin123') {
+    // Auto-generate secure password for production deployment
+    ADMIN_PASSWORD = crypto.randomBytes(16).toString('hex');
+    console.warn('⚠️  SECURITY NOTICE: Auto-generated admin password for production deployment.');
+    console.warn('⚠️  Admin password:', ADMIN_PASSWORD);
+    console.warn('⚠️  Please save this password - it will be needed for admin access.');
+    console.warn('⚠️  Set ADMIN_PASSWORD environment variable for custom password.');
   }
 }
 

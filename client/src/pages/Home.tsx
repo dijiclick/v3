@@ -101,6 +101,9 @@ export default function Home() {
 
   // Display limited products - only 4 initially unless showAllProducts is true
   const displayedProducts = useMemo(() => {
+    if (!filteredProducts || !Array.isArray(filteredProducts)) {
+      return [];
+    }
     if (showAllProducts || searchTerm || activeCategory !== "all") {
       return filteredProducts;
     }

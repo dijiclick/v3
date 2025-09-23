@@ -1,5 +1,109 @@
 import { Product, Category } from "@/types";
 
+// Define types for structured data schemas
+export type ProductSchema = {
+  "@context": string;
+  "@type": "Product";
+  name: string;
+  description: string;
+  image: string;
+  sku: string;
+  mpn: string;
+  brand: {
+    "@type": "Brand";
+    name: string;
+    alternateName: string;
+    url: string;
+  };
+  category: string;
+  offers: {
+    "@type": "Offer";
+    url: string;
+    priceCurrency: string;
+    price: number;
+    priceValidUntil: string;
+    availability: string;
+    itemCondition: string;
+    seller: {
+      "@type": "Organization";
+      name: string;
+      alternateName: string;
+      url: string;
+    };
+  };
+  aggregateRating?: {
+    "@type": "AggregateRating";
+    ratingValue: number;
+    reviewCount: number;
+    bestRating: string;
+    worstRating: string;
+  };
+  additionalProperty?: {
+    "@type": "PropertyValue";
+    name: string;
+    value: string;
+  }[];
+};
+
+export type BreadcrumbSchema = {
+  "@context": string;
+  "@type": "BreadcrumbList";
+  itemListElement: {
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item: string;
+  }[];
+};
+
+export type OrganizationSchema = {
+  "@context": string;
+  "@type": "Organization";
+  name: string;
+  alternateName: string;
+  url: string;
+  logo: string;
+  description: string;
+  address: {
+    "@type": "PostalAddress";
+    addressCountry: string;
+    addressLocality: string;
+  };
+  contactPoint: {
+    "@type": "ContactPoint";
+    contactType: string;
+    availableLanguage: string;
+  };
+  sameAs: string[];
+};
+
+export type WebSiteSchema = {
+  "@context": string;
+  "@type": "WebSite";
+  name: string;
+  alternateName: string;
+  url: string;
+  inLanguage: string;
+  description: string;
+  potentialAction: {
+    "@type": "SearchAction";
+    target: {
+      "@type": "EntryPoint";
+      urlTemplate: string;
+    };
+    "query-input": string;
+  };
+  publisher: {
+    "@type": "Organization";
+    name: string;
+    alternateName: string;
+    url: string;
+  };
+};
+
+// Union type for all structured data schemas
+export type StructuredDataSchema = ProductSchema | BreadcrumbSchema | OrganizationSchema | WebSiteSchema;
+
 export interface SEOMetadata {
   title: string;
   description: string;
@@ -12,6 +116,8 @@ export interface SEOMetadata {
   canonical?: string;
   robots?: string;
   structuredData?: object;
+  hreflang?: string;
+  ogLocale?: string;
 }
 
 export const updatePageSEO = (metadata: SEOMetadata) => {
@@ -45,6 +151,7 @@ export const updatePageSEO = (metadata: SEOMetadata) => {
   setMetaTag('og:title', metadata.ogTitle || metadata.title, true);
   setMetaTag('og:description', metadata.ogDescription || metadata.description, true);
   setMetaTag('og:type', metadata.ogType || 'website', true);
+  setMetaTag('og:locale', metadata.ogLocale || 'fa_IR', true);
   
   if (metadata.ogImage) {
     setMetaTag('og:image', metadata.ogImage, true);
@@ -96,50 +203,83 @@ export const updatePageSEO = (metadata: SEOMetadata) => {
   }
 };
 
-export const getProductStructuredData = (product: Product, category?: Category) => {
+export const getProductStructuredData = (product: Product, category?: Category): ProductSchema => {
   const baseUrl = window.location.origin;
   
+  // Use featured title if available, otherwise use regular title
+  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  
+  // Enhanced description for SEO - use shortDescription or truncated mainDescription  
+  const getProductDescription = () => {
+    if (product.shortDescription) return product.shortDescription;
+    if (product.mainDescription && typeof product.mainDescription === 'string') {
+      return product.mainDescription.replace(/<[^>]*>/g, '').substring(0, 160);
+    }
+    if (product.description) return product.description.substring(0, 160);
+    return `خرید ${productName} با کیفیت پریمیوم از لیمیت پس`;
+  };
+
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": product.title,
-    "description": product.description,
+    "name": productName,
+    "description": getProductDescription(),
     "image": product.image || `${baseUrl}/images/product-placeholder.jpg`,
     "sku": product.slug,
+    "mpn": product.slug, // Manufacturer Part Number
     "brand": {
       "@type": "Brand",
-      "name": "TechShop"
+      "name": "Limitpass",
+      "alternateName": "لیمیت پس",
+      "url": baseUrl
     },
+    "category": category?.name || "محصولات دیجیتال",
     "offers": {
       "@type": "Offer",
       "url": category ? `${baseUrl}/${category.slug}/${product.slug}` : `${baseUrl}`,
-      "priceCurrency": "USD",
-      "price": product.price,
+      "priceCurrency": "IRR",
+      "price": parseFloat(product.price),
+      "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
       "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition",
       "seller": {
         "@type": "Organization",
-        "name": "TechShop"
+        "name": "Limitpass",
+        "alternateName": "لیمیت پس",
+        "url": baseUrl
       }
     },
     "aggregateRating": product.rating && product.reviewCount ? {
       "@type": "AggregateRating",
-      "ratingValue": product.rating,
+      "ratingValue": parseFloat(product.rating),
       "reviewCount": product.reviewCount,
       "bestRating": "5",
       "worstRating": "1"
-    } : undefined
+    } : undefined,
+    // Add featured product special markup
+    ...(product.featured && {
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "محصول ویژه",
+          "value": "true"
+        }
+      ]
+    })
   };
 };
 
-export const getHomepageStructuredData = () => {
+export const getHomepageStructuredData = (): WebSiteSchema => {
   const baseUrl = window.location.origin;
   
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "TechShop - Premium Electronics & More",
+    "name": "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
+    "alternateName": "Limitpass",
     "url": baseUrl,
-    "description": "Discover premium electronics, home & garden items, fashion accessories, and sports equipment. Quality products with fast shipping and excellent customer service.",
+    "inLanguage": "fa-IR",
+    "description": "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -150,16 +290,114 @@ export const getHomepageStructuredData = () => {
     },
     "publisher": {
       "@type": "Organization",
-      "name": "TechShop",
+      "name": "Limitpass",
+      "alternateName": "لیمیت پس",
       "url": baseUrl
     }
   };
 };
 
 export const defaultSEO: SEOMetadata = {
-  title: "TechShop - Premium Electronics & More",
-  description: "Discover premium electronics, home & garden items, fashion accessories, and sports equipment. Quality products with fast shipping and excellent customer service.",
-  keywords: "electronics, tech gadgets, home garden, fashion accessories, sports equipment, online shopping",
-  ogTitle: "TechShop - Premium Electronics & More",
-  ogDescription: "Discover premium electronics, home & garden items, fashion accessories, and sports equipment. Quality products with fast shipping and excellent customer service."
+  title: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
+  description: "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس. دسترسی آسان و کیفیت پریمیوم",
+  keywords: "اشتراک مشترک، Netflix، Spotify، YouTube Premium، Adobe، قیمت ارزان، لیمیت پس، اشتراک ایرانی",
+  ogTitle: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
+  ogDescription: "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس",
+  ogLocale: "fa_IR",
+  hreflang: "fa"
+};
+
+// Generate breadcrumb navigation structured data
+export const getBreadcrumbStructuredData = (breadcrumbs: { name: string; url: string }[]): BreadcrumbSchema => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": breadcrumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": crumb.name,
+      "item": crumb.url
+    }))
+  };
+};
+
+// Generate Organization schema for Limitpass
+export const getOrganizationStructuredData = (): OrganizationSchema => {
+  const baseUrl = window.location.origin;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Limitpass",
+    "alternateName": "لیمیت پس",
+    "url": baseUrl,
+    "logo": `${baseUrl}/favicon.svg`,
+    "description": "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IR",
+      "addressLocality": "تهران"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": "Persian"
+    },
+    "sameAs": [
+      // Add social media profiles here when available
+    ]
+  };
+};
+
+// Enhanced meta description generation
+export const generateMetaDescription = (product: Product): string => {
+  // Use short description if available
+  if (product.shortDescription && product.shortDescription.length > 0) {
+    return product.shortDescription.length > 160 
+      ? product.shortDescription.substring(0, 157) + '...'
+      : product.shortDescription;
+  }
+  
+  // Fallback to main description (strip HTML)
+  if (product.mainDescription && typeof product.mainDescription === 'string') {
+    const stripped = product.mainDescription.replace(/<[^>]*>/g, '').trim();
+    return stripped.length > 160 
+      ? stripped.substring(0, 157) + '...'
+      : stripped;
+  }
+  
+  // Fallback to regular description
+  if (product.description && product.description.length > 0) {
+    return product.description.length > 160 
+      ? product.description.substring(0, 157) + '...'
+      : product.description;
+  }
+  
+  // Default description
+  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  return `خرید ${productName} با قیمت ویژه از لیمیت پس. دسترسی آسان و کیفیت پریمیوم`;
+};
+
+// Generate product page title with SEO optimization
+export const generateProductTitle = (product: Product): string => {
+  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  return `${productName} - خرید آنلاین | Limitpass`;
+};
+
+// Combined structured data for product pages (includes breadcrumbs + product + organization)
+export const getEnhancedProductStructuredData = (
+  product: Product, 
+  category?: Category,
+  breadcrumbs?: { name: string; url: string }[]
+): StructuredDataSchema | StructuredDataSchema[] => {
+  const schemas: StructuredDataSchema[] = [getProductStructuredData(product, category)];
+  
+  if (breadcrumbs && breadcrumbs.length > 0) {
+    schemas.push(getBreadcrumbStructuredData(breadcrumbs));
+  }
+  
+  // Add organization schema for brand recognition
+  schemas.push(getOrganizationStructuredData());
+  
+  return schemas.length === 1 ? schemas[0] : schemas;
 };

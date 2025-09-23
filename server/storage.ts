@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, users, products, categories, pages } from "@shared/schema";
+import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, type Image, type InsertImage, users, products, categories, pages, images } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
 
@@ -30,6 +30,12 @@ export interface IStorage {
   createPage(page: InsertPage): Promise<Page>;
   updatePage(id: string, page: Partial<InsertPage>): Promise<Page>;
   deletePage(id: string): Promise<boolean>;
+  
+  getImages(): Promise<Image[]>;
+  getImage(id: string): Promise<Image | undefined>;
+  getImagesByProductId(productId: string): Promise<Image[]>;
+  createImage(image: InsertImage): Promise<Image>;
+  deleteImage(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -64,38 +70,13 @@ export class DatabaseStorage implements IStorage {
 
   async getProductByCategoryAndSlug(categorySlug: string, productSlug: string): Promise<Product | undefined> {
     const [product] = await db
-      .select({
-        id: products.id,
-        title: products.title,
-        slug: products.slug,
-        description: products.description,
-        price: products.price,
-        originalPrice: products.originalPrice,
-        categoryId: products.categoryId,
-        image: products.image,
-        rating: products.rating,
-        reviewCount: products.reviewCount,
-        inStock: products.inStock,
-        featured: products.featured,
-        featuredAreaText: products.featuredAreaText,
-        layoutStyle: products.layoutStyle,
-        tags: products.tags,
-        heroSection: products.heroSection,
-        pricingPlans: products.pricingPlans,
-        screenshots: products.screenshots,
-        statisticsSection: products.statisticsSection,
-        benefitsSection: products.benefitsSection,
-        sidebarContent: products.sidebarContent,
-        footerCTA: products.footerCTA,
-        blogContent: products.blogContent,
-        createdAt: products.createdAt,
-      })
+      .select()
       .from(products)
       .innerJoin(categories, eq(products.categoryId, categories.id))
       .where(
         sql`${categories.slug} = ${categorySlug} AND ${products.slug} = ${productSlug}`
       );
-    return product || undefined;
+    return product?.products || undefined;
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
@@ -112,6 +93,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProduct(id: string): Promise<void> {
+    // First, delete all associated images from the database
+    const associatedImages = await this.getImagesByProductId(id);
+    if (associatedImages.length > 0) {
+      await db.delete(images).where(eq(images.productId, id));
+    }
+    
+    // Then delete the product
     const result = await db.delete(products).where(eq(products.id, id));
     if (result.rowCount === 0) {
       throw new Error(`Product with id ${id} not found`);
@@ -136,7 +124,7 @@ export class DatabaseStorage implements IStorage {
 
     // Create the duplicate product with new slug and without id/createdAt
     const duplicateData = {
-      title: `${originalProduct.title} (Copy)`,
+      title: `کپی از ${originalProduct.title}`,
       slug: newSlug,
       description: originalProduct.description,
       price: originalProduct.price,
@@ -251,6 +239,30 @@ export class DatabaseStorage implements IStorage {
 
   async deletePage(id: string): Promise<boolean> {
     const result = await db.delete(pages).where(eq(pages.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Images methods
+  async getImages(): Promise<Image[]> {
+    return await db.select().from(images);
+  }
+
+  async getImage(id: string): Promise<Image | undefined> {
+    const [image] = await db.select().from(images).where(eq(images.id, id));
+    return image || undefined;
+  }
+
+  async getImagesByProductId(productId: string): Promise<Image[]> {
+    return await db.select().from(images).where(eq(images.productId, productId));
+  }
+
+  async createImage(insertImage: InsertImage): Promise<Image> {
+    const [image] = await db.insert(images).values(insertImage).returning();
+    return image;
+  }
+
+  async deleteImage(id: string): Promise<boolean> {
+    const result = await db.delete(images).where(eq(images.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
 

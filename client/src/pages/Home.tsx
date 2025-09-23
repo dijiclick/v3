@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useSEO } from "@/hooks/use-seo";
-import { defaultSEO, getHomepageStructuredData } from "@/lib/seo";
+import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
 import { useProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
 
@@ -10,6 +10,7 @@ interface ServiceCard {
   name: string;
   type: string;
   price: string;
+  originalPrice: string | null;
   period: string;
   logo: string;
   features: string[];
@@ -17,57 +18,74 @@ interface ServiceCard {
   status: string;
   slug: string;
   categoryId: string | null;
+  // New schema fields
+  featured: boolean | null;
+  shortDescription: string | null;
+  buyLink: string | null;
+  featuredAreaText: string | null;
 }
+
+// Utility function to format prices in Persian Toman
+const formatPersianPrice = (price: string | null): string => {
+  if (!price) return "0";
+  const numericPrice = parseFloat(price.replace(/[^\d.-]/g, ''));
+  return Math.round(numericPrice).toLocaleString('fa-IR');
+};
 
 // Transform CMS Product to HomePage ServiceCard format
 function transformProductToServiceCard(product: Product, categories: Category[] = []) {
-  // Extract features from description or use default
-  const features = product.description 
-    ? product.description.split('\n').filter(line => line.trim().length > 0).slice(0, 5)
-    : [`دسترسی کامل به ${product.title}`, 'پشتیبانی فنی', 'کیفیت بالا'];
+  // Use featuredFeatures if available, otherwise extract from description or use default
+  const features = product.featured && product.featuredFeatures && product.featuredFeatures.length > 0
+    ? product.featuredFeatures.slice(0, 5)
+    : product.description 
+      ? product.description.split('\n').filter(line => line.trim().length > 0).slice(0, 5)
+      : [`دسترسی کامل به ${product.featuredTitle || product.title}`, 'پشتیبانی فنی', 'کیفیت بالا'];
 
-  // Default logo based on product title
+  // Default logo based on product title (use featuredTitle if available)
+  const titleToCheck = (product.featured && product.featuredTitle ? product.featuredTitle : product.title).toLowerCase();
   let logo = '📦';
-  if (product.title.toLowerCase().includes('chatgpt') || product.title.includes('جی‌پی‌تی')) logo = '🤖';
-  else if (product.title.toLowerCase().includes('netflix') || product.title.includes('نتفلیکس')) logo = '🎬';
-  else if (product.title.toLowerCase().includes('spotify') || product.title.includes('اسپاتیفای')) logo = '🎵';
-  else if (product.title.toLowerCase().includes('youtube') || product.title.includes('یوتیوب')) logo = '📺';
-  else if (product.title.toLowerCase().includes('adobe') || product.title.includes('ادوبی')) logo = '🎨';
-
-  // Convert price to Persian format
-  const numericPrice = parseFloat(product.price.replace(/[^\d.-]/g, ''));
-  const persianPrice = Math.round(numericPrice); // Keep original price
+  if (titleToCheck.includes('chatgpt') || titleToCheck.includes('جی‌پی‌تی')) logo = '🤖';
+  else if (titleToCheck.includes('netflix') || titleToCheck.includes('نتفلیکس')) logo = '🎬';
+  else if (titleToCheck.includes('spotify') || titleToCheck.includes('اسپاتیفای')) logo = '🎵';
+  else if (titleToCheck.includes('youtube') || titleToCheck.includes('یوتیوب')) logo = '📺';
+  else if (titleToCheck.includes('adobe') || titleToCheck.includes('ادوبی')) logo = '🎨';
 
   // Determine category and type based on product content
   let category = "software";
   let type = "سرویس پریمیوم";
   
-  if (product.title.includes('جی‌پی‌تی') || product.title.toLowerCase().includes('chatgpt')) {
+  if (titleToCheck.includes('جی‌پی‌تی') || titleToCheck.includes('chatgpt')) {
     category = "ai";
     type = "هوش مصنوعی";
-  } else if (product.title.includes('نتفلیکس') || product.title.includes('یوتیوب') || product.title.includes('آمازون')) {
+  } else if (titleToCheck.includes('نتفلیکس') || titleToCheck.includes('یوتیوب') || titleToCheck.includes('آمازون')) {
     category = "svod"; 
     type = "پلتفرم ویدئو";
-  } else if (product.title.includes('اسپاتیفای') || product.title.includes('اپل موزیک')) {
+  } else if (titleToCheck.includes('اسپاتیفای') || titleToCheck.includes('اپل موزیک')) {
     category = "music";
     type = "پلتفرم موسیقی";
-  } else if (product.title.includes('ادوبی')) {
+  } else if (titleToCheck.includes('ادوبی')) {
     category = "creative";
     type = "نرم‌افزار طراحی";
   }
 
   return {
     id: product.id,
-    name: product.title,
+    name: product.featured && product.featuredTitle ? product.featuredTitle : product.title,
     type,
-    price: persianPrice.toLocaleString('fa-IR'),
+    price: formatPersianPrice(product.price),
+    originalPrice: product.originalPrice ? formatPersianPrice(product.originalPrice) : null,
     period: "تومان / ماه",
     logo,
     features,
     category,
     status: product.inStock ? "active" : "inactive",
     slug: product.slug,
-    categoryId: product.categoryId
+    categoryId: product.categoryId,
+    // New featured fields
+    featured: product.featured,
+    shortDescription: product.shortDescription,
+    buyLink: product.buyLink,
+    featuredAreaText: product.featuredAreaText
   };
 }
 
@@ -130,12 +148,20 @@ export default function Home() {
 
   useSEO({
     title: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
-    description: "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس",
-    keywords: "اشتراک مشترک، Netflix، Spotify، YouTube Premium، Adobe، قیمت ارزان",
+    description: "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس. دسترسی آسان و کیفیت پریمیوم",
+    keywords: "اشتراک مشترک، Netflix، Spotify، YouTube Premium، Adobe، قیمت ارزان، لیمیت پس، اشتراک ایرانی",
+    ogTitle: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
+    ogDescription: "خرید اشتراک مشترک Netflix, Spotify, YouTube Premium, Adobe و سرویس‌های دیگر با قیمت پایین‌تر از لیمیت پس",
     ogUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+    ogType: 'website',
+    ogLocale: 'fa_IR',
     canonical: typeof window !== 'undefined' ? window.location.href : undefined,
     robots: 'index, follow',
-    structuredData: getHomepageStructuredData()
+    hreflang: 'fa',
+    structuredData: [
+      getHomepageStructuredData(),
+      getOrganizationStructuredData()
+    ]
   });
 
   // Memoize the filtered services to prevent unnecessary re-computations
@@ -280,19 +306,47 @@ export default function Home() {
                       <h3 className={`text-lg font-bold ${
                         service.status === 'inactive' ? 'text-gray-800' : 'text-white'
                       }`} data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
-                      <p className={`text-sm ${
+                      
+                      {/* Short description if available */}
+                      {service.shortDescription && (
+                        <p className={`text-xs mt-1 line-clamp-2 ${
+                          service.status === 'inactive' ? 'text-gray-600' : 'text-white/70'
+                        }`} data-testid={`text-service-short-description-${service.id}`}>
+                          {service.shortDescription}
+                        </p>
+                      )}
+                      
+                      <p className={`text-sm mt-1 ${
                         service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
                       }`}>{service.type}</p>
                     </div>
                   </div>
                   
                   <div className="text-center mt-auto">
+                    {/* Show original price crossed out if available */}
+                    {service.originalPrice && parseFloat(service.originalPrice.replace(/[^\d]/g, '')) > parseFloat(service.price.replace(/[^\d]/g, '')) && (
+                      <div className={`text-sm line-through mb-1 ${
+                        service.status === 'inactive' ? 'text-gray-600' : 'text-white/60'
+                      }`}>
+                        {service.originalPrice} تومان
+                      </div>
+                    )}
+                    
                     <div className={`text-4xl font-black leading-none ${
                       service.status === 'inactive' ? 'text-gray-800' : 'text-white'
                     }`} data-testid={`text-service-price-${service.id}`}>{service.price}</div>
                     <div className={`text-base mt-1 ${
                       service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
                     }`}>{service.period}</div>
+                    
+                    {/* Discount badge if applicable */}
+                    {service.originalPrice && parseFloat(service.originalPrice.replace(/[^\d]/g, '')) > parseFloat(service.price.replace(/[^\d]/g, '')) && (
+                      <div className="mt-2">
+                        <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
+                          {Math.round(((parseFloat(service.originalPrice.replace(/[^\d]/g, '')) - parseFloat(service.price.replace(/[^\d]/g, ''))) / parseFloat(service.originalPrice.replace(/[^\d]/g, ''))) * 100)}% تخفیف
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -317,14 +371,30 @@ export default function Home() {
                       ناموجود
                     </button>
                   ) : (
-                    <a 
-                      href={getProductUrl(service)}
-                      className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
-                      data-testid={`button-purchase-${service.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      خرید اشتراک
-                    </a>
+                    <>
+                      {/* Primary Buy Now Button (using buyLink if available) */}
+                      {service.buyLink ? (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(service.buyLink || '', '_blank', 'noopener,noreferrer');
+                          }}
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center mb-2"
+                          data-testid={`button-buy-now-${service.id}`}
+                        >
+                          خرید فوری
+                        </button>
+                      ) : (
+                        <a 
+                          href={getProductUrl(service)}
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
+                          data-testid={`button-purchase-${service.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          خرید اشتراک
+                        </a>
+                      )}
+                    </>
                   )}
                   
                   <div className="text-center mt-3">

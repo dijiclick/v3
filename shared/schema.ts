@@ -22,6 +22,11 @@ export const products = pgTable("products", {
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
+  shortDescription: text("short_description"),
+  buyLink: text("buy_link"),
+  mainDescription: jsonb("main_description"),
+  featuredTitle: text("featured_title"),
+  featuredFeatures: text("featured_features").array(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   originalPrice: decimal("original_price", { precision: 10, scale: 2 }),
   categoryId: varchar("category_id").references(() => categories.id),
@@ -60,6 +65,17 @@ export const pages = pgTable("pages", {
   seoKeywords: text("seo_keywords").array(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const images = pgTable("images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(),
+  url: text("url").notNull(),
+  productId: varchar("product_id").references(() => products.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -166,6 +182,11 @@ export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
 }).extend({
+  shortDescription: z.string().optional(),
+  buyLink: z.string().url().optional().or(z.literal("")),
+  mainDescription: z.any().optional(), // Rich text JSON format
+  featuredTitle: z.string().optional(),
+  featuredFeatures: z.array(z.string().min(1)).optional(),
   featuredAreaText: z.string().optional(),
   layoutStyle: z.string().optional().default("chatgpt"),
   heroSection: heroSectionSchema,
@@ -177,6 +198,18 @@ export const insertProductSchema = createInsertSchema(products).omit({
   footerCTA: footerCTASchema,
 });
 
+export const insertImageSchema = createInsertSchema(images).omit({
+  id: true,
+  uploadedAt: true,
+}).extend({
+  filename: z.string().min(1),
+  originalName: z.string().min(1),
+  mimeType: z.string().regex(/^(image|video|audio|application)\//),
+  size: z.number().positive(),
+  url: z.string().url(),
+  productId: z.string().optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -185,6 +218,8 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertPage = z.infer<typeof insertPageSchema>;
 export type Page = typeof pages.$inferSelect;
+export type InsertImage = z.infer<typeof insertImageSchema>;
+export type Image = typeof images.$inferSelect;
 
 // Cart types for frontend
 export const cartItemSchema = z.object({

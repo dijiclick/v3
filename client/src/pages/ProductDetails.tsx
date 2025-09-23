@@ -1,10 +1,52 @@
 import { useRoute } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSEO } from "@/hooks/use-seo";
-import { useProductByCategoryAndSlug } from "@/lib/content-service";
+import { useProductByCategoryAndSlug, useCategories } from "@/lib/content-service";
 import { cartManager } from "@/lib/cart";
+import { 
+  generateProductTitle, 
+  generateMetaDescription, 
+  getEnhancedProductStructuredData 
+} from "@/lib/seo";
+import { ExternalLink, ShoppingCart, Heart, Star, CheckCircle, Home, ChevronRight } from "lucide-react";
+
+// Utility function to format prices in Persian Toman
+const formatPersianPrice = (price: string | null): string => {
+  if (!price) return "0";
+  const numericPrice = parseFloat(price.replace(/[^\d.-]/g, ''));
+  return Math.round(numericPrice).toLocaleString('fa-IR');
+};
+
+// Utility function to render rich text content
+const renderRichText = (richText: any): string => {
+  if (!richText) return '';
+  
+  // Handle different possible structures of rich text content
+  if (typeof richText === 'string') {
+    return richText;
+  }
+  
+  // If it's a structured rich text object, convert to HTML
+  if (richText && typeof richText === 'object') {
+    // Handle Sanity Portable Text or similar structures
+    if (Array.isArray(richText)) {
+      return richText.map((block: any) => {
+        if (block.style === 'h1') return `<h1>${block.children?.[0]?.text || ''}</h1>`;
+        if (block.style === 'h2') return `<h2>${block.children?.[0]?.text || ''}</h2>`;
+        if (block.style === 'h3') return `<h3>${block.children?.[0]?.text || ''}</h3>`;
+        return `<p>${block.children?.[0]?.text || ''}</p>`;
+      }).join('');
+    }
+    
+    // Fallback for other object structures
+    return JSON.stringify(richText);
+  }
+  
+  return '';
+};
 
 export default function ProductDetails() {
   const [, params] = useRoute("/:categorySlug/:productSlug");
@@ -13,16 +55,37 @@ export default function ProductDetails() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const { data: product, isLoading, error } = useProductByCategoryAndSlug(params?.categorySlug || "", params?.productSlug || "");
+  const { data: categories = [] } = useCategories();
 
-  // Dynamic SEO for product pages
+  // Get current category
+  const currentCategory = categories.find(cat => cat.slug === params?.categorySlug);
+
+  // Enhanced SEO for product pages
   useSEO(
     product ? {
-      title: `${product.title} - لیمیت پس`,
-      description: product.description || `خرید ${product.title} با قیمت ویژه از لیمیت پس. دسترسی آسان و کیفیت پریمیوم`,
-      keywords: `${product.title}, خرید اشتراک, لیمیت پس, ${product.tags?.join(', ') || ''}`,
+      title: generateProductTitle(product),
+      description: generateMetaDescription(product),
+      keywords: `${product.featuredTitle || product.title}, خرید اشتراک, لیمیت پس, ${product.tags?.join(', ') || ''}`,
+      ogTitle: generateProductTitle(product),
+      ogDescription: generateMetaDescription(product),
+      ogImage: product.image,
+      ogUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+      ogType: 'product',
+      canonical: typeof window !== 'undefined' ? window.location.href : undefined,
+      robots: 'index, follow',
+      structuredData: getEnhancedProductStructuredData(
+        product, 
+        currentCategory,
+        // Breadcrumb navigation
+        [
+          { name: 'خانه', url: '/' },
+          { name: currentCategory?.name || 'محصولات', url: `/${currentCategory?.slug || 'products'}` },
+          { name: product.featuredTitle || product.title, url: `/${currentCategory?.slug}/${product.slug}` }
+        ]
+      )
     } : {
-      title: "Product - لیمیت پس",
-      description: "Loading product details...",
+      title: "محصول - لیمیت پس",
+      description: "در حال بارگذاری جزئیات محصول...",
     }
   );
 
@@ -35,15 +98,30 @@ export default function ProductDetails() {
     
     cartManager.addItem({
       id: product.id,
-      title: product.title,
+      title: product.featuredTitle || product.title,
       price: parseFloat(product.price),
       image: product.image || undefined,
     });
 
     toast({
-      title: "Added to Cart",
-      description: `${product.title} has been added to your cart.`,
+      title: "افزوده شد",
+      description: `${product.featuredTitle || product.title} به سبد خرید افزوده شد.`,
     });
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    
+    if (product.buyLink) {
+      window.open(product.buyLink, '_blank', 'noopener,noreferrer');
+    } else {
+      // Fallback to cart if no buy link
+      handleAddToCart();
+      toast({
+        title: "توجه",
+        description: "لینک خرید مستقیم موجود نیست. محصول به سبد خرید اضافه شد.",
+      });
+    }
   };
 
   // Default FAQs for products
@@ -112,41 +190,120 @@ export default function ProductDetails() {
     <div className="min-h-screen bg-gray-50 font-vazir" dir="rtl">
       <main className="max-w-7xl mx-auto px-5 py-10">
         
+        {/* Breadcrumb Navigation */}
+        {product && currentCategory && (
+          <nav className="flex items-center gap-2 text-sm mb-6" data-testid="breadcrumb-navigation">
+            <a 
+              href="/" 
+              className="text-gray-600 hover:text-gray-800 flex items-center gap-1"
+              data-testid="breadcrumb-home"
+            >
+              <Home className="h-4 w-4" />
+              <span>خانه</span>
+            </a>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <a 
+              href={`/${currentCategory.slug}`} 
+              className="text-gray-600 hover:text-gray-800"
+              data-testid="breadcrumb-category"
+            >
+              {currentCategory.name}
+            </a>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+            <span 
+              className="text-gray-800 font-medium"
+              data-testid="breadcrumb-product"
+            >
+              {product.featuredTitle || product.title}
+            </span>
+          </nav>
+        )}
+        
         {/* Product Header */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 mb-16 bg-white p-10 rounded-3xl shadow-lg">
           <div className="text-right">
-            <h1 className="text-5xl font-bold text-gray-800 mb-6" data-testid="product-title">
-              {product.title}
+            <h1 className="text-5xl font-bold text-gray-800 mb-4" data-testid="product-title">
+              {product.featured && product.featuredTitle ? product.featuredTitle : product.title}
             </h1>
+            
+            {/* Short Description */}
+            {product.shortDescription && (
+              <div className="mb-6">
+                <p className="text-xl text-gray-700 font-medium leading-relaxed" data-testid="product-short-description">
+                  {product.shortDescription}
+                </p>
+              </div>
+            )}
+            
+            {/* Featured Badge */}
+            {product.featured && (
+              <div className="mb-6">
+                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold px-4 py-2 text-sm rounded-lg shadow-lg">
+                  محصول ویژه
+                </Badge>
+              </div>
+            )}
+            
             <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               {getProductIcon()}
             </div>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              {product.description || `دسترسی به ${product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
-            </p>
             
-            {/* Features List */}
+            {/* Main Description - fallback to description if mainDescription not available */}
+            <div className="mb-8">
+              {product.mainDescription ? (
+                <div 
+                  className="prose prose-lg max-w-none text-right leading-relaxed text-gray-600"
+                  dangerouslySetInnerHTML={{ __html: renderRichText(product.mainDescription) }}
+                  data-testid="product-main-description"
+                />
+              ) : (
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  {product.description || `دسترسی به ${product.featuredTitle || product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
+                </p>
+              )}
+            </div>
+            
+            {/* Features List - Use featuredFeatures if available, otherwise default */}
             <ul className="space-y-3 mb-8">
-              <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
-                <span>دسترسی کامل به {product.title}</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
-                <span>کیفیت پریمیوم و سرعت بالا</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
-                <span>پشتیبانی ۲۴/۷</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
-                <span>تضمین کیفیت و امنیت</span>
-              </li>
+              {product.featured && product.featuredFeatures && product.featuredFeatures.length > 0 ? (
+                // Display featured features
+                product.featuredFeatures.map((feature: string, index: number) => (
+                  <li key={index} className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <span>{feature}</span>
+                  </li>
+                ))
+              ) : (
+                // Default features
+                <>
+                  <li className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <span>دسترسی کامل به {product.featuredTitle || product.title}</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <span>کیفیت پریمیوم و سرعت بالا</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <span>پشتیبانی ۲۴/۷</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-gray-700">
+                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <span>تضمین کیفیت و امنیت</span>
+                  </li>
+                </>
+              )}
               {product.inStock && (
-                <li className="flex items-center gap-3 text-gray-700">
-                  <span className="text-green-500 font-bold text-lg">✓</span>
+                <li className="flex items-center gap-3 text-green-700 font-medium">
+                  <CheckCircle className="text-green-600 h-5 w-5" />
                   <span>موجود و آماده تحویل فوری</span>
+                </li>
+              )}
+              {!product.inStock && (
+                <li className="flex items-center gap-3 text-red-600 font-medium">
+                  <div className="text-red-500 h-5 w-5">✗</div>
+                  <span>موقتاً ناموجود</span>
                 </li>
               )}
             </ul>
@@ -160,46 +317,127 @@ export default function ProductDetails() {
               </div>
             </div>
             
-            {/* Price Section */}
-            <div className="bg-gray-50 p-5 rounded-xl mb-6 text-right">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">قیمت:</span>
-                <span className="text-gray-600 line-through">{product.originalPrice || `${parseInt(product.price) + 50000} تومان`}</span>
-              </div>
-              {product.originalPrice && (
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">تخفیف:</span>
-                  <span className="text-green-600">-{parseInt(product.originalPrice) - parseInt(product.price)} تومان</span>
+            {/* Enhanced Price Section */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl mb-6 text-right border">
+              {/* Original Price (if available) */}
+              {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
+                <div className="mb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">قیمت اصلی:</span>
+                    <span className="text-gray-500 dark:text-gray-400 line-through text-lg font-medium">
+                      {formatPersianPrice(product.originalPrice)} تومان
+                    </span>
+                  </div>
                 </div>
               )}
-              <div className="border-t border-gray-300 pt-3 mt-3">
+              
+              {/* Discount Amount */}
+              {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
+                <div className="mb-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">میزان تخفیف:</span>
+                    <span className="text-green-600 dark:text-green-400 font-bold">
+                      -{(parseFloat(product.originalPrice) - parseFloat(product.price)).toLocaleString('fa-IR')} تومان
+                      ({Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)}%)
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Final Price */}
+              <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800">قیمت نهایی:</span>
-                  <span className="text-2xl font-bold text-red-500">
-                    {parseInt(product.price).toLocaleString('fa-IR')} تومان
-                  </span>
+                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">قیمت نهایی:</span>
+                  <div className="text-left">
+                    <span className="text-3xl font-bold text-green-600 dark:text-green-500">
+                      {formatPersianPrice(product.price)}
+                    </span>
+                    <span className="text-lg text-gray-600 dark:text-gray-400 mr-2">تومان</span>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <Button 
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-              className={`w-full py-4 rounded-xl font-bold text-lg transition-all mb-5 ${
-                !product.inStock 
-                  ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
-                  : 'bg-red-500 text-white hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg'
-              }`}
-              data-testid="add-to-cart-btn"
-            >
-              {product.inStock ? 'خرید و دریافت فوری' : 'ناموجود - غیرقابل خرید'}
-            </Button>
+            {/* Enhanced Purchase Buttons */}
+            <div className="space-y-3 mb-6">
+              {/* Primary Buy Now Button */}
+              <Button 
+                onClick={handleBuyNow}
+                disabled={!product.inStock}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
+                  !product.inStock 
+                    ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
+                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-1 hover:shadow-lg'
+                }`}
+                data-testid="buy-now-btn"
+              >
+                {!product.inStock ? (
+                  'ناموجود - غیرقابل خرید'
+                ) : (
+                  <>
+                    <ExternalLink className="h-5 w-5 mr-2" />
+                    {product.buyLink ? 'خرید فوری' : 'خرید و دریافت فوری'}
+                  </>
+                )}
+              </Button>
+              
+              {/* Secondary Add to Cart Button */}
+              {product.inStock && (
+                <Button 
+                  onClick={handleAddToCart}
+                  variant="outline"
+                  className="w-full py-3 rounded-xl font-medium text-base transition-all hover:-translate-y-0.5 hover:shadow-md border-gray-300 dark:border-border"
+                  data-testid="add-to-cart-btn"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  افزودن به سبد خرید
+                </Button>
+              )}
+            </div>
             
             <div className="text-center">
-              <span className="text-gray-500 text-sm">✓ تضمین کیفیت و بازگشت وجه</span>
+              <span className="text-gray-500 dark:text-gray-400 text-sm">✓ تضمین کیفیت و بازگشت وجه</span>
             </div>
           </div>
         </div>
+
+        {/* Featured Product Section */}
+        {product.featured && (product.featuredAreaText || (product.featuredFeatures && product.featuredFeatures.length > 0)) && (
+          <div className="mb-16 bg-gradient-to-r from-purple-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg" data-testid="featured-product-section">
+            <div className="text-center mb-8">
+              <Badge className="bg-white/20 text-white font-bold px-4 py-2 text-base rounded-lg mb-4">
+                🌟 محصول ویژه
+              </Badge>
+              <h2 className="text-3xl font-bold mb-4">
+                {product.featuredTitle || product.title}
+              </h2>
+              {product.featuredAreaText && (
+                <p className="text-lg text-purple-100 leading-relaxed max-w-3xl mx-auto" data-testid="featured-area-text">
+                  {product.featuredAreaText}
+                </p>
+              )}
+            </div>
+            
+            {/* Featured Features Grid */}
+            {product.featuredFeatures && product.featuredFeatures.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="featured-features-grid">
+                {product.featuredFeatures.map((feature: string, index: number) => (
+                  <div key={index} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="font-semibold text-white">{feature}</span>
+                    </div>
+                    <div className="text-sm text-purple-100 opacity-90">
+                      ویژگی منحصر به فرد این محصول
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Content Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_1.5fr] gap-10 mb-16">

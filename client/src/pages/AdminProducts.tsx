@@ -47,15 +47,15 @@ export default function AdminProducts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       toast({
-        title: "Success",
-        description: "Product deleted successfully!",
+        title: "موفق",
+        description: "محصول با موفقیت حذف شد!",
       });
       setDeletingProduct(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: `Failed to delete product: ${error.message}`,
+        title: "خطا",
+        description: "خطا در حذف محصول",
         variant: "destructive",
       });
     },
@@ -89,14 +89,14 @@ export default function AdminProducts() {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
       toast({
-        title: "Success",
-        description: "Product duplicated successfully!",
+        title: "موفق",
+        description: "محصول با موفقیت کپی شد!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: `Failed to duplicate product: ${error.message}`,
+        title: "خطا",
+        description: `خطا در کپی کردن محصول: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -334,6 +334,8 @@ export default function AdminProducts() {
                       className="h-8 w-8 p-0" 
                       onClick={() => handleDuplicateProduct(product as any)}
                       disabled={duplicateMutation.isPending}
+                      title="کپی محصول"
+                      aria-label="کپی محصول"
                       data-testid={`duplicate-product-${product.id}`}
                     >
                       <Copy className="h-4 w-4" />
@@ -343,6 +345,8 @@ export default function AdminProducts() {
                       variant="destructive" 
                       className="h-8 w-8 p-0" 
                       onClick={() => handleDeleteProduct(product as any)}
+                      title="حذف محصول"
+                      aria-label="حذف محصول"
                       data-testid={`delete-product-${product.id}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -388,20 +392,20 @@ export default function AdminProducts() {
       <AlertDialog open={!!deletingProduct} onOpenChange={(open) => !open && setDeletingProduct(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogTitle>حذف محصول</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingProduct?.title}"? This action cannot be undone.
+              آیا مطمئن هستید که می‌خواهید محصول "{deletingProduct?.title}" را حذف کنید؟ این عمل قابل بازگشت نیست.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>لغو</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
               data-testid="confirm-delete-product"
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "در حال حذف..." : "حذف"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

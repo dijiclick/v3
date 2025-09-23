@@ -264,6 +264,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Images API endpoint for rich text editor
+  app.post("/api/images", requireAdmin, upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      const { productId } = req.body;
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      // Save image metadata to database
+      const imageData = {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        url: imageUrl,
+        productId: productId || undefined,
+      };
+      
+      const savedImage = await storage.createImage(imageData);
+      
+      res.json({ 
+        success: true, 
+        id: savedImage.id,
+        url: imageUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        message: "Image uploaded successfully" 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error uploading image: " + error.message });
+    }
+  });
+
+  app.get("/api/images", async (req, res) => {
+    try {
+      const images = await storage.getImages();
+      res.json(images);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching images: " + error.message });
+    }
+  });
+
+  app.get("/api/images/:id", async (req, res) => {
+    try {
+      const image = await storage.getImage(req.params.id);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.json(image);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching image: " + error.message });
+    }
+  });
+
+  app.delete("/api/images/:id", requireAdmin, async (req, res) => {
+    try {
+      const imageId = req.params.id;
+      const deleted = await storage.deleteImage(imageId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting image: " + error.message });
+    }
+  });
+
   // Serve uploaded files statically
   app.use('/uploads', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');

@@ -48,10 +48,15 @@ function CMSContentRenderer({ content, className = "" }: { content: any; classNa
 }
 
 export default function UserGuide() {
-  // Fetch page content by slug
+  // Fetch page content by slug - gracefully handle 404 errors
   const { data: page, isLoading, error } = useQuery<Page>({
     queryKey: ['/api/pages/slug/userguide'],
+    retry: false, // Don't retry on 404
+    throwOnError: false // Don't throw on 404
   });
+
+  // If error is 404, treat as no CMS content (not a real error)
+  const isCMSError = error && !((error as any)?.response?.status === 404);
 
   // Set SEO data from CMS or fallbacks
   useSEO({
@@ -74,8 +79,8 @@ export default function UserGuide() {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state - only show for real errors, not missing CMS pages
+  if (isCMSError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir flex items-center justify-center" data-testid="cms-page-userguide-error">
         <Card className="p-8">

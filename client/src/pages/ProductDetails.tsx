@@ -184,10 +184,15 @@ export default function ProductDetails() {
             
             <Button 
               onClick={handleAddToCart}
-              className="w-full bg-red-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-red-600 transition-all hover:-translate-y-1 hover:shadow-lg mb-5"
+              disabled={!product.inStock}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all mb-5 ${
+                !product.inStock 
+                  ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
+                  : 'bg-red-500 text-white hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg'
+              }`}
               data-testid="add-to-cart-btn"
             >
-              خرید و دریافت فوری
+              {product.inStock ? 'خرید و دریافت فوری' : 'ناموجود - غیرقابل خرید'}
             </Button>
             
             <div className="text-center">

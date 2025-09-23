@@ -62,12 +62,16 @@ export default function ProductCard({ product }: ProductCardProps) {
   // Render loading state or non-clickable card until we have a valid URL
   if (!productUrl || categoriesLoading) {
     return (
-      <div className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow group" data-testid={`product-card-${product.id}`}>
+      <div className={`bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow group ${
+        !product.inStock ? 'opacity-75 bg-gray-100 dark:bg-gray-800' : ''
+      }`} data-testid={`product-card-${product.id}`}>
         <div className="relative aspect-square overflow-hidden">
           <img 
             src={product.image || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400"} 
             alt={product.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+              !product.inStock ? 'opacity-60 grayscale' : ''
+            }`}
             data-testid={`product-image-${product.id}`}
           />
           
@@ -97,8 +101,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               </Badge>
             )}
             {!product.inStock && (
-              <Badge variant="secondary" data-testid={`out-of-stock-badge-${product.id}`}>
-                Out of Stock
+              <Badge 
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1 text-sm" 
+                data-testid={`unavailable-badge-${product.id}`}
+              >
+                ناموجود
               </Badge>
             )}
           </div>
@@ -106,7 +113,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         <div className="p-4">
           <div className="mb-2">
-            <h3 className="font-semibold text-foreground line-clamp-2" data-testid={`product-title-${product.id}`}>
+            <h3 className={`font-semibold line-clamp-2 ${
+              !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-foreground'
+            }`} data-testid={`product-title-${product.id}`}>
               {product.title}
             </h3>
             {product.categoryId && (
@@ -133,11 +142,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-primary" data-testid={`product-price-${product.id}`}>
+              <span className={`text-lg font-bold ${
+                !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-primary'
+              }`} data-testid={`product-price-${product.id}`}>
                 ${product.price}
               </span>
               {product.originalPrice && hasDiscount && (
-                <span className="text-sm text-muted-foreground line-through" data-testid={`product-original-price-${product.id}`}>
+                <span className={`text-sm line-through ${
+                  !product.inStock ? 'text-gray-400 dark:text-gray-500' : 'text-muted-foreground'
+                }`} data-testid={`product-original-price-${product.id}`}>
                   ${product.originalPrice}
                 </span>
               )}
@@ -145,10 +158,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button 
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                !product.inStock 
+                  ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
               data-testid={`add-to-cart-${product.id}`}
             >
-              {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+              {product.inStock ? 'Add to Cart' : 'ناموجود'}
             </Button>
           </div>
         </div>
@@ -158,12 +175,16 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={productUrl}>
-      <div className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer" data-testid={`product-card-${product.id}`}>
+      <div className={`bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer ${
+        !product.inStock ? 'opacity-75 bg-gray-100 dark:bg-gray-800' : ''
+      }`} data-testid={`product-card-${product.id}`}>
         <div className="relative aspect-square overflow-hidden">
           <img 
             src={product.image || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400"} 
             alt={product.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+              !product.inStock ? 'opacity-60 grayscale' : ''
+            }`}
             data-testid={`product-image-${product.id}`}
           />
           
@@ -193,8 +214,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               </Badge>
             )}
             {!product.inStock && (
-              <Badge variant="secondary" data-testid={`out-of-stock-badge-${product.id}`}>
-                Out of Stock
+              <Badge 
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1 text-sm" 
+                data-testid={`unavailable-badge-${product.id}`}
+              >
+                ناموجود
               </Badge>
             )}
           </div>
@@ -202,7 +226,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         <div className="p-4">
           <div className="mb-2">
-            <h3 className="font-semibold text-foreground hover:text-primary transition-colors cursor-pointer line-clamp-2" data-testid={`product-title-${product.id}`}>
+            <h3 className={`font-semibold hover:text-primary transition-colors cursor-pointer line-clamp-2 ${
+              !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-foreground'
+            }`} data-testid={`product-title-${product.id}`}>
               {product.title}
             </h3>
             {product.categoryId && (
@@ -229,11 +255,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-primary" data-testid={`product-price-${product.id}`}>
+              <span className={`text-lg font-bold ${
+                !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-primary'
+              }`} data-testid={`product-price-${product.id}`}>
                 ${product.price}
               </span>
               {product.originalPrice && hasDiscount && (
-                <span className="text-sm text-muted-foreground line-through" data-testid={`product-original-price-${product.id}`}>
+                <span className={`text-sm line-through ${
+                  !product.inStock ? 'text-gray-400 dark:text-gray-500' : 'text-muted-foreground'
+                }`} data-testid={`product-original-price-${product.id}`}>
                   ${product.originalPrice}
                 </span>
               )}
@@ -241,10 +271,14 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button 
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                !product.inStock 
+                  ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
               data-testid={`add-to-cart-${product.id}`}
             >
-              {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+              {product.inStock ? 'Add to Cart' : 'ناموجود'}
             </Button>
           </div>
         </div>

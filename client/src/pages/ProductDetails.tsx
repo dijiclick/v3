@@ -499,10 +499,15 @@ export default function ProductDetails() {
             <div className="flex flex-col gap-4 justify-center items-center mb-6">
               <Button 
                 onClick={handleAddToCart}
-                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl transform hover:scale-105"
+                disabled={!product.inStock}
+                className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl ${
+                  !product.inStock 
+                    ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
+                    : 'bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white hover:scale-105'
+                }`}
                 data-testid="cta-main-button"
               >
-                🔥 همین حالا شروع کن
+                {product.inStock ? '🔥 همین حالا شروع کن' : 'ناموجود - غیرقابل خرید'}
               </Button>
             </div>
             

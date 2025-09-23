@@ -180,7 +180,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       if (isEditMode) {
-        queryClient.invalidateQueries({ queryKey: ['/api/products', product.id] });
+        queryClient.invalidateQueries({ queryKey: [`/api/products/${product.id}`] });
       }
       toast({
         title: "Success",

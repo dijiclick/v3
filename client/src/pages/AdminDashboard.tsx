@@ -51,6 +51,17 @@ export default function AdminDashboard() {
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
     .slice(0, 5);
 
+  // Helper function to construct product URL
+  const getProductUrl = (product: any) => {
+    if (categories && product.categoryId) {
+      const category = categories.find(cat => cat.id === product.categoryId);
+      if (category) {
+        return `/${category.slug}/${product.slug}`;
+      }
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -109,29 +120,42 @@ export default function AdminDashboard() {
               </p>
             ) : (
               <div className="space-y-3">
-                {recentProducts.map((product, index) => (
-                  <div key={product.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
-                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
-                      {product.image ? (
-                        <img 
-                          src={product.image} 
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Package className="h-4 w-4 text-gray-400" />
-                      )}
+                {recentProducts.map((product, index) => {
+                  const productUrl = getProductUrl(product);
+                  const content = (
+                    <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {product.title}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          ${product.price} • {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {product.title}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ${product.price} • {product.inStock ? 'In Stock' : 'Out of Stock'}
-                      </p>
+                  );
+                  
+                  return productUrl ? (
+                    <Link key={product.id} href={productUrl} data-testid={`recent-product-link-${product.id}`}>
+                      {content}
+                    </Link>
+                  ) : (
+                    <div key={product.id} data-testid={`recent-product-${product.id}`}>
+                      {content}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

@@ -44,8 +44,11 @@ const productFormSchema = insertProductSchema.omit({
   originalPrice: z.string().optional(),
   // Override tags to be string for form input (will convert to array on submit)
   tags: z.string().optional(),
-  // Override image to allow empty string
-  image: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  // Override image to allow empty string or valid URL
+  image: z.string().optional().refine(
+    (val) => !val || val === "" || z.string().url().safeParse(val).success,
+    "Must be a valid URL or empty"
+  ),
   // Add blog content as string for the editor
   blogContent: z.string().optional(),
 }).refine((data) => {

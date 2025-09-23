@@ -241,20 +241,36 @@ export default function Home() {
                 )}
                 
                 {/* Card Top */}
-                <div className="bg-gradient-to-br from-red-400 to-red-500 p-5 text-white min-h-[180px] flex flex-col justify-between">
+                <div className={`p-5 min-h-[180px] flex flex-col justify-between ${
+                  service.status === 'inactive' 
+                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-600' 
+                    : 'bg-gradient-to-br from-red-400 to-red-500 text-white'
+                }`}>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-lg font-bold text-white">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${
+                      service.status === 'inactive' 
+                        ? 'bg-gray-500/20 text-gray-600' 
+                        : 'bg-white/20 text-white'
+                    }`}>
                       {service.logo}
                     </div>
                     <div className="text-center flex-1">
-                      <h3 className="text-lg font-bold text-white" data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
-                      <p className="text-sm text-white/80">{service.type}</p>
+                      <h3 className={`text-lg font-bold ${
+                        service.status === 'inactive' ? 'text-gray-600' : 'text-white'
+                      }`} data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
+                      <p className={`text-sm ${
+                        service.status === 'inactive' ? 'text-gray-500' : 'text-white/80'
+                      }`}>{service.type}</p>
                     </div>
                   </div>
                   
                   <div className="text-center mt-auto">
-                    <div className="text-4xl font-black text-white leading-none" data-testid={`text-service-price-${service.id}`}>{service.price}</div>
-                    <div className="text-base text-white/80 mt-1">{service.period}</div>
+                    <div className={`text-4xl font-black leading-none ${
+                      service.status === 'inactive' ? 'text-gray-600' : 'text-white'
+                    }`} data-testid={`text-service-price-${service.id}`}>{service.price}</div>
+                    <div className={`text-base mt-1 ${
+                      service.status === 'inactive' ? 'text-gray-500' : 'text-white/80'
+                    }`}>{service.period}</div>
                   </div>
                 </div>
 

@@ -409,15 +409,15 @@ export default function ProductDetails() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center" data-testid="stat-users">
-              <div className="text-4xl font-bold mb-2">۲.۵M+</div>
+              <div className="text-4xl font-bold mb-2">2500</div>
               <div className="text-red-100">کاربر فعال</div>
             </div>
             <div className="text-center" data-testid="stat-orders">
-              <div className="text-4xl font-bold mb-2">۱۰۰K+</div>
+              <div className="text-4xl font-bold mb-2">10k</div>
               <div className="text-red-100">سفارش موفق</div>
             </div>
             <div className="text-center" data-testid="stat-countries">
-              <div className="text-4xl font-bold mb-2">۱۸۰+</div>
+              <div className="text-4xl font-bold mb-2">5</div>
               <div className="text-red-100">کشور</div>
             </div>
             <div className="text-center" data-testid="stat-satisfaction">

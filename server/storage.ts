@@ -13,6 +13,7 @@ export interface IStorage {
   getProductByCategoryAndSlug(categorySlug: string, productSlug: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
+  deleteProduct(id: string): Promise<void>;
   getFeaturedProducts(): Promise<Product[]>;
   getProductsByCategory(categoryId: string): Promise<Product[]>;
   duplicateProduct(id: string): Promise<Product>;
@@ -50,7 +51,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    // Hash the password before storing
+    const bcrypt = await import('bcrypt');
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(insertUser.password, saltRounds);
+    
+    // Create user with hashed password, excluding the plain password
+    const { password, ...userDataWithoutPassword } = insertUser;
+    const userToInsert = {
+      ...userDataWithoutPassword,
+      passwordHash,
+    };
+    
+    const [user] = await db.insert(users).values(userToInsert).returning();
     return user;
   }
 

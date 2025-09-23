@@ -6,7 +6,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const categories = pgTable("categories", {
@@ -78,9 +79,20 @@ export const images = pgTable("images", {
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  passwordHash: true,
+  createdAt: true,
+}).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+// Schema for user responses (without password)
+export const userResponseSchema = createInsertSchema(users).omit({
+  passwordHash: true,
+}).extend({
+  id: z.string(),
+  createdAt: z.date().optional(),
 });
 
 export const insertCategorySchema = createInsertSchema(categories).omit({

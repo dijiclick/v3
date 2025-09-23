@@ -4,102 +4,11 @@ import { useSEO } from "@/hooks/use-seo";
 import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
 import { useProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
+import ProductCard from "@/components/ProductCard";
 
-interface ServiceCard {
-  id: string;
-  name: string;
-  type: string;
-  price: string;
-  originalPrice: string | null;
-  period: string;
-  logo: string;
-  features: string[];
-  category: string;
-  status: string;
-  slug: string;
-  categoryId: string | null;
-  // New schema fields
-  featured: boolean | null;
-  shortDescription: string | null;
-  buyLink: string | null;
-  featuredAreaText: string | null;
-}
-
-// Utility function to format prices in Persian Toman
-const formatPersianPrice = (price: string | null): string => {
-  if (!price) return "0";
-  const numericPrice = parseFloat(price.replace(/[^\d.-]/g, ''));
-  return Math.round(numericPrice).toLocaleString('fa-IR');
-};
-
-// Transform CMS Product to HomePage ServiceCard format
-function transformProductToServiceCard(product: Product, categories: Category[] = []) {
-  // Use featuredFeatures if available, otherwise extract from description or use default
-  const features = product.featured && product.featuredFeatures && product.featuredFeatures.length > 0
-    ? product.featuredFeatures.slice(0, 5)
-    : product.description 
-      ? product.description.split('\n').filter(line => line.trim().length > 0).slice(0, 5)
-      : [`دسترسی کامل به ${product.title}`, 'پشتیبانی فنی', 'کیفیت بالا'];
-
-  // Default logo based on product title
-  const titleToCheck = product.title.toLowerCase();
-  let logo = '📦';
-  if (titleToCheck.includes('chatgpt') || titleToCheck.includes('جی‌پی‌تی')) logo = '🤖';
-  else if (titleToCheck.includes('netflix') || titleToCheck.includes('نتفلیکس')) logo = '🎬';
-  else if (titleToCheck.includes('spotify') || titleToCheck.includes('اسپاتیفای')) logo = '🎵';
-  else if (titleToCheck.includes('youtube') || titleToCheck.includes('یوتیوب')) logo = '📺';
-  else if (titleToCheck.includes('adobe') || titleToCheck.includes('ادوبی')) logo = '🎨';
-
-  // Use actual category from database if available, otherwise fallback to title-based detection
-  let category = "software";
-  let type = "سرویس پریمیوم";
-  
-  if (product.categoryId) {
-    const productCategory = categories.find(cat => cat.id === product.categoryId);
-    if (productCategory) {
-      category = productCategory.slug;
-      type = productCategory.name;
-    }
-  } else {
-    // Fallback to title-based detection for products without categoryId
-    if (titleToCheck.includes('جی‌پی‌تی') || titleToCheck.includes('chatgpt')) {
-      category = "ai";
-      type = "هوش مصنوعی";
-    } else if (titleToCheck.includes('نتفلیکس') || titleToCheck.includes('یوتیوب') || titleToCheck.includes('آمازون')) {
-      category = "svod"; 
-      type = "پلتفرم ویدئو";
-    } else if (titleToCheck.includes('اسپاتیفای') || titleToCheck.includes('اپل موزیک')) {
-      category = "music";
-      type = "پلتفرم موسیقی";
-    } else if (titleToCheck.includes('ادوبی')) {
-      category = "creative";
-      type = "نرم‌افزار طراحی";
-    }
-  }
-
-  return {
-    id: product.id,
-    name: product.title,
-    type,
-    price: formatPersianPrice(product.price),
-    originalPrice: product.originalPrice ? formatPersianPrice(product.originalPrice) : null,
-    period: "تومان / ماه",
-    logo,
-    features,
-    category,
-    status: product.inStock ? "active" : "inactive",
-    slug: product.slug,
-    categoryId: product.categoryId,
-    // New featured fields
-    featured: product.featured,
-    shortDescription: product.shortDescription,
-    buyLink: product.buyLink,
-    featuredAreaText: product.featuredAreaText
-  };
-}
 
 // No additional products for load more functionality
-const additionalProducts: ServiceCard[] = [];
+const additionalProducts: Product[] = [];
 
 // Icon mapping by category slug
 const categoryIconMap: Record<string, string> = {
@@ -129,26 +38,6 @@ export default function Home() {
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
   const [, setLocation] = useLocation();
 
-  // Helper function to get product URL
-  const getProductUrl = useCallback((service: ServiceCard) => {
-    if (service.slug && service.categoryId) {
-      const category = categories.find(cat => cat.id === service.categoryId);
-      if (category) {
-        return `/${category.slug}/${service.slug}`;
-      }
-    } else if (service.slug && service.category) {
-      return `/${service.category}/${service.slug}`;
-    }
-    return "#";
-  }, [categories]);
-
-  // Handle card click navigation
-  const handleCardClick = useCallback((service: ServiceCard) => {
-    const url = getProductUrl(service);
-    if (url !== "#") {
-      setLocation(url);
-    }
-  }, [getProductUrl, setLocation]);
 
   // Build dynamic filter categories from database categories
   const filterCategories = useMemo(() => {
@@ -168,14 +57,6 @@ export default function Home() {
     return dynamicCategories;
   }, [categories]);
 
-  // Memoize the transformation of products to service cards
-  const services = useMemo(() => {
-    if (products.length > 0 && categories.length > 0) {
-      // Show all products (removed featured-only filter)
-      return products.map(product => transformProductToServiceCard(product, categories));
-    }
-    return [];
-  }, [products, categories]);
 
   useSEO({
     title: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
@@ -195,31 +76,36 @@ export default function Home() {
     ]
   });
 
-  // Memoize the filtered services to prevent unnecessary re-computations
-  const filteredServices = useMemo(() => {
-    let filtered = services;
+  // Memoize the filtered products to prevent unnecessary re-computations
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
     
     if (activeCategory !== "all") {
-      filtered = filtered.filter(service => service.category === activeCategory);
+      filtered = filtered.filter(product => {
+        if (product.categoryId) {
+          const category = categories.find(cat => cat.id === product.categoryId);
+          return category?.slug === activeCategory;
+        }
+        return false;
+      });
     }
     
     if (searchTerm) {
-      filtered = filtered.filter(service => 
-        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.type.includes(searchTerm)
+      filtered = filtered.filter(product => 
+        product.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
     return filtered;
-  }, [searchTerm, activeCategory, services]);
+  }, [searchTerm, activeCategory, products, categories]);
 
-  // Display limited services - only 4 initially unless showAllProducts is true
-  const displayedServices = useMemo(() => {
+  // Display limited products - only 4 initially unless showAllProducts is true
+  const displayedProducts = useMemo(() => {
     if (showAllProducts || searchTerm || activeCategory !== "all") {
-      return filteredServices;
+      return filteredProducts;
     }
-    return filteredServices.slice(0, 4);
-  }, [filteredServices, showAllProducts, searchTerm, activeCategory]);
+    return filteredProducts.slice(0, 4);
+  }, [filteredProducts, showAllProducts, searchTerm, activeCategory]);
 
   // Text direction detection for search input
   const detectTextDirection = (value: string) => {
@@ -310,151 +196,19 @@ export default function Home() {
             </div>
           )}
 
-          {/* Services Grid */}
+          {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-10">
-            {!categoriesLoading && !productsLoading && displayedServices.map((service) => (
-              <div
-                key={service.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative cursor-pointer"
-                data-testid={`card-service-${service.id}`}
-                onClick={() => handleCardClick(service)}
-              >
-                {/* Status Badge */}
-                {service.status && service.status !== 'active' && (
-                  <div className={`absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-bold z-10 ${
-                    service.status === 'آزمایشی رایگان' ? 'bg-green-400 text-green-900' :
-                    'bg-gray-400 text-gray-900'
-                  }`}>
-                    {service.status === 'inactive' ? 'ناموجود' : service.status}
-                  </div>
-                )}
-                
-                {/* Card Top */}
-                <div className={`p-5 min-h-[180px] flex flex-col justify-between ${
-                  service.status === 'inactive' 
-                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800' 
-                    : 'bg-gradient-to-br from-red-400 to-red-500 text-white'
-                }`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${
-                      service.status === 'inactive' 
-                        ? 'bg-gray-500/20 text-gray-800' 
-                        : 'bg-white/20 text-white'
-                    }`}>
-                      {service.logo}
-                    </div>
-                    <div className="text-center flex-1">
-                      <h3 className={`text-lg font-bold ${
-                        service.status === 'inactive' ? 'text-gray-800' : 'text-white'
-                      }`} data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
-                      
-                      {/* Short description if available */}
-                      {service.shortDescription && (
-                        <p className={`text-xs mt-1 line-clamp-2 ${
-                          service.status === 'inactive' ? 'text-gray-600' : 'text-white/70'
-                        }`} data-testid={`text-service-short-description-${service.id}`}>
-                          {service.shortDescription}
-                        </p>
-                      )}
-                      
-                      <p className={`text-sm mt-1 ${
-                        service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
-                      }`}>{service.type}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center mt-auto">
-                    {/* Show original price crossed out if available */}
-                    {service.originalPrice && parseFloat(service.originalPrice.replace(/[^\d]/g, '')) > parseFloat(service.price.replace(/[^\d]/g, '')) && (
-                      <div className={`text-sm line-through mb-1 ${
-                        service.status === 'inactive' ? 'text-gray-600' : 'text-white/60'
-                      }`}>
-                        {service.originalPrice} تومان
-                      </div>
-                    )}
-                    
-                    <div className={`text-4xl font-black leading-none ${
-                      service.status === 'inactive' ? 'text-gray-800' : 'text-white'
-                    }`} data-testid={`text-service-price-${service.id}`}>{service.price}</div>
-                    <div className={`text-base mt-1 ${
-                      service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
-                    }`}>{service.period}</div>
-                    
-                    {/* Discount badge if applicable */}
-                    {service.originalPrice && parseFloat(service.originalPrice.replace(/[^\d]/g, '')) > parseFloat(service.price.replace(/[^\d]/g, '')) && (
-                      <div className="mt-2">
-                        <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
-                          {Math.round(((parseFloat(service.originalPrice.replace(/[^\d]/g, '')) - parseFloat(service.price.replace(/[^\d]/g, ''))) / parseFloat(service.originalPrice.replace(/[^\d]/g, ''))) * 100)}% تخفیف
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Card Bottom */}
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <ul className="list-none space-y-3 flex-1">
-                    {service.features.map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
-                        <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  {service.status === 'inactive' ? (
-                    <button 
-                      disabled
-                      className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-gray-500 uppercase tracking-wide bg-gray-300 cursor-not-allowed opacity-60 text-center"
-                      data-testid={`button-purchase-${service.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      ناموجود
-                    </button>
-                  ) : (
-                    <>
-                      {/* Primary Buy Now Button (using buyLink if available) */}
-                      {service.buyLink ? (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(service.buyLink || '', '_blank', 'noopener,noreferrer');
-                          }}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center mb-2"
-                          data-testid={`button-buy-now-${service.id}`}
-                        >
-                          خرید فوری
-                        </button>
-                      ) : (
-                        <a 
-                          href={getProductUrl(service)}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
-                          data-testid={`button-purchase-${service.id}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          خرید اشتراک
-                        </a>
-                      )}
-                    </>
-                  )}
-                  
-                  <div className="text-center mt-3">
-                    <a 
-                      href={getProductUrl(service)} 
-                      className="text-red-500 text-sm font-medium hover:underline" 
-                      data-testid={`link-details-${service.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      View Details
-                    </a>
-                  </div>
-                </div>
-              </div>
+            {!categoriesLoading && !productsLoading && displayedProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                showShortDescription={false} 
+              />
             ))}
           </div>
           
           {/* Show All Products Button */}
-          {!showAllProducts && filteredServices.length > 4 && searchTerm === "" && activeCategory === "all" && (
+          {!showAllProducts && filteredProducts.length > 4 && searchTerm === "" && activeCategory === "all" && (
             <div className="text-center mb-10">
               <button
                 onClick={() => setShowAllProducts(true)}
@@ -467,9 +221,9 @@ export default function Home() {
             </div>
           )}
           
-          {filteredServices.length === 0 && (
+          {filteredProducts.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-gray-500 text-lg" data-testid="text-no-results">سرویسی یافت نشد. لطفاً جستجوی دیگری امتحان کنید.</p>
+              <p className="text-gray-500 text-lg" data-testid="text-no-results">محصولی یافت نشد. لطفاً جستجوی دیگری امتحان کنید.</p>
             </div>
           )}
           

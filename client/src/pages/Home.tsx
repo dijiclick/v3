@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useLocation } from "wouter";
 import { useSEO } from "@/hooks/use-seo";
 import { defaultSEO, getHomepageStructuredData } from "@/lib/seo";
 import { useProducts, useCategories } from "@/lib/content-service";
@@ -96,6 +97,26 @@ export default function Home() {
   // Fetch all products and categories from the database
   const { data: products = [], isLoading: productsLoading, error: productsError } = useProducts();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
+  const [, setLocation] = useLocation();
+
+  // Helper function to get product URL
+  const getProductUrl = useCallback((service: ServiceCard) => {
+    if (service.slug && service.categoryId) {
+      const category = categories.find(cat => cat.id === service.categoryId);
+      if (category) {
+        return `/${category.slug}/${service.slug}`;
+      }
+    }
+    return "#";
+  }, [categories]);
+
+  // Handle card click navigation
+  const handleCardClick = useCallback((service: ServiceCard) => {
+    const url = getProductUrl(service);
+    if (url !== "#") {
+      setLocation(url);
+    }
+  }, [getProductUrl, setLocation]);
 
   // Memoize the transformation of products to service cards
   const services = useMemo(() => {
@@ -227,8 +248,9 @@ export default function Home() {
             {displayedServices.map((service) => (
               <div
                 key={service.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative"
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative cursor-pointer"
                 data-testid={`card-service-${service.id}`}
+                onClick={() => handleCardClick(service)}
               >
                 {/* Status Badge */}
                 {service.status && service.status !== 'active' && (
@@ -290,37 +312,28 @@ export default function Home() {
                       disabled
                       className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-gray-500 uppercase tracking-wide bg-gray-300 cursor-not-allowed opacity-60 text-center"
                       data-testid={`button-purchase-${service.id}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       ناموجود
                     </button>
                   ) : (
                     <a 
-                      href={(() => {
-                        if (service.slug && service.categoryId) {
-                          const category = categories.find(cat => cat.id === service.categoryId);
-                          if (category) {
-                            return `/${category.slug}/${service.slug}`;
-                          }
-                        }
-                        return "#";
-                      })()}
+                      href={getProductUrl(service)}
                       className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
                       data-testid={`button-purchase-${service.id}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       خرید اشتراک
                     </a>
                   )}
                   
                   <div className="text-center mt-3">
-                    <a href={(() => {
-                      if (service.slug && service.categoryId) {
-                        const category = categories.find(cat => cat.id === service.categoryId);
-                        if (category) {
-                          return `/${category.slug}/${service.slug}`;
-                        }
-                      }
-                      return "#";
-                    })()} className="text-red-500 text-sm font-medium hover:underline" data-testid={`link-details-${service.id}`}>
+                    <a 
+                      href={getProductUrl(service)} 
+                      className="text-red-500 text-sm font-medium hover:underline" 
+                      data-testid={`link-details-${service.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       View Details
                     </a>
                   </div>

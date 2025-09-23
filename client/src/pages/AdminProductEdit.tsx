@@ -3,11 +3,13 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProductForm from "@/components/ProductForm";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { Product } from "@shared/schema";
 
 export default function AdminProductEdit() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
+  const { toast } = useToast();
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: [`/api/products/${id}`],
@@ -15,7 +17,10 @@ export default function AdminProductEdit() {
   });
 
   const handleSuccess = () => {
-    setLocation("/admin/products");
+    toast({
+      title: "Success",
+      description: "Product updated successfully! You can continue editing or make additional changes.",
+    });
   };
 
   const handleCancel = () => {

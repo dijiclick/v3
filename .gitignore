@@ -4,3 +4,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Sensitive credential files
+admin_cookies.txt
+*.cookies.txt

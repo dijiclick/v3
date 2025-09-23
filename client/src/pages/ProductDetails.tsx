@@ -229,9 +229,11 @@ export default function ProductDetails() {
             {/* Short Description */}
             {product.shortDescription && (
               <div className="mb-6">
-                <p className="text-xl text-gray-700 font-medium leading-relaxed" data-testid="product-short-description">
-                  {product.shortDescription}
-                </p>
+                <div 
+                  className="text-xl text-gray-700 font-medium leading-relaxed" 
+                  data-testid="product-short-description"
+                  dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
+                />
               </div>
             )}
             

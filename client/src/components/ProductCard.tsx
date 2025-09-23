@@ -15,6 +15,34 @@ const formatPersianPrice = (price: string | null): string => {
   return Math.round(numericPrice).toLocaleString('fa-IR');
 };
 
+// Utility function to render rich text content
+const renderRichText = (richText: any): string => {
+  if (!richText) return '';
+  
+  // Handle different possible structures of rich text content
+  if (typeof richText === 'string') {
+    return richText;
+  }
+  
+  // If it's a structured rich text object, convert to HTML
+  if (richText && typeof richText === 'object') {
+    // Handle Sanity Portable Text or similar structures
+    if (Array.isArray(richText)) {
+      return richText.map((block: any) => {
+        if (block.style === 'h1') return `<h1>${block.children?.[0]?.text || ''}</h1>`;
+        if (block.style === 'h2') return `<h2>${block.children?.[0]?.text || ''}</h2>`;
+        if (block.style === 'h3') return `<h3>${block.children?.[0]?.text || ''}</h3>`;
+        return `<p>${block.children?.[0]?.text || ''}</p>`;
+      }).join('');
+    }
+    
+    // Fallback for other object structures
+    return JSON.stringify(richText);
+  }
+  
+  return '';
+};
+
 interface ProductCardProps {
   product: Product;
 }
@@ -151,11 +179,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             
             {/* Short Description */}
             {product.shortDescription && (
-              <p className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
-                !product.inStock ? 'text-gray-400' : ''
-              }`} data-testid={`product-short-description-${product.id}`}>
-                {product.shortDescription}
-              </p>
+              <div 
+                className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
+                  !product.inStock ? 'text-gray-400' : ''
+                }`} 
+                data-testid={`product-short-description-${product.id}`}
+                dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
+              />
             )}
             
             {/* Category */}
@@ -333,11 +363,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             
             {/* Short Description */}
             {product.shortDescription && (
-              <p className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
-                !product.inStock ? 'text-gray-400' : ''
-              }`} data-testid={`product-short-description-${product.id}`}>
-                {product.shortDescription}
-              </p>
+              <div 
+                className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
+                  !product.inStock ? 'text-gray-400' : ''
+                }`} 
+                data-testid={`product-short-description-${product.id}`}
+                dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
+              />
             )}
             
             {/* Category */}

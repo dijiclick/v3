@@ -47,35 +47,37 @@ export default function AdminAuth({ children }: AdminAuthProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4" dir="rtl">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Lock className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Limitpass</CardTitle>
-            <CardDescription>
-              Enter the admin password to access the dashboard
+            <CardTitle className="text-2xl">لیمیت پاس</CardTitle>
+            <CardDescription className="text-right">
+              برای دسترسی به داشبورد، رمز عبور ادمین را وارد کنید
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-right block">رمز عبور</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
+                  placeholder="رمز عبور ادمین را وارد کنید"
                   disabled={isSubmitting}
                   data-testid="admin-password-input"
+                  className="text-right"
+                  dir="rtl"
                 />
               </div>
               
               {error && (
                 <Alert variant="destructive" data-testid="admin-auth-error">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className="text-right">{error}</AlertDescription>
                 </Alert>
               )}
 
@@ -85,13 +87,13 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                 disabled={isSubmitting || !password.trim()}
                 data-testid="admin-login-button"
               >
-                {isSubmitting ? "Signing in..." : "Sign In"}
+                {isSubmitting ? "در حال ورود..." : "ورود"}
               </Button>
             </form>
 
             <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                <strong>Demo Password:</strong> admin123
+              <p className="text-sm text-blue-600 dark:text-blue-400 text-right">
+                <strong>رمز عبور نمایشی:</strong> admin123
               </p>
             </div>
           </CardContent>

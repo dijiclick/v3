@@ -473,38 +473,42 @@ export default function ProductDetails() {
         <div className="bg-white p-12 rounded-3xl shadow-lg text-center">
           <div className="max-w-3xl mx-auto">
             <div className="text-6xl mb-6">🚀</div>
-            <h2 className="text-4xl font-bold text-gray-800 mb-6">آماده خرید {product.title} هستید؟</h2>
+            <h2 className="text-4xl font-bold text-gray-800 mb-6">آماده‌ای تجربه‌ای بهتر داشته باشی؟</h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              همین حالا به میلیون‌ها کاربری بپیوندید که از کیفیت بالای سرویس‌های لیمیت پس استفاده می‌کنند
+              با {product.title} کیفیت بالاتر، سرعت بیشتر و تجربه‌ای متفاوت رو حس کن.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Button 
-                onClick={handleAddToCart}
-                className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl"
-                data-testid="cta-main-button"
-              >
-                خرید فوری {product.title}
-              </Button>
-              <div className="text-sm text-gray-500">
-                تضمین کیفیت • پشتیبانی ۲۴/۷
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-100 p-6 rounded-2xl text-center border-2 border-transparent hover:border-orange-200 transition-all">
+                <div className="text-4xl mb-4">💡</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">فعال‌سازی فوری</h3>
+                <p className="text-gray-600">همین الان شروع کن</p>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-100 p-6 rounded-2xl text-center border-2 border-transparent hover:border-cyan-200 transition-all">
+                <div className="text-4xl mb-4">💎</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">تضمین بازگشت وجه</h3>
+                <p className="text-gray-600">بدون ریسک</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl text-center border-2 border-transparent hover:border-emerald-200 transition-all">
+                <div className="text-4xl mb-4">🤝</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">پشتیبانی ۲۴/۷</h3>
+                <p className="text-gray-600">همیشه همراهت</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-gray-200">
-              <div className="flex items-center justify-center gap-3">
-                <div className="text-green-500 text-2xl">✓</div>
-                <span className="text-gray-700">پشتیبانی ۲۴/۷</span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <div className="text-green-500 text-2xl">✓</div>
-                <span className="text-gray-700">تضمین بازگشت وجه</span>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <div className="text-green-500 text-2xl">✓</div>
-                <span className="text-gray-700">فعالسازی فوری</span>
-              </div>
+            <div className="flex flex-col gap-4 justify-center items-center mb-6">
+              <Button 
+                onClick={handleAddToCart}
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl transform hover:scale-105"
+                data-testid="cta-main-button"
+              >
+                🔥 همین حالا شروع کن
+              </Button>
             </div>
+            
+            <p className="text-sm text-gray-600 font-medium">
+              فرصت رو از دست نده، همین امروز به جمع هزاران کاربر راضی بپیوند!
+            </p>
           </div>
         </div>
       </main>

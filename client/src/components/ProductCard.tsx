@@ -69,14 +69,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     
     cartManager.addItem({
       id: product.id,
-      title: product.featuredTitle || product.title,
+      title: product.title,
       price: parseFloat(product.price),
       image: product.image || undefined,
     });
 
     toast({
       title: "افزوده شد",
-      description: `${product.featuredTitle || product.title} به سبد خرید افزوده شد.`,
+      description: `${product.title} به سبد خرید افزوده شد.`,
     });
   };
 
@@ -87,7 +87,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     
     toast({
       title: isWishlisted ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها افزوده شد",
-      description: `${product.featuredTitle || product.title} ${isWishlisted ? 'از علاقه‌مندی‌ها حذف شد' : 'به علاقه‌مندی‌ها افزوده شد'}.`,
+      description: `${product.title} ${isWishlisted ? 'از علاقه‌مندی‌ها حذف شد' : 'به علاقه‌مندی‌ها افزوده شد'}.`,
     });
   };
 
@@ -118,7 +118,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-[4/3] overflow-hidden">
           <img 
             src={product.image || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"} 
-            alt={product.featuredTitle || product.title} 
+            alt={product.title} 
             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
               !product.inStock ? 'opacity-60 grayscale' : ''
             }`}
@@ -174,7 +174,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <h3 className={`font-bold text-lg line-clamp-2 mb-2 ${
               !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-foreground'
             }`} data-testid={`product-title-${product.id}`}>
-              {product.featured && product.featuredTitle ? product.featuredTitle : product.title}
+              {product.title}
             </h3>
             
             {/* Short Description */}
@@ -302,7 +302,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-[4/3] overflow-hidden">
           <img 
             src={product.image || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"} 
-            alt={product.featuredTitle || product.title} 
+            alt={product.title} 
             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
               !product.inStock ? 'opacity-60 grayscale' : ''
             }`}
@@ -358,7 +358,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <h3 className={`font-bold text-lg line-clamp-2 mb-2 hover:text-primary transition-colors ${
               !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-foreground'
             }`} data-testid={`product-title-${product.id}`}>
-              {product.featured && product.featuredTitle ? product.featuredTitle : product.title}
+              {product.title}
             </h3>
             
             {/* Short Description */}

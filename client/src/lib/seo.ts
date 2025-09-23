@@ -206,8 +206,8 @@ export const updatePageSEO = (metadata: SEOMetadata) => {
 export const getProductStructuredData = (product: Product, category?: Category): ProductSchema => {
   const baseUrl = window.location.origin;
   
-  // Use featured title if available, otherwise use regular title
-  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  // Use regular title for consistent SEO
+  const productName = product.title;
   
   // Enhanced description for SEO - use shortDescription or truncated mainDescription  
   const getProductDescription = () => {
@@ -374,13 +374,13 @@ export const generateMetaDescription = (product: Product): string => {
   }
   
   // Default description
-  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  const productName = product.title;
   return `خرید ${productName} با قیمت ویژه از لیمیت پس. دسترسی آسان و کیفیت پریمیوم`;
 };
 
 // Generate product page title with SEO optimization
 export const generateProductTitle = (product: Product): string => {
-  const productName = product.featured && product.featuredTitle ? product.featuredTitle : product.title;
+  const productName = product.title;
   return `${productName} - خرید آنلاین | Limitpass`;
 };
 

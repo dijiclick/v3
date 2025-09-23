@@ -65,7 +65,7 @@ export default function ProductDetails() {
     product ? {
       title: generateProductTitle(product),
       description: generateMetaDescription(product),
-      keywords: `${product.featuredTitle || product.title}, خرید اشتراک, لیمیت پس, ${product.tags?.join(', ') || ''}`,
+      keywords: `${product.title}, خرید اشتراک, لیمیت پس, ${product.tags?.join(', ') || ''}`,
       ogTitle: generateProductTitle(product),
       ogDescription: generateMetaDescription(product),
       ogImage: product.image,
@@ -80,7 +80,7 @@ export default function ProductDetails() {
         [
           { name: 'خانه', url: '/' },
           { name: currentCategory?.name || 'محصولات', url: `/${currentCategory?.slug || 'products'}` },
-          { name: product.featuredTitle || product.title, url: `/${currentCategory?.slug}/${product.slug}` }
+          { name: product.title, url: `/${currentCategory?.slug}/${product.slug}` }
         ]
       )
     } : {
@@ -98,14 +98,14 @@ export default function ProductDetails() {
     
     cartManager.addItem({
       id: product.id,
-      title: product.featuredTitle || product.title,
+      title: product.title,
       price: parseFloat(product.price),
       image: product.image || undefined,
     });
 
     toast({
       title: "افزوده شد",
-      description: `${product.featuredTitle || product.title} به سبد خرید افزوده شد.`,
+      description: `${product.title} به سبد خرید افزوده شد.`,
     });
   };
 
@@ -214,7 +214,7 @@ export default function ProductDetails() {
               className="text-gray-800 font-medium"
               data-testid="breadcrumb-product"
             >
-              {product.featuredTitle || product.title}
+              {product.title}
             </span>
           </nav>
         )}
@@ -223,7 +223,7 @@ export default function ProductDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 mb-16 bg-white p-10 rounded-3xl shadow-lg">
           <div className="text-right">
             <h1 className="text-5xl font-bold text-gray-800 mb-4" data-testid="product-title">
-              {product.featured && product.featuredTitle ? product.featuredTitle : product.title}
+              {product.title}
             </h1>
             
             {/* Short Description */}
@@ -260,7 +260,7 @@ export default function ProductDetails() {
                 />
               ) : (
                 <p className="text-lg text-gray-600 leading-relaxed">
-                  {product.description || `دسترسی به ${product.featuredTitle || product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
+                  {product.description || `دسترسی به ${product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
                 </p>
               )}
             </div>
@@ -280,7 +280,7 @@ export default function ProductDetails() {
                 <>
                   <li className="flex items-center gap-3 text-gray-700">
                     <CheckCircle className="text-green-500 h-5 w-5" />
-                    <span>دسترسی کامل به {product.featuredTitle || product.title}</span>
+                    <span>دسترسی کامل به {product.title}</span>
                   </li>
                   <li className="flex items-center gap-3 text-gray-700">
                     <CheckCircle className="text-green-500 h-5 w-5" />
@@ -411,7 +411,7 @@ export default function ProductDetails() {
                 🌟 محصول ویژه
               </Badge>
               <h2 className="text-3xl font-bold mb-4">
-                {product.featuredTitle || product.title}
+                {product.title}
               </h2>
               {product.featuredAreaText && (
                 <p className="text-lg text-purple-100 leading-relaxed max-w-3xl mx-auto" data-testid="featured-area-text">

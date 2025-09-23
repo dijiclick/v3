@@ -39,10 +39,10 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     ? product.featuredFeatures.slice(0, 5)
     : product.description 
       ? product.description.split('\n').filter(line => line.trim().length > 0).slice(0, 5)
-      : [`دسترسی کامل به ${product.featuredTitle || product.title}`, 'پشتیبانی فنی', 'کیفیت بالا'];
+      : [`دسترسی کامل به ${product.title}`, 'پشتیبانی فنی', 'کیفیت بالا'];
 
-  // Default logo based on product title (use featuredTitle if available)
-  const titleToCheck = (product.featured && product.featuredTitle ? product.featuredTitle : product.title).toLowerCase();
+  // Default logo based on product title
+  const titleToCheck = product.title.toLowerCase();
   let logo = '📦';
   if (titleToCheck.includes('chatgpt') || titleToCheck.includes('جی‌پی‌تی')) logo = '🤖';
   else if (titleToCheck.includes('netflix') || titleToCheck.includes('نتفلیکس')) logo = '🎬';
@@ -79,7 +79,7 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
 
   return {
     id: product.id,
-    name: product.featured && product.featuredTitle ? product.featuredTitle : product.title,
+    name: product.title,
     type,
     price: formatPersianPrice(product.price),
     originalPrice: product.originalPrice ? formatPersianPrice(product.originalPrice) : null,

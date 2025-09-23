@@ -49,14 +49,22 @@ function CMSContentRenderer({ content, className = "" }: { content: any; classNa
 
 export default function UserGuide() {
   // Fetch page content by slug - gracefully handle 404 errors
-  const { data: page, isLoading, error } = useQuery<Page>({
+  const { data: page, isLoading, error } = useQuery<Page | null>({
     queryKey: ['/api/pages/slug/userguide'],
-    retry: false, // Don't retry on 404
-    throwOnError: false // Don't throw on 404
+    queryFn: async () => {
+      const res = await fetch('/api/pages/slug/userguide');
+      if (res.status === 404) return null; // Return null on 404, no error
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Network error' }));
+        throw errorData;
+      }
+      return await res.json() as Page;
+    },
+    retry: false
   });
 
-  // If error is 404, treat as no CMS content (not a real error)
-  const isCMSError = error && !((error as any)?.response?.status === 404);
+  // Only treat real errors as CMS errors (not 404s)
+  const isCMSError = error && page !== null;
 
   // Set SEO data from CMS or fallbacks
   useSEO({
@@ -110,7 +118,7 @@ export default function UserGuide() {
           {/* CMS Content */}
           {page?.content && (
             <div className="mb-16 cms-content-area">
-              <CMSContentRenderer content={page.content} className="cms-content-body" />
+              <CMSContentRenderer content={page.content as any} className="cms-content-body" />
             </div>
           )}
 

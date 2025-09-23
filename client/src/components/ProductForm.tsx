@@ -318,20 +318,19 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
               </div>
 
               <div>
-                <Label htmlFor="shortDescription" className="text-sm font-medium">
+                <Label className="text-sm font-medium block mb-3">
                   Short Description
                 </Label>
-                <Textarea
-                  id="shortDescription"
-                  {...form.register("shortDescription")}
-                  placeholder="Brief product description (2-3 lines)"
-                  rows={3}
-                  className="mt-1"
-                  data-testid="textarea-short-description"
-                  dir="ltr"
+                <RichTextEditor
+                  value={form.watch("shortDescription")}
+                  onChange={(value) => form.setValue("shortDescription", value)}
+                  placeholder="Brief product description with rich text formatting..."
+                  className="min-h-[120px]"
+                  productId={product?.id}
+                  data-testid="rich-editor-short-description"
                 />
-                <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                  This text will be displayed below the product title
+                <p className="text-xs text-gray-500 mt-2" dir="ltr">
+                  This text is displayed under the product title
                 </p>
               </div>
 

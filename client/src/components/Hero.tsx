@@ -8,11 +8,11 @@ export default function Hero() {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight" data-testid="hero-title">
-                Discover Premium 
-                <span className="text-primary"> Products</span>
+                دسترسی به بهترین 
+                <span className="text-primary"> اشتراک‌های پریمیوم</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg" data-testid="hero-description">
-                Curated collection of high-quality items designed for modern living. Experience exceptional craftsmanship and innovative design.
+                مجموعه‌ای منتخب از اشتراک‌های با کیفیت برای زندگی مدرن. تجربه کیفیت استثنایی و طراحی نوآورانه را احساس کنید.
               </p>
             </div>
             
@@ -22,7 +22,7 @@ export default function Hero() {
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                 data-testid="hero-shop-button"
               >
-                Shop Now
+                همین حالا خرید کن
               </Button>
               <Button 
                 variant="outline"
@@ -30,23 +30,27 @@ export default function Hero() {
                 className="border border-border text-foreground px-8 py-3 rounded-lg font-semibold hover:bg-muted transition-colors"
                 data-testid="hero-collection-button"
               >
-                View Collection
+                مشاهده مجموعه
               </Button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 pt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-customers">10K+</div>
-                <div className="text-sm text-muted-foreground">Happy Customers</div>
+                <div className="text-2xl font-bold text-primary" data-testid="stat-countries">+۱۸۰</div>
+                <div className="text-sm text-muted-foreground">کشور</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-products">500+</div>
-                <div className="text-sm text-muted-foreground">Premium Products</div>
+                <div className="text-2xl font-bold text-primary" data-testid="stat-users">+۱۰K</div>
+                <div className="text-sm text-muted-foreground">کاربر فعال</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary" data-testid="stat-satisfaction">98%</div>
-                <div className="text-sm text-muted-foreground">Satisfaction Rate</div>
+                <div className="text-2xl font-bold text-primary" data-testid="stat-satisfaction">۹۸٪</div>
+                <div className="text-sm text-muted-foreground">رضایت کاربران</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary" data-testid="stat-orders">+۱۰۰K</div>
+                <div className="text-sm text-muted-foreground">سفارش موفق</div>
               </div>
             </div>
           </div>

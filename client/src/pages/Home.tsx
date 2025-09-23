@@ -236,40 +236,40 @@ export default function Home() {
                     service.status === 'آزمایشی رایگان' ? 'bg-green-400 text-green-900' :
                     'bg-gray-400 text-gray-900'
                   }`}>
-                    {service.status}
+                    {service.status === 'inactive' ? 'ناموجود' : service.status}
                   </div>
                 )}
                 
                 {/* Card Top */}
                 <div className={`p-5 min-h-[180px] flex flex-col justify-between ${
                   service.status === 'inactive' 
-                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-600' 
+                    ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800' 
                     : 'bg-gradient-to-br from-red-400 to-red-500 text-white'
                 }`}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${
                       service.status === 'inactive' 
-                        ? 'bg-gray-500/20 text-gray-600' 
+                        ? 'bg-gray-500/20 text-gray-800' 
                         : 'bg-white/20 text-white'
                     }`}>
                       {service.logo}
                     </div>
                     <div className="text-center flex-1">
                       <h3 className={`text-lg font-bold ${
-                        service.status === 'inactive' ? 'text-gray-600' : 'text-white'
+                        service.status === 'inactive' ? 'text-gray-800' : 'text-white'
                       }`} data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
                       <p className={`text-sm ${
-                        service.status === 'inactive' ? 'text-gray-500' : 'text-white/80'
+                        service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
                       }`}>{service.type}</p>
                     </div>
                   </div>
                   
                   <div className="text-center mt-auto">
                     <div className={`text-4xl font-black leading-none ${
-                      service.status === 'inactive' ? 'text-gray-600' : 'text-white'
+                      service.status === 'inactive' ? 'text-gray-800' : 'text-white'
                     }`} data-testid={`text-service-price-${service.id}`}>{service.price}</div>
                     <div className={`text-base mt-1 ${
-                      service.status === 'inactive' ? 'text-gray-500' : 'text-white/80'
+                      service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'
                     }`}>{service.period}</div>
                   </div>
                 </div>
@@ -285,21 +285,31 @@ export default function Home() {
                     ))}
                   </ul>
                   
-                  <a 
-                    href={(() => {
-                      if (service.slug && service.categoryId) {
-                        const category = categories.find(cat => cat.id === service.categoryId);
-                        if (category) {
-                          return `/${category.slug}/${service.slug}`;
+                  {service.status === 'inactive' ? (
+                    <button 
+                      disabled
+                      className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-gray-500 uppercase tracking-wide bg-gray-300 cursor-not-allowed opacity-60 text-center"
+                      data-testid={`button-purchase-${service.id}`}
+                    >
+                      ناموجود
+                    </button>
+                  ) : (
+                    <a 
+                      href={(() => {
+                        if (service.slug && service.categoryId) {
+                          const category = categories.find(cat => cat.id === service.categoryId);
+                          if (category) {
+                            return `/${category.slug}/${service.slug}`;
+                          }
                         }
-                      }
-                      return "#";
-                    })()}
-                    className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
-                    data-testid={`button-purchase-${service.id}`}
-                  >
-                    خرید اشتراک
-                  </a>
+                        return "#";
+                      })()}
+                      className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
+                      data-testid={`button-purchase-${service.id}`}
+                    >
+                      خرید اشتراک
+                    </a>
+                  )}
                   
                   <div className="text-center mt-3">
                     <a href={(() => {

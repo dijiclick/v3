@@ -70,6 +70,11 @@ function PublicRouter() {
           <ChatGPTPage />
         </PersianLayout>
       </Route>
+      <Route path="/ai-tools/chatgpt-plus">
+        <PersianLayout>
+          <ChatGPTPage />
+        </PersianLayout>
+      </Route>
       
       {/* E-commerce pages using Persian layout */}
       <Route path="/products">

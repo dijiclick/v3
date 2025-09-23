@@ -12,6 +12,17 @@ interface AdminAuthProps {
 }
 
 export default function AdminAuth({ children }: AdminAuthProps) {
+  // ===== TEMPORARY BYPASS FOR DEVELOPMENT =====
+  // This bypass allows admin access without password when VITE_DISABLE_ADMIN_AUTH=true
+  // TODO: Remove this bypass section before production deployment
+  const isAuthBypassEnabled = import.meta.env.VITE_DISABLE_ADMIN_AUTH === "true";
+  
+  if (isAuthBypassEnabled) {
+    // Skip all authentication when bypass is enabled
+    return <>{children}</>;
+  }
+  // ===== END TEMPORARY BYPASS =====
+
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

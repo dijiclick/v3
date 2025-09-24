@@ -20,7 +20,6 @@ interface ServiceCard {
   categoryId: string | null;
   // New schema fields
   featured: boolean | null;
-  shortDescription: string | null;
   buyLink: string | null;
   featuredAreaText: string | null;
 }
@@ -92,7 +91,6 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     categoryId: product.categoryId,
     // New featured fields
     featured: product.featured,
-    shortDescription: product.shortDescription,
     buyLink: product.buyLink,
     featuredAreaText: product.featuredAreaText
   };
@@ -360,14 +358,6 @@ export default function Home() {
                         service.status === 'inactive' ? 'text-gray-800' : 'text-white'
                       }`} data-testid={`text-service-name-${service.id}`}>{service.name}</h3>
                       
-                      {/* Short description if available */}
-                      {service.shortDescription && (
-                        <p className={`text-xs mt-1 line-clamp-2 ${
-                          service.status === 'inactive' ? 'text-gray-600' : 'text-white/70'
-                        }`} data-testid={`text-service-short-description-${service.id}`}>
-                          {service.shortDescription}
-                        </p>
-                      )}
                       
                       <p className={`text-sm mt-1 ${
                         service.status === 'inactive' ? 'text-gray-700' : 'text-white/80'

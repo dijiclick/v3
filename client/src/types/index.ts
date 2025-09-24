@@ -94,7 +94,6 @@ export interface Product {
   title: string;
   slug: string;
   description: string | null;
-  shortDescription: string | null;
   buyLink: string | null;
   mainDescription: any | null; // Rich text content (JSONB)
   featuredTitle: string | null;

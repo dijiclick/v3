@@ -23,7 +23,6 @@ export const products = pgTable("products", {
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
-  shortDescription: text("short_description"),
   buyLink: text("buy_link"),
   mainDescription: jsonb("main_description"),
   featuredTitle: text("featured_title"),
@@ -194,7 +193,6 @@ export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
 }).extend({
-  shortDescription: z.string().optional(),
   buyLink: z.string().url().optional().or(z.literal("")),
   mainDescription: z.any().optional(), // Rich text JSON format
   featuredTitle: z.string().optional(),

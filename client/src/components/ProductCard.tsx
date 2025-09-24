@@ -177,16 +177,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.title}
             </h3>
             
-            {/* Short Description */}
-            {product.shortDescription && (
-              <div 
-                className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
-                  !product.inStock ? 'text-gray-400' : ''
-                }`} 
-                data-testid={`product-short-description-${product.id}`}
-                dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
-              />
-            )}
+
             
             {/* Category */}
             <p className="text-xs text-gray-500 dark:text-muted-foreground" data-testid={`product-category-${product.id}`}>
@@ -361,16 +352,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.title}
             </h3>
             
-            {/* Short Description */}
-            {product.shortDescription && (
-              <div 
-                className={`text-sm text-gray-600 dark:text-muted-foreground line-clamp-2 mb-2 ${
-                  !product.inStock ? 'text-gray-400' : ''
-                }`} 
-                data-testid={`product-short-description-${product.id}`}
-                dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
-              />
-            )}
+
             
             {/* Category */}
             <p className="text-xs text-gray-500 dark:text-muted-foreground" data-testid={`product-category-${product.id}`}>

@@ -248,16 +248,6 @@ export default function ProductDetails() {
               {product.title}
             </h1>
             
-            {/* Short Description */}
-            {product.shortDescription && (
-              <div className="mb-6">
-                <div 
-                  className="text-xl text-gray-700 font-medium leading-relaxed" 
-                  data-testid="product-short-description"
-                  dangerouslySetInnerHTML={{ __html: renderRichText(product.shortDescription) }}
-                />
-              </div>
-            )}
             
             
             <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">

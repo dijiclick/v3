@@ -209,9 +209,8 @@ export const getProductStructuredData = (product: Product, category?: Category):
   // Use regular title for consistent SEO
   const productName = product.title;
   
-  // Enhanced description for SEO - use shortDescription or truncated mainDescription  
+  // Enhanced description for SEO - use mainDescription or description
   const getProductDescription = () => {
-    if (product.shortDescription) return product.shortDescription;
     if (product.mainDescription && typeof product.mainDescription === 'string') {
       return product.mainDescription.replace(/<[^>]*>/g, '').substring(0, 160);
     }
@@ -351,12 +350,6 @@ export const getOrganizationStructuredData = (): OrganizationSchema => {
 
 // Enhanced meta description generation
 export const generateMetaDescription = (product: Product): string => {
-  // Use short description if available
-  if (product.shortDescription && product.shortDescription.length > 0) {
-    return product.shortDescription.length > 160 
-      ? product.shortDescription.substring(0, 157) + '...'
-      : product.shortDescription;
-  }
   
   // Fallback to main description (strip HTML)
   if (product.mainDescription && typeof product.mainDescription === 'string') {

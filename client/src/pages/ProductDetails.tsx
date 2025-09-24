@@ -455,92 +455,17 @@ export default function ProductDetails() {
         {/* Content Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_1.5fr] gap-10 mb-16">
           {/* Main Content Area */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg" data-testid="blog-content-display">
-            {product?.blogContent ? (
+          <div className="bg-white p-8 rounded-2xl shadow-lg" data-testid="main-content-display">
+            {product?.mainDescription ? (
               <div 
-                className="prose prose-lg max-w-none text-right"
-                dangerouslySetInnerHTML={{ __html: product.blogContent }}
+                className="prose prose-lg max-w-none text-right [&>*]:text-right"
+                dangerouslySetInnerHTML={{ __html: product.mainDescription }}
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Default content when no blog content exists */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">✓</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">کیفیت پریمیوم</div>
-                        <div className="text-xs text-gray-500">بهترین کیفیت موجود</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">دسترسی کامل به تمام امکانات</div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-pink-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm">⚡</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">سرعت بالا</div>
-                        <div className="text-xs text-gray-500">بدون محدودیت سرعت</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">تجربه روان و بدون وقفه</div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm">🔒</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">امنیت بالا</div>
-                        <div className="text-xs text-gray-500">محافظت کامل اطلاعات</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">حریم خصوصی شما محفوظ است</div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-teal-50 to-cyan-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">💬</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">پشتیبانی</div>
-                        <div className="text-xs text-gray-500">۲۴ ساعته و ۷ روز هفته</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">همیشه در کنار شما هستیم</div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">🎯</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">تضمین کیفیت</div>
-                        <div className="text-xs text-gray-500">رضایت ۱۰۰٪ تضمینی</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">در صورت عدم رضایت، پول برگردانده می‌شود</div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-yellow-50 to-amber-100 p-6 rounded-2xl">
-                  <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-white text-sm">🚀</div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-800">فعالسازی فوری</div>
-                        <div className="text-xs text-gray-500">بلافاصله پس از خرید</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-600 text-right">کمتر از ۱۰ دقیقه آماده</div>
-                  </div>
-                </div>
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-4xl mb-4">📝</div>
+                <h3 className="text-lg font-medium mb-2">محتوایی موجود نیست</h3>
+                <p className="text-sm">مطلب کاملی برای این محصول در پنل مدیریت تنظیم نشده است.</p>
               </div>
             )}
           </div>

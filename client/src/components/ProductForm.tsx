@@ -21,7 +21,7 @@ import SEOPreview from "@/components/SEOPreview";
 import { type Product, insertProductSchema } from "@shared/schema";
 import { Plus, Trash2, Save, RotateCcw } from "lucide-react";
 
-// Enhanced form validation schema with pricing plans and product types
+// English-localized form validation schema based on shared schema
 const productFormSchema = insertProductSchema.extend({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be URL-safe"),
@@ -29,29 +29,6 @@ const productFormSchema = insertProductSchema.extend({
   categoryId: z.string().min(1, "Category is required"),
   featuredFeatures: z.array(z.string().min(1)).optional(),
   tags: z.array(z.string()).optional(),
-  // New fields for modern subscription interface
-  pricingPlans: z.array(z.object({
-    duration: z.string().min(1, "Duration is required"),
-    price: z.string().min(1, "Price is required"),
-    originalPrice: z.string().optional(),
-    discount: z.string().optional(),
-    priceNumber: z.number().optional(),
-    popular: z.boolean().optional(),
-    features: z.array(z.string()).optional(),
-  })).optional(),
-  sidebarContent: z.object({
-    productTypes: z.array(z.object({
-      id: z.string().min(1, "ID is required"),
-      name: z.string().min(1, "Name is required"),
-      description: z.string().min(1, "Description is required"),
-      price: z.string().min(1, "Price is required"),
-      originalPrice: z.string().optional(),
-      maxUsers: z.number().optional(),
-      popular: z.boolean().optional(),
-      recommended: z.boolean().optional(),
-      features: z.array(z.string()).optional(),
-    })).optional(),
-  }).optional(),
 });
 
 type ProductFormData = z.infer<typeof productFormSchema>;
@@ -89,12 +66,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featuredFeatures: Array.isArray(product.featuredFeatures) ? product.featuredFeatures : [],
       featuredAreaText: product.featuredAreaText || "",
       tags: Array.isArray(product.tags) ? product.tags : [],
-      // New fields
-      pricingPlans: Array.isArray(product.pricingPlans) ? product.pricingPlans : [],
-      sidebarContent: {
-        productTypes: product.sidebarContent?.productTypes && Array.isArray(product.sidebarContent.productTypes) 
-          ? product.sidebarContent.productTypes : []
-      },
     } : {
       title: "",
       slug: "",
@@ -112,11 +83,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featuredFeatures: [],
       featuredAreaText: "",
       tags: [],
-      // New fields
-      pricingPlans: [],
-      sidebarContent: {
-        productTypes: []
-      },
     },
   });
 
@@ -168,17 +134,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     name: "tags",
   });
 
-  // New field arrays for pricing plans and product types
-  const pricingPlans = useFieldArray({
-    control: form.control,
-    name: "pricingPlans",
-  });
-
-  const productTypes = useFieldArray({
-    control: form.control,
-    name: "sidebarContent.productTypes",
-  });
-
   // Auto-save functionality (visual indicator only)
   useEffect(() => {
     const subscription = form.watch(() => {
@@ -214,11 +169,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         // Convert arrays properly
         featuredFeatures: data.featuredFeatures?.filter(Boolean) || undefined,
         tags: data.tags?.filter(Boolean) || undefined,
-        // New fields
-        pricingPlans: data.pricingPlans?.filter(plan => plan.duration && plan.price) || undefined,
-        sidebarContent: data.sidebarContent?.productTypes?.length > 0 ? {
-          productTypes: data.sidebarContent.productTypes.filter(type => type.id && type.name && type.description)
-        } : undefined,
       };
 
       return apiRequest(
@@ -279,7 +229,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-7 w-full h-auto p-1">
+            <TabsList className="grid grid-cols-5 w-full h-auto p-1">
               <TabsTrigger 
                 value="basic" 
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -293,24 +243,8 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 data-testid="tab-pricing"
               >
-                <span className="text-sm font-medium">Basic Pricing</span>
-                <span className="text-xs opacity-70">Current price, stock</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="subscription" 
-                className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                data-testid="tab-subscription"
-              >
-                <span className="text-sm font-medium">Subscription Plans</span>
-                <span className="text-xs opacity-70">Multiple pricing options</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="variants" 
-                className="flex flex-col gap-1 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                data-testid="tab-variants"
-              >
-                <span className="text-sm font-medium">Product Types</span>
-                <span className="text-xs opacity-70">Variants and options</span>
+                <span className="text-sm font-medium">Pricing</span>
+                <span className="text-xs opacity-70">Price, discount, stock</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="content" 
@@ -619,295 +553,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 <p className="text-xs text-gray-500 mt-2" dir="ltr">
                   Rich text editor for legacy compatibility field
                 </p>
-              </div>
-            </TabsContent>
-
-            {/* Subscription Plans Tab */}
-            <TabsContent value="subscription" className="space-y-6 mt-6">
-              <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-sm font-medium">Subscription Pricing Plans</h3>
-                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                      Add multiple pricing options (3 months, 6 months, 12 months, etc.)
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => pricingPlans.append({
-                      duration: "",
-                      price: "",
-                      originalPrice: "",
-                      discount: "",
-                      priceNumber: 0,
-                      popular: false,
-                      features: []
-                    })}
-                    data-testid="button-add-pricing-plan"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Plan
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  {pricingPlans.fields.map((field, index) => (
-                    <Card key={field.id} className="p-4">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-medium">Plan {index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => pricingPlans.remove(index)}
-                          data-testid={`button-remove-pricing-plan-${index}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor={`pricingPlans.${index}.duration`} className="text-sm font-medium">
-                            Duration
-                          </Label>
-                          <Select 
-                            value={form.watch(`pricingPlans.${index}.duration`) || ""} 
-                            onValueChange={(value) => form.setValue(`pricingPlans.${index}.duration`, value)}
-                          >
-                            <SelectTrigger className="mt-1" data-testid={`select-duration-${index}`}>
-                              <SelectValue placeholder="Select duration" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="3-months">3 Months</SelectItem>
-                              <SelectItem value="6-months">6 Months</SelectItem>
-                              <SelectItem value="12-months">12 Months</SelectItem>
-                              <SelectItem value="monthly">Monthly</SelectItem>
-                              <SelectItem value="yearly">Yearly</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`pricingPlans.${index}.price`} className="text-sm font-medium">
-                            Price
-                          </Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            {...form.register(`pricingPlans.${index}.price`)}
-                            placeholder="0.00"
-                            className="mt-1"
-                            data-testid={`input-plan-price-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`pricingPlans.${index}.originalPrice`} className="text-sm font-medium">
-                            Original Price
-                          </Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            {...form.register(`pricingPlans.${index}.originalPrice`)}
-                            placeholder="0.00"
-                            className="mt-1"
-                            data-testid={`input-plan-original-price-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor={`pricingPlans.${index}.discount`} className="text-sm font-medium">
-                            Discount Label
-                          </Label>
-                          <Input
-                            {...form.register(`pricingPlans.${index}.discount`)}
-                            placeholder="e.g., 25% off"
-                            className="mt-1"
-                            data-testid={`input-plan-discount-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        <div className="flex items-center gap-4 mt-6">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={form.watch(`pricingPlans.${index}.popular`) || false}
-                              onCheckedChange={(checked) => form.setValue(`pricingPlans.${index}.popular`, checked)}
-                              data-testid={`checkbox-plan-popular-${index}`}
-                            />
-                            <Label className="text-sm">Popular Plan</Label>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                  
-                  {pricingPlans.fields.length === 0 && (
-                    <p className="text-sm text-gray-500 italic text-center py-8" dir="ltr">
-                      No pricing plans added yet. Click "Add Plan" to create subscription options.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Product Types/Variants Tab */}
-            <TabsContent value="variants" className="space-y-6 mt-6">
-              <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-sm font-medium">Product Types & Variants</h3>
-                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                      Different product options (shared accounts, private accounts, etc.)
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => productTypes.append({
-                      id: "",
-                      name: "",
-                      description: "",
-                      price: "",
-                      originalPrice: "",
-                      maxUsers: 1,
-                      popular: false,
-                      recommended: false,
-                      features: []
-                    })}
-                    data-testid="button-add-product-type"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Type
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  {productTypes.fields.map((field, index) => (
-                    <Card key={field.id} className="p-4">
-                      <div className="flex justify-between items-start mb-4">
-                        <h4 className="font-medium">Product Type {index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => productTypes.remove(index)}
-                          data-testid={`button-remove-product-type-${index}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor={`sidebarContent.productTypes.${index}.id`} className="text-sm font-medium">
-                            Type ID
-                          </Label>
-                          <Input
-                            {...form.register(`sidebarContent.productTypes.${index}.id`)}
-                            placeholder="e.g., shared-6, private"
-                            className="mt-1"
-                            data-testid={`input-type-id-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`sidebarContent.productTypes.${index}.name`} className="text-sm font-medium">
-                            Type Name
-                          </Label>
-                          <Input
-                            {...form.register(`sidebarContent.productTypes.${index}.name`)}
-                            placeholder="e.g., Shared Account"
-                            className="mt-1"
-                            data-testid={`input-type-name-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor={`sidebarContent.productTypes.${index}.description`} className="text-sm font-medium">
-                            Description
-                          </Label>
-                          <Input
-                            {...form.register(`sidebarContent.productTypes.${index}.description`)}
-                            placeholder="e.g., 1 slot shared with 6 people"
-                            className="mt-1"
-                            data-testid={`input-type-description-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`sidebarContent.productTypes.${index}.price`} className="text-sm font-medium">
-                            Price
-                          </Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            {...form.register(`sidebarContent.productTypes.${index}.price`)}
-                            placeholder="0.00"
-                            className="mt-1"
-                            data-testid={`input-type-price-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <Label htmlFor={`sidebarContent.productTypes.${index}.maxUsers`} className="text-sm font-medium">
-                            Max Users
-                          </Label>
-                          <Input
-                            type="number"
-                            {...form.register(`sidebarContent.productTypes.${index}.maxUsers`, { valueAsNumber: true })}
-                            placeholder="1"
-                            className="mt-1"
-                            data-testid={`input-type-max-users-${index}`}
-                            dir="ltr"
-                          />
-                        </div>
-                        
-                        <div className="flex items-center gap-4 mt-6">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={form.watch(`sidebarContent.productTypes.${index}.popular`) || false}
-                              onCheckedChange={(checked) => form.setValue(`sidebarContent.productTypes.${index}.popular`, checked)}
-                              data-testid={`checkbox-type-popular-${index}`}
-                            />
-                            <Label className="text-sm">Popular</Label>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={form.watch(`sidebarContent.productTypes.${index}.recommended`) || false}
-                              onCheckedChange={(checked) => form.setValue(`sidebarContent.productTypes.${index}.recommended`, checked)}
-                              data-testid={`checkbox-type-recommended-${index}`}
-                            />
-                            <Label className="text-sm">Recommended</Label>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                  
-                  {productTypes.fields.length === 0 && (
-                    <p className="text-sm text-gray-500 italic text-center py-8" dir="ltr">
-                      No product types added yet. Click "Add Type" to create product variants.
-                    </p>
-                  )}
-                </div>
               </div>
             </TabsContent>
 

@@ -110,6 +110,18 @@ export function useProductByCategoryAndSlug(categorySlug: string, productSlug: s
   });
 }
 
+// Hook specifically for featured products
+export function useFeaturedProducts() {
+  const result = useQuery<Product[]>({
+    queryKey: ['/api/products/featured'],
+  });
+  return {
+    data: result.data || [],
+    isLoading: result.isLoading,
+    error: result.error
+  };
+}
+
 // Fallback hooks for database API (existing functionality)
 function useApiProducts() {
   // Use existing React Query hook - this should integrate with actual API hooks

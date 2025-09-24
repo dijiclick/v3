@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useSEO } from "@/hooks/use-seo";
 import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
-import { useProducts, useCategories } from "@/lib/content-service";
+import { useFeaturedProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
 
 interface ServiceCard {
@@ -121,7 +121,7 @@ export default function Home() {
   const [showAllProducts, setShowAllProducts] = useState(false);
 
   // Fetch all products and categories from the database
-  const { data: products = [], isLoading: productsLoading, error: productsError } = useProducts();
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useFeaturedProducts();
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useCategories();
   const [, setLocation] = useLocation();
 

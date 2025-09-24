@@ -639,152 +639,185 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
             {/* Content Tab */}
             <TabsContent value="content" className="space-y-6 mt-6">
-              {/* Image Upload Component */}
+              {/* Modern Image Upload Section */}
               <div className="space-y-4">
-                <Label className="text-sm font-medium block" dir="rtl">
+                <Label className="text-sm font-medium" dir="rtl">
                   تصویر اصلی محصول
                 </Label>
                 
-                {/* Image Preview */}
-                {imagePreview ? (
-                  <div className="relative group">
-                    <div className="relative w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
-                      <img
-                        src={imagePreview}
-                        alt="پیش‌نمای تصویر محصول"
-                        className="w-full h-full object-cover"
-                        data-testid="image-preview"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => {
-                            if (imagePreview.startsWith('http')) {
-                              window.open(imagePreview, '_blank');
-                            }
-                          }}
-                          className="bg-white/90 text-gray-900 hover:bg-white"
-                          data-testid="button-view-image"
-                        >
-                          <Eye className="h-4 w-4 ml-1" />
-                          مشاهده
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="bg-blue-500/90 text-white hover:bg-blue-600"
-                          disabled={uploadingImage}
-                          data-testid="button-replace-image"
-                        >
-                          <Upload className="h-4 w-4 ml-1" />
-                          تغییر
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleImageRemove}
-                          className="bg-red-500/90 text-white hover:bg-red-600"
-                          disabled={uploadingImage}
-                          data-testid="button-remove-image"
-                        >
-                          <X className="h-4 w-4 ml-1" />
-                          حذف
-                        </Button>
+                <div className="border rounded-lg p-4 bg-gray-50/50 dark:bg-gray-900/50">
+                  {imagePreview ? (
+                    /* Image Management Layout */
+                    <div className="flex gap-4" dir="rtl">
+                      {/* Image Preview - Left Side */}
+                      <div className="relative">
+                        <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-sm">
+                          <img
+                            src={imagePreview}
+                            alt="پیش‌نمای تصویر محصول"
+                            className="w-full h-full object-cover"
+                            data-testid="image-preview"
+                          />
+                          {uploadingImage && (
+                            <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 flex items-center justify-center">
+                              <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Controls and Info - Right Side */}
+                      <div className="flex-1 space-y-3">
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 justify-start">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploadingImage}
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800"
+                            data-testid="button-replace-image"
+                          >
+                            <Upload className="h-4 w-4 ml-1" />
+                            تغییر تصویر
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (imagePreview.startsWith('http')) {
+                                window.open(imagePreview, '_blank');
+                              }
+                            }}
+                            className="text-gray-600 hover:bg-gray-100 dark:text-gray-400"
+                            data-testid="button-view-image"
+                          >
+                            <Eye className="h-4 w-4 ml-1" />
+                            مشاهده
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(imagePreview);
+                              toast({
+                                title: "کپی شد",
+                                description: "آدرس تصویر در کلیپ‌بورد کپی شد"
+                              });
+                            }}
+                            className="text-gray-600 hover:bg-gray-100 dark:text-gray-400"
+                          >
+                            📋 کپی لینک
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleImageRemove}
+                            disabled={uploadingImage}
+                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800"
+                            data-testid="button-remove-image"
+                          >
+                            <X className="h-4 w-4 ml-1" />
+                            حذف
+                          </Button>
+                        </div>
+
+                        {/* File Information */}
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                            <span>وضعیت:</span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">✓ آپلود شده</span>
+                          </div>
+                          <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                            <span>نوع فایل:</span>
+                            <span className="font-mono text-xs">
+                              {imagePreview.includes('.png') ? 'PNG' : 
+                               imagePreview.includes('.jpg') || imagePreview.includes('.jpeg') ? 'JPEG' : 
+                               imagePreview.includes('.gif') ? 'GIF' : 
+                               imagePreview.includes('.webp') ? 'WebP' : 'Image'}
+                            </span>
+                          </div>
+                          {uploadingImage && (
+                            <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                              <span>پیشرفت:</span>
+                              <span className="text-blue-600 dark:text-blue-400">در حال آپلود...</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {uploadingImage && (
-                      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 rounded-lg flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-2">
+                  ) : (
+                    /* Upload Zone - Compact Design */
+                    <div
+                      className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer ${
+                        dragActive 
+                          ? 'border-red-500 bg-red-50 dark:bg-red-950/20' 
+                          : 'border-gray-300 dark:border-gray-600 hover:border-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/10'
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      data-testid="image-upload-zone"
+                      dir="rtl"
+                    >
+                      {uploadingImage ? (
+                        <div className="flex flex-col items-center gap-3">
                           <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">در حال آپلود...</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">در حال آپلود تصویر...</p>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  /* Upload Drop Zone */
-                  <div
-                    className={`relative w-full h-64 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
-                      dragActive 
-                        ? 'border-red-500 bg-red-50 dark:bg-red-950/20' 
-                        : 'border-gray-300 dark:border-gray-600 hover:border-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/10'
-                    }`}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    data-testid="image-upload-zone"
-                  >
-                    {uploadingImage ? (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">در حال آپلود...</p>
+                      ) : (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              تصویر محصول را آپلود کنید
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              PNG، JPG، GIF • حداکثر ۵ مگابایت
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                            data-testid="button-select-image"
+                          >
+                            <Upload className="h-4 w-4 ml-1" />
+                            انتخاب فایل
+                          </Button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6" dir="rtl">
-                        <ImageIcon className="h-12 w-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          تصویر محصول را آپلود کنید
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          فایل را اینجا بکشید و رها کنید یا کلیک کنید تا انتخاب کنید
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <span>PNG، JPG، GIF</span>
-                          <span>•</span>
-                          <span>حداکثر ۵ مگابایت</span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mt-4 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
-                          data-testid="button-select-image"
-                        >
-                          <Upload className="h-4 w-4 ml-2" />
-                          انتخاب فایل
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                  data-testid="file-input"
-                />
-
-                {/* Manual URL input (alternative option) */}
-                <div className="border-t pt-4">
-                  <Label htmlFor="image-url" className="text-sm font-medium block mb-2" dir="rtl">
+                {/* Alternative URL Input - Compact */}
+                <div className="border-t pt-3">
+                  <Label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2" dir="rtl">
                     یا آدرس تصویر را وارد کنید
                   </Label>
                   <div className="flex gap-2">
                     <Input
-                      id="image-url"
                       type="url"
                       {...form.register("image")}
                       placeholder="https://example.com/image.jpg"
-                      className="flex-1"
+                      className="flex-1 text-sm"
                       data-testid="input-image-url"
                       dir="ltr"
                     />
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => {
                         const imageUrl = form.getValues("image");
                         if (imageUrl) {
@@ -797,10 +830,17 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                       بارگذاری
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
-                    به‌جای آپلود فایل، می‌توانید آدرس مستقیم تصویر را وارد کنید
-                  </p>
                 </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                  data-testid="file-input"
+                />
               </div>
 
               {/* Backward compatibility description field */}

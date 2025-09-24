@@ -399,14 +399,22 @@ export default function Home() {
 
                 {/* Card Bottom */}
                 <div className="p-6 flex-1 flex flex-col justify-between">
-                  <ul className="list-none space-y-3 flex-1">
-                    {service.features.map((feature, index) => (
-                      <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
-                        <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Hide features list for featured products */}
+                  {!service.featured && (
+                    <ul className="list-none space-y-3 flex-1">
+                      {service.features.map((feature, index) => (
+                        <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
+                          <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  
+                  {/* Add spacer for featured products to maintain layout */}
+                  {service.featured && (
+                    <div className="flex-1"></div>
+                  )}
                   
                   {service.status === 'inactive' ? (
                     <button 

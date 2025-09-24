@@ -101,7 +101,7 @@ export default function CategoryForm({ category, onSuccess, onCancel }: Category
               data-testid="category-name-input"
             />
             {form.formState.errors.name && (
-              <p className="text-sm text-green-600 mt-1">
+              <p className="text-sm text-red-600 mt-1">
                 {form.formState.errors.name.message}
               </p>
             )}

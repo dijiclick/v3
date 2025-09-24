@@ -134,7 +134,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="bg-white/90 dark:bg-card/90 text-foreground p-2 rounded-full hover:bg-white dark:hover:bg-card transition-colors shadow-lg"
               data-testid={`wishlist-button-${product.id}`}
             >
-              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-slate-700' : ''}`} />
+              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
             </Button>
           </div>
           
@@ -143,7 +143,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {hasDiscount && (
               <Badge 
                 variant="destructive" 
-                className="bg-slate-700 hover:bg-slate-800 text-white font-bold px-2 py-1 text-xs rounded-lg shadow-lg"
+                className="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 text-xs rounded-lg shadow-lg"
                 data-testid={`sale-badge-${product.id}`}
               >
                 {Math.round(((parseFloat(product.originalPrice!) - parseFloat(product.price)) / parseFloat(product.originalPrice!)) * 100)}% تخفیف
@@ -225,7 +225,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <div className="flex items-center gap-2">
                 {/* Current Price */}
                 <span className={`text-lg font-bold ${
-                  !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-slate-700 dark:text-slate-600'
+                  !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-green-600 dark:text-green-500'
                 }`} data-testid={`product-price-${product.id}`}>
                   {formatPersianPrice(product.price)} تومان
                 </span>
@@ -251,7 +251,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 !product.inStock 
                   ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-800 hover:to-slate-900 hover:-translate-y-0.5 hover:shadow-lg'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-0.5 hover:shadow-lg'
               }`}
               data-testid={`buy-now-button-${product.id}`}
             >
@@ -309,7 +309,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="bg-white/90 dark:bg-card/90 text-foreground p-2 rounded-full hover:bg-white dark:hover:bg-card transition-colors shadow-lg"
               data-testid={`wishlist-button-${product.id}`}
             >
-              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-slate-700' : ''}`} />
+              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-current text-red-500' : ''}`} />
             </Button>
           </div>
           
@@ -318,7 +318,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {hasDiscount && (
               <Badge 
                 variant="destructive" 
-                className="bg-slate-700 hover:bg-slate-800 text-white font-bold px-2 py-1 text-xs rounded-lg shadow-lg"
+                className="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 text-xs rounded-lg shadow-lg"
                 data-testid={`sale-badge-${product.id}`}
               >
                 {Math.round(((parseFloat(product.originalPrice!) - parseFloat(product.price)) / parseFloat(product.originalPrice!)) * 100)}% تخفیف
@@ -400,7 +400,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               <div className="flex items-center gap-2">
                 {/* Current Price */}
                 <span className={`text-lg font-bold ${
-                  !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-slate-700 dark:text-slate-600'
+                  !product.inStock ? 'text-gray-500 dark:text-gray-400' : 'text-green-600 dark:text-green-500'
                 }`} data-testid={`product-price-${product.id}`}>
                   {formatPersianPrice(product.price)} تومان
                 </span>
@@ -426,7 +426,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 !product.inStock 
                   ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-800 hover:to-slate-900 hover:-translate-y-0.5 hover:shadow-lg'
+                  : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-0.5 hover:shadow-lg'
               }`}
               data-testid={`buy-now-button-${product.id}`}
             >

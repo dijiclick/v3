@@ -134,8 +134,8 @@ export default function CMSPage({
       <div className={`min-h-screen flex items-center justify-center ${className}`}>
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <AlertCircle className="mx-auto h-8 w-8 text-green-500 mb-4" />
-            <h3 className="text-lg font-medium text-green-600 mb-2">
+            <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-4" />
+            <h3 className="text-lg font-medium text-red-600 mb-2">
               Content not found
             </h3>
             <p className="text-gray-500 mb-4">

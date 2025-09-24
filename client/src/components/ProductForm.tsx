@@ -463,7 +463,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-sm ${!form.watch("inStock") ? "font-medium text-green-600" : "text-gray-500"}`}>
+                  <span className={`text-sm ${!form.watch("inStock") ? "font-medium text-red-600" : "text-gray-500"}`}>
                     Out of Stock
                   </span>
                   <Switch

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useSEO } from "@/hooks/use-seo";
+import { useToast } from "@/hooks/use-toast";
 import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
 import { useFeaturedProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
@@ -142,6 +143,7 @@ export default function Home() {
   const [showLoadMore, setShowLoadMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  const { toast } = useToast();
   
   // Get current responsive columns and calculate initial visible count
   const columns = useResponsiveColumns();
@@ -468,17 +470,25 @@ export default function Home() {
                           className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center mb-2"
                           data-testid={`button-buy-now-${service.id}`}
                         >
+                          <span className="mr-2">🔗</span>
                           خرید فوری
                         </button>
                       ) : (
-                        <a 
-                          href={getProductUrl(service)}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-red-500 hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/40 text-center"
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Show toast message for missing buy link
+                            toast({
+                              title: "توجه",
+                              description: "لینک خرید مستقیم موجود نیست. لطفاً با پشتیبانی تماس بگیرید.",
+                              variant: "destructive"
+                            });
+                          }}
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gray-500 hover:bg-gray-600 text-center"
                           data-testid={`button-purchase-${service.id}`}
-                          onClick={(e) => e.stopPropagation()}
                         >
-                          خرید اشتراک
-                        </a>
+                          تماس با پشتیبانی
+                        </button>
                       )}
                     </>
                   )}

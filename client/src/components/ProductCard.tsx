@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Heart, Star, ShoppingCart, ExternalLink } from "lucide-react";
+import { Heart, Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Product } from "@/types";
-import { cartManager } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/lib/content-service";
 
@@ -63,22 +62,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     return null; // Don't provide a fallback URL that leads to 404
   })();
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    cartManager.addItem({
-      id: product.id,
-      title: product.title,
-      price: parseFloat(product.price),
-      image: product.image || undefined,
-    });
-
-    toast({
-      title: "افزوده شد",
-      description: `${product.title} به سبد خرید افزوده شد.`,
-    });
-  };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -98,8 +81,11 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (product.buyLink) {
       window.open(product.buyLink, '_blank', 'noopener,noreferrer');
     } else {
-      // Fallback to cart if no buy link
-      handleAddToCart(e);
+      toast({
+        title: "توجه",
+        description: "لینک خرید مستقیم موجود نیست. لطفاً با پشتیبانی تماس بگیرید.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -242,13 +228,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex gap-2">
+          {/* Action Button */}
+          <div>
             {/* Buy Now Button (Primary) */}
             <Button 
               onClick={handleBuyNow}
               disabled={!product.inStock}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 !product.inStock 
                   ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-0.5 hover:shadow-lg'
@@ -263,21 +249,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                   خرید فوری
                 </>
               )}
-            </Button>
-            
-            {/* Add to Cart Button (Secondary) */}
-            <Button 
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-              variant="outline"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                !product.inStock 
-                  ? 'opacity-60 cursor-not-allowed'
-                  : 'hover:-translate-y-0.5 hover:shadow-md border-gray-300 dark:border-border'
-              }`}
-              data-testid={`add-to-cart-${product.id}`}
-            >
-              <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -417,13 +388,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex gap-2">
+          {/* Action Button */}
+          <div>
             {/* Buy Now Button (Primary) */}
             <Button 
               onClick={handleBuyNow}
               disabled={!product.inStock}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`w-full py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 !product.inStock 
                   ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-0.5 hover:shadow-lg'
@@ -438,21 +409,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                   خرید فوری
                 </>
               )}
-            </Button>
-            
-            {/* Add to Cart Button (Secondary) */}
-            <Button 
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-              variant="outline"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                !product.inStock 
-                  ? 'opacity-60 cursor-not-allowed'
-                  : 'hover:-translate-y-0.5 hover:shadow-md border-gray-300 dark:border-border'
-              }`}
-              data-testid={`add-to-cart-${product.id}`}
-            >
-              <ShoppingCart className="h-4 w-4" />
             </Button>
           </div>
         </div>

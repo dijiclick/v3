@@ -19,6 +19,7 @@ import AdminProducts from "@/pages/AdminProducts";
 import AdminProductAdd from "@/pages/AdminProductAdd";
 import AdminProductEdit from "@/pages/AdminProductEdit";
 import AdminCategories from "@/pages/AdminCategories";
+import AdminPlans from "@/pages/AdminPlans";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
@@ -32,6 +33,7 @@ function AdminRouter() {
           <Route path="/admin/products" component={AdminProducts} />
           <Route path="/admin/products/add" component={AdminProductAdd} />
           <Route path="/admin/products/edit/:id" component={AdminProductEdit} />
+          <Route path="/admin/plans" component={AdminPlans} />
           <Route path="/admin/categories" component={AdminCategories} />
           <Route path="/admin/pages" component={AdminPages} />
           <Route path="/admin/settings" component={AdminSettings} />

@@ -9,7 +9,8 @@ import {
   LogOut,
   Menu,
   X,
-  Home
+  Home,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -18,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 const adminNavItems = [
   { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/admin/products", icon: Package, label: "Products" },
+  { path: "/admin/plans", icon: CreditCard, label: "Plans" },
   { path: "/admin/categories", icon: FolderTree, label: "Categories" },
   { path: "/admin/pages", icon: FileText, label: "Pages" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },

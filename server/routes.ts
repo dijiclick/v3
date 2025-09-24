@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
-import { insertProductSchema, insertCategorySchema, insertPageSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertPageSchema, insertPlanSchema } from "@shared/schema";
 import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -204,6 +204,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: error.message });
       }
       res.status(500).json({ message: "Error duplicating product: " + error.message });
+    }
+  });
+
+  // Plan routes
+  app.get("/api/plans", async (req, res) => {
+    try {
+      const plans = await storage.getPlans();
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching plans: " + error.message });
+    }
+  });
+
+  app.get("/api/products/:productId/plans", async (req, res) => {
+    try {
+      const plans = await storage.getPlansByProductId(req.params.productId);
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching plans: " + error.message });
+    }
+  });
+
+  app.get("/api/plans/:id", async (req, res) => {
+    try {
+      const plan = await storage.getPlan(req.params.id);
+      if (!plan) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      res.json(plan);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching plan: " + error.message });
+    }
+  });
+
+  app.post("/api/products/:productId/plans", requireAdmin, async (req, res) => {
+    try {
+      const result = insertPlanSchema.safeParse({
+        ...req.body,
+        productId: req.params.productId
+      });
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid plan data", errors: result.error.errors });
+      }
+      
+      const plan = await storage.createPlan(result.data);
+      res.status(201).json(plan);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating plan: " + error.message });
+    }
+  });
+
+  app.put("/api/plans/:id", requireAdmin, async (req, res) => {
+    try {
+      const result = insertPlanSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid plan data", errors: result.error.errors });
+      }
+      
+      const plan = await storage.updatePlan(req.params.id, result.data);
+      res.json(plan);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Error updating plan: " + error.message });
+    }
+  });
+
+  app.delete("/api/plans/:id", requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deletePlan(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting plan: " + error.message });
     }
   });
 

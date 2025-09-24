@@ -42,7 +42,6 @@ export const products = pgTable("products", {
   tags: text("tags").array(),
   // ChatGPT-style layout fields
   heroSection: jsonb("hero_section"),
-  pricingPlans: jsonb("pricing_plans"),
   screenshots: jsonb("screenshots"),
   statisticsSection: jsonb("statistics_section"),
   benefitsSection: jsonb("benefits_section"),
@@ -82,12 +81,12 @@ export const images = pgTable("images", {
 
 export const plans = pgTable("plans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  productId: varchar("product_id").references(() => products.id).notNull(),
+  productId: varchar("product_id").references(() => products.id, { onDelete: 'cascade' }).notNull(),
   title: text("title").notNull(), // "پلن فردی", "پلن مشترک"
   description: text("description").notNull(), // توضیح یک خطی
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   productLink: text("product_link").notNull(), // لینک محصول
-  order: integer("order").default(0), // ترتیب نمایش
+  sortOrder: integer("sort_order").default(0), // ترتیب نمایش
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -227,7 +226,6 @@ export const insertProductSchema = createInsertSchema(products).omit({
   featuredAreaText: z.string().optional(),
   layoutStyle: z.string().optional().default("chatgpt"),
   heroSection: heroSectionSchema,
-  pricingPlans: z.array(pricingPlanSchema).optional(),
   screenshots: z.array(screenshotSchema).optional(),
   statisticsSection: statisticsSectionSchema,
   benefitsSection: benefitsSectionSchema,

@@ -1,7 +1,8 @@
 import { useRoute } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useSEO } from "@/hooks/use-seo";
 import { useProductByCategoryAndSlug, useCategories } from "@/lib/content-service";
@@ -11,7 +12,10 @@ import {
   generateMetaDescription, 
   getEnhancedProductStructuredData 
 } from "@/lib/seo";
-import { ExternalLink, Share, Heart, Star, CheckCircle, Home, ChevronRight } from "lucide-react";
+import { ExternalLink, Share, Heart, Star, CheckCircle, Home, ChevronRight, CreditCard } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Plan } from "@shared/schema";
 
 // Utility function to format prices in Persian Toman
 const formatPersianPrice = (price: string | null): string => {
@@ -51,11 +55,24 @@ const renderRichText = (richText: any): string => {
 export default function ProductDetails() {
   const [, params] = useRoute("/:categorySlug/:productSlug");
   const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState('individual');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const { data: product, isLoading, error } = useProductByCategoryAndSlug(params?.categorySlug || "", params?.productSlug || "");
   const { data: categories = [] } = useCategories();
+
+  // Fetch plans for the product
+  const { data: plans = [] } = useQuery<Plan[]>({
+    queryKey: ['/api/products', product?.id, 'plans'],
+    enabled: !!product?.id,
+  });
+
+  // Set first plan as default when plans are loaded
+  useEffect(() => {
+    if (plans.length > 0 && !selectedPlan) {
+      setSelectedPlan(plans[0]);
+    }
+  }, [plans, selectedPlan]);
 
   // Get current category
   const currentCategory = categories.find(cat => cat.slug === params?.categorySlug);
@@ -124,15 +141,25 @@ export default function ProductDetails() {
   const handleBuyNow = () => {
     if (!product) return;
     
-    if (product.buyLink) {
-      window.open(product.buyLink, '_blank', 'noopener,noreferrer');
+    // Use selected plan link if available, otherwise fallback to product buyLink
+    const buyLink = selectedPlan?.productLink || product.buyLink;
+    
+    if (buyLink) {
+      window.open(buyLink, '_blank', 'noopener,noreferrer');
     } else {
-      // No fallback needed since cart functionality is removed
       toast({
         title: "توجه",
         description: "لینک خرید مستقیم موجود نیست. لطفاً با پشتیبانی تماس بگیرید.",
       });
     }
+  };
+
+  // Get current price (from selected plan or product)
+  const getCurrentPrice = () => {
+    if (selectedPlan) {
+      return selectedPlan.price.toString();
+    }
+    return product?.price || "0";
   };
 
   // Default FAQs for products
@@ -317,48 +344,39 @@ export default function ProductDetails() {
                 </li>
               )}
               
-              {/* Plan Selection in Features List */}
-              {product.inStock && (
+              {/* Dynamic Plan Selection */}
+              {product.inStock && plans.length > 0 && (
                 <>
                   <li className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="text-gray-700 font-medium mb-3">نوع پلن:</div>
+                    <div className="text-gray-700 font-medium mb-3 flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      انتخاب پلن:
+                    </div>
                   </li>
-                  <li className="mb-3">
-                    <button
-                      onClick={() => setSelectedPlan('individual')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
-                        selectedPlan === 'individual'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'individual' ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium">پلن فردی</div>
-                        <div className="text-sm opacity-75">برای استفاده شخصی</div>
-                      </div>
-                    </button>
-                  </li>
-                  <li className="mb-3">
-                    <button
-                      onClick={() => setSelectedPlan('shared')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
-                        selectedPlan === 'shared'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'shared' ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium">پلن مشترک</div>
-                        <div className="text-sm opacity-75">برای چند کاربر</div>
-                      </div>
-                    </button>
-                  </li>
+                  {plans.map((plan: Plan) => (
+                    <li key={plan.id} className="mb-3">
+                      <button
+                        onClick={() => setSelectedPlan(plan)}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full ${
+                          selectedPlan?.id === plan.id
+                            ? 'border-red-500 bg-red-50 text-red-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                        data-testid={`select-plan-${plan.id}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border-2 ${
+                          selectedPlan?.id === plan.id ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                        }`}></div>
+                        <div className="flex-1 text-right">
+                          <div className="font-medium">{plan.title}</div>
+                          <div className="text-sm opacity-75">{plan.description}</div>
+                          <div className="text-lg font-bold text-green-600 mt-1">
+                            {formatPersianPrice(plan.price.toString())} تومان
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
                 </>
               )}
               {!product.inStock && (
@@ -394,17 +412,22 @@ export default function ProductDetails() {
               )}
               
               
-              {/* Final Price */}
+              {/* Final Price - Dynamic from selected plan or product */}
               <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-800 dark:text-gray-200">قیمت نهایی:</span>
                   <div className="text-left">
                     <span className="text-3xl font-bold text-green-600 dark:text-green-500">
-                      {formatPersianPrice(product.price)}
+                      {formatPersianPrice(getCurrentPrice())}
                     </span>
                     <span className="text-lg text-gray-600 dark:text-gray-400 mr-2">تومان</span>
                   </div>
                 </div>
+                {selectedPlan && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-right">
+                    پلن انتخاب شده: {selectedPlan.title}
+                  </div>
+                )}
               </div>
             </div>
             

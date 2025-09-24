@@ -568,40 +568,6 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Statistics Section */}
-        <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg mb-16">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold mb-4">آمار و ارقام</h2>
-            <p className="text-red-100 text-lg">اعتماد میلیون‌ها کاربر در سراسر جهان</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center" data-testid="stat-users">
-              <div className="text-4xl font-bold mb-2">2500</div>
-              <div className="text-red-100">کاربر فعال</div>
-            </div>
-            <div className="text-center" data-testid="stat-orders">
-              <div className="text-4xl font-bold mb-2">10k</div>
-              <div className="text-red-100">سفارش موفق</div>
-            </div>
-            <div className="text-center" data-testid="stat-countries">
-              <div className="text-4xl font-bold mb-2">5</div>
-              <div className="text-red-100">کشور</div>
-            </div>
-            <div className="text-center" data-testid="stat-satisfaction">
-              <div className="text-4xl font-bold mb-2">۹۸٪</div>
-              <div className="text-red-100">رضایت کاربران</div>
-            </div>
-          </div>
-          
-          <div className="mt-10 text-center">
-            <div className="inline-flex items-center gap-2 bg-white bg-opacity-20 px-6 py-3 rounded-full">
-              <span className="text-yellow-300">⭐</span>
-              <span className="font-semibold">رتبه ۱ در ارائه اشتراک‌های پریمیوم</span>
-              <span className="text-yellow-300">⭐</span>
-            </div>
-          </div>
-        </div>
 
         {/* Why Choose Section */}
         <div className="bg-white p-10 rounded-3xl shadow-lg mb-16">

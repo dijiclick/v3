@@ -471,16 +471,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProductPlan(id: string, updateData: Partial<InsertProductPlan>): Promise<ProductPlan> {
-    const [plan] = await db.update(productPlans)
-      .set(updateData)
-      .where(eq(productPlans.id, id))
-      .returning();
-    
-    if (!plan) {
-      throw new Error(`Product plan with id ${id} not found`);
-    }
-    
-    return plan;
+    return await db.transaction(async (tx) => {
+      // If setting this plan as default, first unset other defaults for the same product
+      if (updateData.isDefault === true) {
+        // Get the current plan to find its productId
+        const [currentPlan] = await tx.select().from(productPlans).where(eq(productPlans.id, id));
+        
+        if (!currentPlan) {
+          throw new Error(`Product plan with id ${id} not found`);
+        }
+        
+        // Unset all other plans for this product as default
+        await tx.update(productPlans)
+          .set({ isDefault: false })
+          .where(sql`${productPlans.productId} = ${currentPlan.productId} AND ${productPlans.id} != ${id}`);
+      }
+      
+      // Now update the target plan
+      const [plan] = await tx.update(productPlans)
+        .set(updateData)
+        .where(eq(productPlans.id, id))
+        .returning();
+      
+      if (!plan) {
+        throw new Error(`Product plan with id ${id} not found`);
+      }
+      
+      return plan;
+    });
   }
 
   async deleteProductPlan(id: string): Promise<boolean> {

@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/lib/content-service";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -897,27 +897,450 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   </div>
                 </div>
               ) : (
-                /* Edit Mode - Show plans management */
+                /* Edit Mode - Complete Plans Manager Interface */
                 <div className="space-y-6">
+                  {/* Default Plan Info - Keep existing */}
                   <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
                     <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Plan Management
+                      مدیریت پلان‌های قیمت‌گذاری
                     </h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                      In edit mode, pricing is managed through product plans. Use the plans section below to manage different pricing options.
+                    <p className="text-sm text-blue-700 dark:text-blue-300" dir="rtl">
+                      در حالت ویرایش، قیمت‌گذاری از طریق پلان‌های محصول مدیریت می‌شود. از بخش زیر برای ایجاد و مدیریت گزینه‌های قیمت‌گذاری مختلف استفاده کنید.
                     </p>
                     {defaultPlan && (
-                      <div className="mt-3 p-3 bg-white dark:bg-blue-900 rounded border">
-                        <p className="text-sm font-medium">Current Default Plan: {defaultPlan.name}</p>
+                      <div className="mt-3 p-3 bg-white dark:bg-blue-900 rounded border" dir="rtl">
+                        <p className="text-sm font-medium">پلان پیش‌فرض: {defaultPlan.name}</p>
                         <p className="text-lg font-bold text-green-600 dark:text-green-400">
                           ${defaultPlan.price}
                           {defaultPlan.originalPrice && (
-                            <span className="text-sm text-gray-500 line-through ml-2">
+                            <span className="text-sm text-gray-500 line-through mr-2">
                               ${defaultPlan.originalPrice}
                             </span>
                           )}
                         </p>
                       </div>
+                    )}
+                  </div>
+
+                  {/* Plans List Interface */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between" dir="rtl">
+                      <h4 className="text-lg font-semibold">لیست پلان‌ها</h4>
+                      <Button
+                        type="button"
+                        onClick={handleAddPlan}
+                        disabled={showAddPlan}
+                        className="gap-2"
+                        data-testid="button-add-plan"
+                      >
+                        <Plus className="h-4 w-4" />
+                        اضافه کردن پلان جدید
+                      </Button>
+                    </div>
+
+                    {/* Loading State */}
+                    {plansLoading && (
+                      <div className="flex items-center justify-center p-8" data-testid="plans-loading">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <span className="mr-3">در حال بارگذاری پلان‌ها...</span>
+                      </div>
+                    )}
+
+                    {/* Error State */}
+                    {plansError && (
+                      <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800" dir="rtl">
+                        <p className="text-red-600 dark:text-red-400">خطا در بارگذاری پلان‌ها: {plansError.message}</p>
+                      </div>
+                    )}
+
+                    {/* Plans List */}
+                    {!plansLoading && !plansError && (
+                      <>
+                        {plans.length === 0 ? (
+                          /* Empty State */
+                          <div className="text-center p-8 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600" dir="rtl" data-testid="plans-empty-state">
+                            <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                              هیچ پلانی تعریف نشده
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400 mb-4">
+                              برای شروع، اولین پلان قیمت‌گذاری خود را ایجاد کنید
+                            </p>
+                            <Button
+                              type="button"
+                              onClick={handleAddPlan}
+                              variant="outline"
+                              className="gap-2"
+                              data-testid="button-add-first-plan"
+                            >
+                              <Plus className="h-4 w-4" />
+                              ایجاد پلان جدید
+                            </Button>
+                          </div>
+                        ) : (
+                          /* Plans Table/Cards */
+                          <div className="space-y-3">
+                            {plans
+                              .sort((a: ProductPlan, b: ProductPlan) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                              .map((plan: ProductPlan) => (
+                              <Card key={plan.id} className="p-4" data-testid={`plan-card-${plan.id}`}>
+                                <div className="flex items-center justify-between gap-4" dir="rtl">
+                                  {/* Plan Info */}
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-3">
+                                      <h5 className="font-semibold text-lg" data-testid={`plan-name-${plan.id}`}>
+                                        {plan.name}
+                                      </h5>
+                                      <div className="flex gap-2">
+                                        {plan.isDefault && (
+                                          <Badge variant="default" data-testid={`plan-default-badge-${plan.id}`}>
+                                            <Star className="h-3 w-3 ml-1" />
+                                            پیش‌فرض
+                                          </Badge>
+                                        )}
+                                        <Badge variant={plan.isActive ? "secondary" : "outline"} data-testid={`plan-status-badge-${plan.id}`}>
+                                          {plan.isActive ? (
+                                            <>
+                                              <CheckCircle className="h-3 w-3 ml-1" />
+                                              فعال
+                                            </>
+                                          ) : (
+                                            <>
+                                              <XCircle className="h-3 w-3 ml-1" />
+                                              غیرفعال
+                                            </>
+                                          )}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                      <span data-testid={`plan-price-${plan.id}`}>
+                                        <strong>قیمت:</strong> ${plan.price}
+                                      </span>
+                                      {plan.originalPrice && (
+                                        <span data-testid={`plan-original-price-${plan.id}`}>
+                                          <strong>قیمت اصلی:</strong> <span className="line-through">${plan.originalPrice}</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    {plan.description && (
+                                      <p className="text-sm text-gray-600 dark:text-gray-400" data-testid={`plan-description-${plan.id}`}>
+                                        {plan.description}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center gap-2">
+                                    {/* Reorder buttons */}
+                                    <div className="flex flex-col gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleReorderPlan(plan.id, 'up')}
+                                        disabled={updatePlanMutation.isPending}
+                                        className="h-6 w-6 p-0"
+                                        data-testid={`button-move-up-${plan.id}`}
+                                      >
+                                        <ArrowUp className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleReorderPlan(plan.id, 'down')}
+                                        disabled={updatePlanMutation.isPending}
+                                        className="h-6 w-6 p-0"
+                                        data-testid={`button-move-down-${plan.id}`}
+                                      >
+                                        <ArrowDown className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+
+                                    {/* Set as Default Button */}
+                                    {!plan.isDefault && (
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleToggleDefault(plan.id, Boolean(plan.isDefault))}
+                                        disabled={updatePlanMutation.isPending}
+                                        className="gap-1"
+                                        data-testid={`button-set-default-${plan.id}`}
+                                      >
+                                        <Star className="h-3 w-3" />
+                                        تنظیم به عنوان پیش‌فرض
+                                      </Button>
+                                    )}
+
+                                    {/* Active/Inactive Toggle */}
+                                    <div className="flex items-center gap-2">
+                                      <Label htmlFor={`plan-active-${plan.id}`} className="text-xs">فعال</Label>
+                                      <Switch
+                                        id={`plan-active-${plan.id}`}
+                                        checked={Boolean(plan.isActive)}
+                                        onCheckedChange={async (checked) => {
+                                          await updatePlanMutation.mutateAsync({
+                                            id: plan.id,
+                                            productId: product!.id,
+                                            isActive: checked,
+                                            name: plan.name,
+                                            price: plan.price.toString(),
+                                            originalPrice: plan.originalPrice?.toString() || "",
+                                            description: plan.description || "",
+                                            isDefault: plan.isDefault,
+                                            sortOrder: plan.sortOrder ?? 0,
+                                          });
+                                        }}
+                                        disabled={updatePlanMutation.isPending}
+                                        data-testid={`switch-active-${plan.id}`}
+                                      />
+                                    </div>
+
+                                    {/* Edit Button */}
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => startEditingPlan(plan)}
+                                      disabled={updatePlanMutation.isPending || editingPlanId === plan.id}
+                                      className="gap-1"
+                                      data-testid={`button-edit-${plan.id}`}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                      ویرایش
+                                    </Button>
+
+                                    {/* Delete Button */}
+                                    <AlertDialog open={deletingPlanId === plan.id} onOpenChange={() => setDeletingPlanId(null)}>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => setDeletingPlanId(plan.id)}
+                                          disabled={deletePlanMutation.isPending || plans.length === 1}
+                                          className="gap-1 text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800"
+                                          data-testid={`button-delete-${plan.id}`}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                          حذف
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent dir="rtl">
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>تأیید حذف پلان</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            آیا مطمئن هستید که می‌خواهید پلان "{plan.name}" را حذف کنید؟ این عمل قابل بازگشت نیست.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel data-testid={`button-cancel-delete-${plan.id}`}>
+                                            انصراف
+                                          </AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => deletePlanMutation.mutate(plan.id)}
+                                            disabled={deletePlanMutation.isPending}
+                                            className="bg-red-600 hover:bg-red-700"
+                                            data-testid={`button-confirm-delete-${plan.id}`}
+                                          >
+                                            {deletePlanMutation.isPending ? "در حال حذف..." : "حذف"}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Add New Plan Form */}
+                    {(showAddPlan || editingPlanId) && (
+                      <Card className="p-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" data-testid="plan-form-card">
+                        <div className="space-y-4" dir="rtl">
+                          <div className="flex items-center justify-between">
+                            <h5 className="font-semibold">
+                              {editingPlanId ? "ویرایش پلان" : "اضافه کردن پلان جدید"}
+                            </h5>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setShowAddPlan(false);
+                                cancelEditing();
+                              }}
+                              data-testid="button-cancel-plan-form"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          <Form {...planForm}>
+                            <form onSubmit={planForm.handleSubmit(onPlanSubmit)} className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={planForm.control}
+                                  name="name"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>نام پلان *</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          placeholder="پلان فوری، پلان مشترک، ..."
+                                          data-testid="input-plan-name"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={planForm.control}
+                                  name="price"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>قیمت *</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          type="number"
+                                          step="0.01"
+                                          placeholder="19.99"
+                                          data-testid="input-plan-price"
+                                          dir="ltr"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={planForm.control}
+                                  name="originalPrice"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>قیمت اصلی</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          type="number"
+                                          step="0.01"
+                                          placeholder="29.99"
+                                          data-testid="input-plan-original-price"
+                                          dir="ltr"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={planForm.control}
+                                  name="description"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>توضیحات</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          {...field}
+                                          placeholder="توضیحات اختیاری پلان"
+                                          data-testid="input-plan-description"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="flex items-center gap-4">
+                                <FormField
+                                  control={planForm.control}
+                                  name="isDefault"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={Boolean(field.value)}
+                                          onCheckedChange={field.onChange}
+                                          data-testid="checkbox-plan-default"
+                                        />
+                                      </FormControl>
+                                      <div className="space-y-1 leading-none">
+                                        <FormLabel>پلان پیش‌فرض</FormLabel>
+                                      </div>
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={planForm.control}
+                                  name="isActive"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={Boolean(field.value)}
+                                          onCheckedChange={field.onChange}
+                                          data-testid="checkbox-plan-active"
+                                        />
+                                      </FormControl>
+                                      <div className="space-y-1 leading-none">
+                                        <FormLabel>پلان فعال</FormLabel>
+                                      </div>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+
+                              <div className="flex gap-3 pt-2">
+                                <Button
+                                  type="submit"
+                                  disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+                                  className="gap-2"
+                                  data-testid="button-save-plan"
+                                >
+                                  {(createPlanMutation.isPending || updatePlanMutation.isPending) ? (
+                                    <>
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                      در حال ذخیره...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Save className="h-4 w-4" />
+                                      {editingPlanId ? "به‌روزرسانی پلان" : "ذخیره پلان"}
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setShowAddPlan(false);
+                                    cancelEditing();
+                                  }}
+                                  disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
+                                  data-testid="button-cancel-plan"
+                                >
+                                  انصراف
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </div>
+                      </Card>
                     )}
                   </div>
                 </div>

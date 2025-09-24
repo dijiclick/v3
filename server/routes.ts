@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -10,6 +10,13 @@ import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCo
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
+  
+  // Serve uploaded files statically FIRST - before any other middleware
+  app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads'), {
+    setHeaders: (res) => {
+      res.header('Access-Control-Allow-Origin', '*');
+    }
+  }));
   
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -210,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.diskStorage({
-      destination: 'public/uploads/',
+      destination: 'client/public/',
       filename: (req, file, cb) => {
         const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
         cb(null, uniqueName);
@@ -253,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image file provided" });
       }
       
-      const imageUrl = `/uploads/${req.file.filename}`;
+      const imageUrl = `/${req.file.filename}`;
       res.json({ 
         success: true, 
         imageUrl,
@@ -333,11 +340,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files statically
-  app.use('/uploads', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    next();
-  });
 
   // Health check endpoint for deployment diagnostics
   app.get('/healthz', (req, res) => {

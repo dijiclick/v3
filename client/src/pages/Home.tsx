@@ -20,7 +20,6 @@ interface ServiceCard {
   categoryId: string | null;
   // New schema fields
   featured: boolean | null;
-  shortDescription: string | null;
   buyLink: string | null;
   featuredAreaText: string | null;
 }
@@ -92,7 +91,6 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     categoryId: product.categoryId,
     // New featured fields
     featured: product.featured,
-    shortDescription: product.shortDescription,
     buyLink: product.buyLink,
     featuredAreaText: product.featuredAreaText
   };

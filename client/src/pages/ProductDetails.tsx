@@ -251,7 +251,7 @@ export default function ProductDetails() {
             
             
             {/* Product Image - Mobile */}
-            <div className="w-32 h-32 mx-auto mb-8 lg:hidden">
+            <div className="w-40 h-40 mx-auto mb-8 lg:hidden">
               {product.image ? (
                 <img 
                   src={product.image} 
@@ -260,7 +260,7 @@ export default function ProductDetails() {
                   data-testid="product-image-mobile"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white">
+                <div className="w-full h-full bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-6xl text-white">
                   {getProductIcon()}
                 </div>
               )}
@@ -380,11 +380,11 @@ export default function ProductDetails() {
                 <img 
                   src={product.image} 
                   alt={product.title}
-                  className="w-32 h-32 object-cover rounded-3xl shadow-lg mx-auto"
+                  className="w-40 h-40 object-cover rounded-3xl shadow-lg mx-auto"
                   data-testid="product-image-desktop"
                 />
               ) : (
-                <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+                <div className="w-40 h-40 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-6xl text-white mx-auto">
                   {getProductIcon()}
                 </div>
               )}

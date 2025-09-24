@@ -5,6 +5,29 @@ import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } 
 import { useFeaturedProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
 
+// Hook to detect responsive grid columns
+function useResponsiveColumns() {
+  const [columns, setColumns] = useState(4); // Default to desktop
+  
+  useEffect(() => {
+    const updateColumns = () => {
+      if (window.innerWidth < 768) {
+        setColumns(1); // Mobile
+      } else if (window.innerWidth < 1024) {
+        setColumns(2); // Tablet
+      } else {
+        setColumns(4); // Desktop
+      }
+    };
+    
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+  
+  return columns;
+}
+
 interface ServiceCard {
   id: string;
   name: string;
@@ -119,6 +142,15 @@ export default function Home() {
   const [showLoadMore, setShowLoadMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  
+  // Get current responsive columns and calculate initial visible count
+  const columns = useResponsiveColumns();
+  const initialVisibleCount = columns * 2; // Two rows
+  
+  // Reset showAllProducts when category changes (category-scoped expansion)
+  useEffect(() => {
+    setShowAllProducts(false);
+  }, [activeCategory]);
 
   // Fetch all products and categories from the database
   const { data: products = [], isLoading: productsLoading, error: productsError } = useFeaturedProducts();
@@ -219,13 +251,13 @@ export default function Home() {
     return filtered;
   }, [searchTerm, activeCategory, services]);
 
-  // Display limited services - only 4 initially unless showAllProducts is true
+  // Display limited services - show initialVisibleCount initially unless showAllProducts is true
   const displayedServices = useMemo(() => {
-    if (showAllProducts || searchTerm || activeCategory !== "all") {
+    if (showAllProducts || searchTerm) {
       return filteredServices;
     }
-    return filteredServices.slice(0, 4);
-  }, [filteredServices, showAllProducts, searchTerm, activeCategory]);
+    return filteredServices.slice(0, initialVisibleCount);
+  }, [filteredServices, showAllProducts, searchTerm, initialVisibleCount]);
 
   // Text direction detection for search input
   const detectTextDirection = (value: string) => {
@@ -447,7 +479,7 @@ export default function Home() {
           </div>
           
           {/* Show All Products Button */}
-          {!showAllProducts && filteredServices.length > 4 && searchTerm === "" && activeCategory === "all" && (
+          {!showAllProducts && filteredServices.length > initialVisibleCount && searchTerm === "" && (
             <div className="text-center mb-10">
               <button
                 onClick={() => setShowAllProducts(true)}

@@ -48,6 +48,11 @@ export const products = pgTable("products", {
   sidebarContent: jsonb("sidebar_content"),
   footerCTA: jsonb("footer_cta"),
   blogContent: jsonb("blog_content"), // Rich text blog content in Gutenberg-style format
+  // New JSONB fields for ChatGPT-style product page requirements
+  planTypes: jsonb("plan_types"),
+  durationOptions: jsonb("duration_options"),
+  orderSummaryConfig: jsonb("order_summary_config"),
+  pricingCalculationMode: text("pricing_calculation_mode").default("static"), // 'static' or 'dynamic'
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -190,6 +195,31 @@ export const footerCTASchema = z.object({
   supportingLinks: z.any().optional(),
 }).optional();
 
+// New schemas for ChatGPT-style product page requirements
+export const planTypeSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  basePrice: z.number(),
+  popular: z.boolean().optional(),
+  features: z.array(z.string()).optional(),
+});
+
+export const durationOptionSchema = z.object({
+  months: z.number(),
+  label: z.string(),
+  discountPercentage: z.number().optional(),
+  discountAmount: z.number().optional(),
+});
+
+export const orderSummarySchema = z.object({
+  showOriginalPrice: z.boolean().optional(),
+  showDiscountAmount: z.boolean().optional(),
+  showDiscountPercentage: z.boolean().optional(),
+  currency: z.string().optional(),
+  currencySymbol: z.string().optional(),
+  displayFormat: z.enum(['detailed', 'simple']).optional(),
+});
+
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
@@ -208,6 +238,11 @@ export const insertProductSchema = createInsertSchema(products).omit({
   benefitsSection: benefitsSectionSchema,
   sidebarContent: sidebarContentSchema,
   footerCTA: footerCTASchema,
+  // New fields for ChatGPT-style product page requirements
+  planTypes: z.array(planTypeSchema).optional(),
+  durationOptions: z.array(durationOptionSchema).optional(),
+  orderSummaryConfig: orderSummarySchema.optional(),
+  pricingCalculationMode: z.enum(['static', 'dynamic']).optional().default('static'),
 });
 
 export const insertImageSchema = createInsertSchema(images).omit({

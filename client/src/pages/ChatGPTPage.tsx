@@ -40,7 +40,7 @@ export default function ChatGPTPage() {
 
   const recommendations = [
     { icon: "🎨", name: "Midjourney", price: "۲۹۰ تومان", bg: "bg-purple-500" },
-    { icon: "📺", name: "Netflix", price: "۱۲۹ تومان", bg: "bg-red-500" },
+    { icon: "📺", name: "Netflix", price: "۱۲۹ تومان", bg: "bg-green-500" },
     { icon: "🎵", name: "Spotify", price: "۸۹ تومان", bg: "bg-green-500" },
     { icon: "💼", name: "Envato", price: "۱۹۰ تومان", bg: "bg-blue-500" }
   ];
@@ -55,7 +55,7 @@ export default function ChatGPTPage() {
             <h1 className="text-5xl font-bold text-gray-800 mb-6" data-testid="chatgpt-page-title">
               ChatGPT Plus
             </h1>
-            <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
+            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               🤖
             </div>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
@@ -88,7 +88,7 @@ export default function ChatGPTPage() {
           {/* Purchase Section */}
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="text-center mb-8 hidden lg:block">
-              <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
                 🤖
               </div>
             </div>
@@ -97,33 +97,33 @@ export default function ChatGPTPage() {
             <div className="space-y-3 mb-8">
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === 'monthly' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300'
+                  selectedPlan === 'monthly' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
                 }`}
                 onClick={() => setSelectedPlan('monthly')}
                 data-testid="plan-monthly"
               >
                 <span className="font-semibold text-gray-800">ماهانه</span>
-                <span className="font-bold text-red-500 text-lg">۱۴۹,۰۰۰ تومان</span>
+                <span className="font-bold text-green-500 text-lg">۱۴۹,۰۰۰ تومان</span>
               </div>
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === '3months' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300'
+                  selectedPlan === '3months' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
                 }`}
                 onClick={() => setSelectedPlan('3months')}
                 data-testid="plan-3months"
               >
                 <span className="font-semibold text-gray-800">۳ ماهه</span>
-                <span className="font-bold text-red-500 text-lg">۳۹۰,۰۰۰ تومان</span>
+                <span className="font-bold text-green-500 text-lg">۳۹۰,۰۰۰ تومان</span>
               </div>
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === '6months' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300'
+                  selectedPlan === '6months' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
                 }`}
                 onClick={() => setSelectedPlan('6months')}
                 data-testid="plan-6months"
               >
                 <span className="font-semibold text-gray-800">۶ ماهه</span>
-                <span className="font-bold text-red-500 text-lg">۷۵۰,۰۰۰ تومان</span>
+                <span className="font-bold text-green-500 text-lg">۷۵۰,۰۰۰ تومان</span>
               </div>
             </div>
             
@@ -140,7 +140,7 @@ export default function ChatGPTPage() {
               <div className="border-t border-gray-300 pt-3 mt-3">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-800">جمع کل:</span>
-                  <span className="text-2xl font-bold text-red-500">
+                  <span className="text-2xl font-bold text-green-500">
                     {selectedPlan === 'monthly' ? '۱۴۹,۰۰۰' : 
                      selectedPlan === '3months' ? '۳۹۰,۰۰۰' : '۷۵۰,۰۰۰'} تومان
                   </span>
@@ -149,14 +149,14 @@ export default function ChatGPTPage() {
             </div>
             
             <button 
-              className="w-full bg-red-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-red-600 transition-all hover:-translate-y-1 hover:shadow-lg mb-5"
+              className="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition-all hover:-translate-y-1 hover:shadow-lg mb-5"
               data-testid="join-btn"
             >
               شروع آزمایش رایگان
             </button>
             
             <div className="text-center">
-              <a href="#" className="text-red-500 text-sm font-medium hover:underline">
+              <a href="#" className="text-green-500 text-sm font-medium hover:underline">
                 نمایش جزئیات
               </a>
             </div>
@@ -203,7 +203,7 @@ export default function ChatGPTPage() {
             </div>
 
             {/* Image Analysis Screenshot */}
-            <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl" data-testid="screenshot-image">
+            <div className="bg-gradient-to-br from-orange-50 to-green-100 p-6 rounded-2xl" data-testid="screenshot-image">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm">🖼️</div>
@@ -281,7 +281,7 @@ export default function ChatGPTPage() {
               <h3 className="text-xl font-bold text-gray-800 mb-6 text-right">چگونه کار می‌کند؟</h3>
               <div className="space-y-4">
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۱
                   </div>
                   <div>
@@ -290,7 +290,7 @@ export default function ChatGPTPage() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۲
                   </div>
                   <div>
@@ -299,7 +299,7 @@ export default function ChatGPTPage() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۳
                   </div>
                   <div>
@@ -308,7 +308,7 @@ export default function ChatGPTPage() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۴
                   </div>
                   <div>
@@ -338,7 +338,7 @@ export default function ChatGPTPage() {
                         </div>
                         <h4 className="text-sm font-semibold text-gray-800">{faq.question}</h4>
                       </div>
-                      <div className={`w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-lg font-bold transition-transform ${
+                      <div className={`w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-lg font-bold transition-transform ${
                         openFaq === index ? 'rotate-45' : ''
                       }`}>
                         +
@@ -370,7 +370,7 @@ export default function ChatGPTPage() {
                     </div>
                     <div className="text-right min-w-0">
                       <h5 className="text-xs font-semibold text-gray-800 mb-1 truncate">{rec.name}</h5>
-                      <p className="text-xs text-red-500 font-semibold">{rec.price}</p>
+                      <p className="text-xs text-green-500 font-semibold">{rec.price}</p>
                     </div>
                   </a>
                 ))}
@@ -380,28 +380,28 @@ export default function ChatGPTPage() {
         </div>
 
         {/* Statistics Section */}
-        <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg mb-16">
+        <div className="bg-gradient-to-r from-green-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg mb-16">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold mb-4">آمار و ارقام</h2>
-            <p className="text-red-100 text-lg">اعتماد میلیون‌ها کاربر در سراسر جهان</p>
+            <p className="text-green-100 text-lg">اعتماد میلیون‌ها کاربر در سراسر جهان</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center" data-testid="stat-users">
               <div className="text-4xl font-bold mb-2">2500</div>
-              <div className="text-red-100">کاربر فعال</div>
+              <div className="text-green-100">کاربر فعال</div>
             </div>
             <div className="text-center" data-testid="stat-orders">
               <div className="text-4xl font-bold mb-2">10k</div>
-              <div className="text-red-100">سفارش موفق</div>
+              <div className="text-green-100">سفارش موفق</div>
             </div>
             <div className="text-center" data-testid="stat-countries">
               <div className="text-4xl font-bold mb-2">5</div>
-              <div className="text-red-100">کشور</div>
+              <div className="text-green-100">کشور</div>
             </div>
             <div className="text-center" data-testid="stat-satisfaction">
               <div className="text-4xl font-bold mb-2">۹۸٪</div>
-              <div className="text-red-100">رضایت کاربران</div>
+              <div className="text-green-100">رضایت کاربران</div>
             </div>
           </div>
           
@@ -420,27 +420,27 @@ export default function ChatGPTPage() {
             <p className="text-gray-600 text-lg mb-3">چرا ChatGPT Plus؟</p>
             <h2 className="text-4xl font-bold text-gray-800 relative inline-block">
               مزایای انتخاب ما
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-red-400 to-red-500 rounded"></div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-green-400 to-green-500 rounded"></div>
             </h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">🔒</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">امن و مطمئن</h3>
               <p className="text-gray-600 leading-relaxed">تمام اشتراک‌ها از طریق روش‌های امن تهیه می‌شوند</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">💰</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">صرفه‌جویی</h3>
               <p className="text-gray-600 leading-relaxed">با لیمیت‌پس تا ۷۰٪ کمتر پرداخت کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">⚡</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">فوری</h3>
               <p className="text-gray-600 leading-relaxed">در کمتر از ۱۰ دقیقه اشتراک خود را فعال کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">🎯</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">با کیفیت</h3>
               <p className="text-gray-600 leading-relaxed">همه اشتراک‌ها کیفیت پریمیوم دارند</p>
@@ -459,7 +459,7 @@ export default function ChatGPTPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <button 
-                className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl"
+                className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl"
                 data-testid="cta-main-button"
               >
                 شروع آزمایش رایگان ۷ روزه

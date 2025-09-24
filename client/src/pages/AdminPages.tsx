@@ -141,7 +141,7 @@ export default function AdminPages() {
       ) : error ? (
         <Card className="text-center py-12">
           <CardContent>
-            <h3 className="text-lg font-medium text-red-600 mb-2">
+            <h3 className="text-lg font-medium text-green-600 mb-2">
               Error loading pages
             </h3>
             <p className="text-gray-500 dark:text-gray-400">

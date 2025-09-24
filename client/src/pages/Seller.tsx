@@ -76,7 +76,7 @@ export default function Seller() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir flex items-center justify-center" data-testid="cms-page-seller-loading">
+      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center" data-testid="cms-page-seller-loading">
         <Card className="p-8">
           <CardContent className="flex items-center gap-4">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -90,9 +90,9 @@ export default function Seller() {
   // Error state - only show for real errors, not missing CMS pages
   if (isCMSError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir flex items-center justify-center" data-testid="cms-page-seller-error">
+      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center" data-testid="cms-page-seller-error">
         <Card className="p-8">
-          <CardContent className="flex items-center gap-4 text-red-600">
+          <CardContent className="flex items-center gap-4 text-green-600">
             <AlertCircle className="h-6 w-6" />
             <span className="text-lg">خطا در بارگذاری محتوا. لطفاً دوباره تلاش کنید.</span>
           </CardContent>
@@ -102,7 +102,7 @@ export default function Seller() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir" dir="rtl">
       <main className="bg-white pt-10 pb-10 min-h-screen">
         <div className="max-w-6xl mx-auto px-5">
           {/* Hero Section */}
@@ -114,7 +114,7 @@ export default function Seller() {
               {page?.excerpt || "به بزرگترین شبکه فروش اشتراک‌های پریمیوم در ایران بپیوندید و درآمد عالی کسب کنید"}
             </p>
             <div className="mt-8">
-              <button className="bg-red-500 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:bg-red-600 hover:-translate-y-1 hover:shadow-lg transition-all" data-testid="join-now-button">
+              <button className="bg-green-500 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:bg-green-600 hover:-translate-y-1 hover:shadow-lg transition-all" data-testid="join-now-button">
                 همین حالا شروع کنید
               </button>
             </div>
@@ -246,7 +246,7 @@ export default function Seller() {
             <div className="overflow-x-auto">
               <table className="w-full text-center">
                 <thead>
-                  <tr className="bg-red-500 text-white">
+                  <tr className="bg-green-500 text-white">
                     <th className="py-4 px-6 rounded-tr-xl" data-testid="table-header-level">سطح فروش</th>
                     <th className="py-4 px-6" data-testid="table-header-sales">تعداد فروش ماهانه</th>
                     <th className="py-4 px-6" data-testid="table-header-commission">درصد کمیسیون</th>
@@ -297,7 +297,7 @@ export default function Seller() {
                 { number: "۴", title: "شروع فروش", description: "فروش خود را شروع کرده و درآمد کسب کنید" }
               ].map((step, index) => (
                 <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-red-500 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                     {step.number}
                   </div>
                   <h3 className="text-lg font-bold text-gray-800 mb-2" data-testid={`step-title-${index + 1}`}>{step.title}</h3>
@@ -308,7 +308,7 @@ export default function Seller() {
           </div>
 
           {/* CTA Section */}
-          <div className="bg-gradient-to-r from-red-500 to-red-600 p-12 rounded-3xl text-white text-center">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 p-12 rounded-3xl text-white text-center">
             <h2 className="text-3xl font-bold mb-6" data-testid="cta-title">
               آماده شروع یک کسب‌وکار پردرآمد هستید؟
             </h2>
@@ -316,10 +316,10 @@ export default function Seller() {
               به هزاران فروشنده موفق لیمیت پس بپیوندید
             </p>
             <div className="flex justify-center gap-4">
-              <button className="bg-white text-red-500 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-gray-100 transition-colors" data-testid="apply-now-button">
+              <button className="bg-white text-green-500 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-gray-100 transition-colors" data-testid="apply-now-button">
                 درخواست همکاری
               </button>
-              <button className="bg-red-700 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:bg-red-800 transition-colors" data-testid="contact-sales-button">
+              <button className="bg-green-700 text-white px-8 py-4 rounded-2xl text-lg font-bold hover:bg-green-800 transition-colors" data-testid="contact-sales-button">
                 تماس با واحد فروش
               </button>
             </div>

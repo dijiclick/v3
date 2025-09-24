@@ -135,7 +135,7 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
                 data-testid="page-title-input"
               />
               {form.formState.errors.title && (
-                <p className="text-sm text-red-600 mt-1">
+                <p className="text-sm text-green-600 mt-1">
                   {form.formState.errors.title.message}
                 </p>
               )}
@@ -153,7 +153,7 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
                 URL: /{form.watch("slug") || "page-url"}
               </p>
               {form.formState.errors.slug && (
-                <p className="text-sm text-red-600 mt-1">
+                <p className="text-sm text-green-600 mt-1">
                   {form.formState.errors.slug.message}
                 </p>
               )}

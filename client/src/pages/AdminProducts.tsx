@@ -375,7 +375,7 @@ export default function AdminProducts() {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-green-600 hover:bg-green-700"
               data-testid="confirm-delete-product"
             >
               {deleteMutation.isPending ? "در حال حذف..." : "حذف"}

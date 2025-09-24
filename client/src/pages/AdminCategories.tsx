@@ -179,7 +179,7 @@ export default function AdminCategories() {
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700" 
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700" 
                         data-testid={`delete-category-${category.id}`}
                         onClick={() => handleDeleteCategory(category.id)}
                         disabled={deleteMutation.isPending}

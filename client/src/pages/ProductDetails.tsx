@@ -158,7 +158,7 @@ export default function ProductDetails() {
   // Default recommendations
   const recommendations = [
     { icon: "🎨", name: "Midjourney", price: "۲۹۰ تومان", bg: "bg-purple-500" },
-    { icon: "📺", name: "Netflix", price: "۱۲۹ تومان", bg: "bg-red-500" },
+    { icon: "📺", name: "Netflix", price: "۱۲۹ تومان", bg: "bg-green-500" },
     { icon: "🎵", name: "Spotify", price: "۸۹ تومان", bg: "bg-green-500" },
     { icon: "💼", name: "Adobe", price: "۱۹۰ تومان", bg: "bg-blue-500" }
   ];
@@ -250,7 +250,7 @@ export default function ProductDetails() {
             
             
             
-            <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
+            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               {getProductIcon()}
             </div>
             
@@ -318,12 +318,12 @@ export default function ProductDetails() {
                       onClick={() => setSelectedPlan('individual')}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'individual'
-                          ? 'border-red-500 bg-red-50 text-red-700'
+                          ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'individual' ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                        selectedPlan === 'individual' ? 'border-green-500 bg-green-500' : 'border-gray-400'
                       }`}></div>
                       <div>
                         <div className="font-medium">پلن فردی</div>
@@ -336,12 +336,12 @@ export default function ProductDetails() {
                       onClick={() => setSelectedPlan('shared')}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'shared'
-                          ? 'border-red-500 bg-red-50 text-red-700'
+                          ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'shared' ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                        selectedPlan === 'shared' ? 'border-green-500 bg-green-500' : 'border-gray-400'
                       }`}></div>
                       <div>
                         <div className="font-medium">پلن مشترک</div>
@@ -352,8 +352,8 @@ export default function ProductDetails() {
                 </>
               )}
               {!product.inStock && (
-                <li className="flex items-center gap-3 text-red-600 font-medium">
-                  <div className="text-red-500 h-5 w-5">✗</div>
+                <li className="flex items-center gap-3 text-green-600 font-medium">
+                  <div className="text-green-500 h-5 w-5">✗</div>
                   <span>موقتاً ناموجود</span>
                 </li>
               )}
@@ -363,7 +363,7 @@ export default function ProductDetails() {
           {/* Purchase Section */}
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="text-center mb-8 hidden lg:block">
-              <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
                 {getProductIcon()}
               </div>
             </div>
@@ -407,7 +407,7 @@ export default function ProductDetails() {
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
                   !product.inStock 
                     ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
-                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 hover:-translate-y-1 hover:shadow-lg'
+                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-1 hover:shadow-lg'
                 }`}
                 data-testid="buy-now-btn"
               >
@@ -500,7 +500,7 @@ export default function ProductDetails() {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-2xl">
+                <div className="bg-gradient-to-br from-orange-50 to-green-100 p-6 rounded-2xl">
                   <div className="bg-white rounded-xl p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm">🔒</div>
@@ -563,7 +563,7 @@ export default function ProductDetails() {
               <h3 className="text-xl font-bold text-gray-800 mb-6 text-right">چگونه کار می‌کند؟</h3>
               <div className="space-y-4">
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۱
                   </div>
                   <div>
@@ -572,7 +572,7 @@ export default function ProductDetails() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۲
                   </div>
                   <div>
@@ -581,7 +581,7 @@ export default function ProductDetails() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۳
                   </div>
                   <div>
@@ -590,7 +590,7 @@ export default function ProductDetails() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-right">
-                  <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
                     ۴
                   </div>
                   <div>
@@ -620,7 +620,7 @@ export default function ProductDetails() {
                         </div>
                         <h4 className="text-sm font-semibold text-gray-800">{faq.question}</h4>
                       </div>
-                      <div className={`w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-lg font-bold transition-transform ${
+                      <div className={`w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-lg font-bold transition-transform ${
                         openFaq === index ? 'rotate-45' : ''
                       }`}>
                         +
@@ -652,7 +652,7 @@ export default function ProductDetails() {
                     </div>
                     <div className="text-right min-w-0">
                       <h5 className="text-xs font-semibold text-gray-800 mb-1 truncate">{rec.name}</h5>
-                      <p className="text-xs text-red-500 font-semibold">{rec.price}</p>
+                      <p className="text-xs text-green-500 font-semibold">{rec.price}</p>
                     </div>
                   </a>
                 ))}
@@ -662,28 +662,28 @@ export default function ProductDetails() {
         </div>
 
         {/* Statistics Section */}
-        <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg mb-16">
+        <div className="bg-gradient-to-r from-green-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg mb-16">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold mb-4">آمار و ارقام</h2>
-            <p className="text-red-100 text-lg">اعتماد میلیون‌ها کاربر در سراسر جهان</p>
+            <p className="text-green-100 text-lg">اعتماد میلیون‌ها کاربر در سراسر جهان</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center" data-testid="stat-users">
               <div className="text-4xl font-bold mb-2">2500</div>
-              <div className="text-red-100">کاربر فعال</div>
+              <div className="text-green-100">کاربر فعال</div>
             </div>
             <div className="text-center" data-testid="stat-orders">
               <div className="text-4xl font-bold mb-2">10k</div>
-              <div className="text-red-100">سفارش موفق</div>
+              <div className="text-green-100">سفارش موفق</div>
             </div>
             <div className="text-center" data-testid="stat-countries">
               <div className="text-4xl font-bold mb-2">5</div>
-              <div className="text-red-100">کشور</div>
+              <div className="text-green-100">کشور</div>
             </div>
             <div className="text-center" data-testid="stat-satisfaction">
               <div className="text-4xl font-bold mb-2">۹۸٪</div>
-              <div className="text-red-100">رضایت کاربران</div>
+              <div className="text-green-100">رضایت کاربران</div>
             </div>
           </div>
           
@@ -702,27 +702,27 @@ export default function ProductDetails() {
             <p className="text-gray-600 text-lg mb-3">چرا {product.title}؟</p>
             <h2 className="text-4xl font-bold text-gray-800 relative inline-block">
               مزایای انتخاب ما
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-red-400 to-red-500 rounded"></div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-green-400 to-green-500 rounded"></div>
             </h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">🔒</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">امن و مطمئن</h3>
               <p className="text-gray-600 leading-relaxed">تمام اشتراک‌ها از طریق روش‌های امن تهیه می‌شوند</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">💰</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">صرفه‌جویی</h3>
               <p className="text-gray-600 leading-relaxed">با لیمیت‌پس تا ۷۰٪ کمتر پرداخت کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">⚡</div>
               <h3 className="text-xl font-semibent text-gray-800 mb-3">فوری</h3>
               <p className="text-gray-600 leading-relaxed">در کمتر از ۱۰ دقیقه اشتراک خود را فعال کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-green-200 transition-all">
               <div className="text-5xl mb-5">🎯</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">با کیفیت</h3>
               <p className="text-gray-600 leading-relaxed">همه اشتراک‌ها کیفیت پریمیوم دارند</p>
@@ -764,7 +764,7 @@ export default function ProductDetails() {
                 className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl ${
                   !product.inStock 
                     ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
-                    : 'bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 text-white hover:scale-105'
+                    : 'bg-gradient-to-r from-orange-400 to-green-500 hover:from-orange-500 hover:to-green-600 text-white hover:scale-105'
                 }`}
                 data-testid="cta-main-button"
               >

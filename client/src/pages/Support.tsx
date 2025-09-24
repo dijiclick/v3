@@ -106,7 +106,7 @@ export default function Support() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <Loader className="mx-auto h-8 w-8 text-blue-500 mb-4 animate-spin" />
@@ -125,11 +125,11 @@ export default function Support() {
   // Error state - only show for real errors, not missing CMS pages
   if (isCMSError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium text-red-600 mb-2">
+            <AlertCircle className="mx-auto h-8 w-8 text-green-500 mb-4" />
+            <h3 className="text-lg font-medium text-green-600 mb-2">
               خطا در بارگذاری محتوا
             </h3>
             <p className="text-gray-500">
@@ -142,7 +142,7 @@ export default function Support() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-400 to-red-500 font-vazir" data-testid="cms-page-support">
+    <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir" data-testid="cms-page-support">
       <main className="bg-white pt-10 pb-10 min-h-screen" dir="rtl">
         <div className="max-w-6xl mx-auto px-5">
           {/* Page Header */}

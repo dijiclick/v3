@@ -11,7 +11,7 @@ import {
   generateMetaDescription, 
   getEnhancedProductStructuredData 
 } from "@/lib/seo";
-import { ExternalLink, ShoppingCart, Heart, Star, CheckCircle, Home, ChevronRight } from "lucide-react";
+import { ExternalLink, Share, Heart, Star, CheckCircle, Home, ChevronRight } from "lucide-react";
 
 // Utility function to format prices in Persian Toman
 const formatPersianPrice = (price: string | null): string => {
@@ -51,7 +51,7 @@ const renderRichText = (richText: any): string => {
 export default function ProductDetails() {
   const [, params] = useRoute("/:categorySlug/:productSlug");
   const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [selectedPlan, setSelectedPlan] = useState('individual');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const { data: product, isLoading, error } = useProductByCategoryAndSlug(params?.categorySlug || "", params?.productSlug || "");
@@ -93,20 +93,32 @@ export default function ProductDetails() {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    
-    cartManager.addItem({
-      id: product.id,
-      title: product.title,
-      price: parseFloat(product.price),
-      image: product.image || undefined,
-    });
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.title || 'محصول',
+      text: product?.description || 'محصول جالب',
+      url: window.location.href
+    };
 
-    toast({
-      title: "افزوده شد",
-      description: `${product.title} به سبد خرید افزوده شد.`,
-    });
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "لینک کپی شد",
+          description: "لینک محصول در کلیپ‌بورد کپی شد.",
+        });
+      }
+    } else {
+      // Fallback to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "لینک کپی شد",
+        description: "لینک محصول در کلیپ‌بورد کپی شد.",
+      });
+    }
   };
 
   const handleBuyNow = () => {
@@ -115,11 +127,10 @@ export default function ProductDetails() {
     if (product.buyLink) {
       window.open(product.buyLink, '_blank', 'noopener,noreferrer');
     } else {
-      // Fallback to cart if no buy link
-      handleAddToCart();
+      // No fallback needed since cart functionality is removed
       toast({
         title: "توجه",
-        description: "لینک خرید مستقیم موجود نیست. محصول به سبد خرید اضافه شد.",
+        description: "لینک خرید مستقیم موجود نیست. لطفاً با پشتیبانی تماس بگیرید.",
       });
     }
   };
@@ -237,14 +248,6 @@ export default function ProductDetails() {
               </div>
             )}
             
-            {/* Featured Badge */}
-            {product.featured && (
-              <div className="mb-6">
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold px-4 py-2 text-sm rounded-lg shadow-lg">
-                  محصول ویژه
-                </Badge>
-              </div>
-            )}
             
             <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               {getProductIcon()}
@@ -319,6 +322,35 @@ export default function ProductDetails() {
               </div>
             </div>
             
+            {/* Plan Type Selector */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-4 text-right">نوع پلن:</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedPlan('individual')}
+                  className={`p-4 rounded-xl border-2 transition-all text-right ${
+                    selectedPlan === 'individual'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="font-medium">پلن فردی</div>
+                  <div className="text-sm opacity-75">برای استفاده شخصی</div>
+                </button>
+                <button
+                  onClick={() => setSelectedPlan('shared')}
+                  className={`p-4 rounded-xl border-2 transition-all text-right ${
+                    selectedPlan === 'shared'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="font-medium">پلن مشترک</div>
+                  <div className="text-sm opacity-75">برای چند کاربر</div>
+                </button>
+              </div>
+            </div>
+            
             {/* Enhanced Price Section */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl mb-6 text-right border">
               {/* Original Price (if available) */}
@@ -383,16 +415,16 @@ export default function ProductDetails() {
                 )}
               </Button>
               
-              {/* Secondary Add to Cart Button */}
+              {/* Share Button */}
               {product.inStock && (
                 <Button 
-                  onClick={handleAddToCart}
+                  onClick={handleShare}
                   variant="outline"
                   className="w-full py-3 rounded-xl font-medium text-base transition-all hover:-translate-y-0.5 hover:shadow-md border-gray-300 dark:border-border"
-                  data-testid="add-to-cart-btn"
+                  data-testid="share-btn"
                 >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  افزودن به سبد خرید
+                  <Share className="h-4 w-4 mr-2" />
+                  اشتراک گذاری
                 </Button>
               )}
             </div>
@@ -738,7 +770,7 @@ export default function ProductDetails() {
             
             <div className="flex flex-col gap-4 justify-center items-center mb-6">
               <Button 
-                onClick={handleAddToCart}
+                onClick={handleBuyNow}
                 disabled={!product.inStock}
                 className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-xl ${
                   !product.inStock 

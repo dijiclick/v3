@@ -520,23 +520,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 </p>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium block mb-3">
-                  Full Product Description
-                </Label>
-                <RichTextEditor
-                  value={form.watch("mainDescription")}
-                  onChange={(value) => form.setValue("mainDescription", value)}
-                  placeholder="Enter full product description with image upload support..."
-                  className="min-h-[300px]"
-                  productId={product?.id}
-                  data-testid="rich-editor-main-description"
-                />
-                <p className="text-xs text-gray-500 mt-2" dir="ltr">
-                  Use the rich text editor for formatting and image uploads
-                </p>
-              </div>
-
               {/* Backward compatibility description field */}
               <div>
                 <Label htmlFor="description" className="text-sm font-medium">
@@ -553,6 +536,23 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 />
                 <p className="text-xs text-gray-500 mt-1" dir="ltr">
                   This field is kept for backward compatibility
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium block mb-3">
+                  Full Product Description
+                </Label>
+                <RichTextEditor
+                  value={form.watch("mainDescription")}
+                  onChange={(value) => form.setValue("mainDescription", value)}
+                  placeholder="Enter full product description with image upload support..."
+                  className="min-h-[300px]"
+                  productId={product?.id}
+                  data-testid="rich-editor-main-description"
+                />
+                <p className="text-xs text-gray-500 mt-2" dir="ltr">
+                  Use the rich text editor for formatting and image uploads
                 </p>
               </div>
             </TabsContent>

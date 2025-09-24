@@ -814,38 +814,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   )}
                 </div>
 
-                {/* Alternative URL Input - Compact */}
-                <div className="border-t pt-3">
-                  <Label className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-2" dir="rtl">
-                    یا آدرس تصویر را وارد کنید
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="url"
-                      {...form.register("image")}
-                      placeholder="https://example.com/image.jpg"
-                      className="flex-1 text-sm"
-                      data-testid="input-image-url"
-                      dir="ltr"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const imageUrl = form.getValues("image");
-                        if (imageUrl) {
-                          setImagePreview(imageUrl);
-                        }
-                      }}
-                      disabled={!form.watch("image")}
-                      data-testid="button-load-url"
-                    >
-                      بارگذاری
-                    </Button>
-                  </div>
-                </div>
-
                 {/* Hidden file input */}
                 <input
                   ref={fileInputRef}

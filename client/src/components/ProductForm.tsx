@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import SEOPreview from "@/components/SEOPreview";
 import { type Product, insertProductSchema } from "@shared/schema";
-import { Plus, Trash2, Save, RotateCcw } from "lucide-react";
+import { Plus, Trash2, Save, RotateCcw, Upload, Image as ImageIcon, X, Eye } from "lucide-react";
 
 // English-localized form validation schema based on shared schema
 const productFormSchema = insertProductSchema.extend({
@@ -46,6 +46,12 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
   const { data: categories = [] } = useCategories();
   const [activeTab, setActiveTab] = useState("basic");
   const [autoSaveIndicator, setAutoSaveIndicator] = useState(false);
+  
+  // Image upload state
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -139,6 +145,138 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  // Set image preview when form image value changes
+  useEffect(() => {
+    const imageValue = form.watch("image");
+    if (imageValue && imageValue !== imagePreview) {
+      setImagePreview(imageValue);
+    }
+  }, [form.watch("image"), imagePreview]);
+
+  // Image upload mutation
+  const imageUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      // Use fetch directly for file upload with progress
+      const response = await fetch('/api/uploads/image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'فشل رفع فایل');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const imageUrl = data.imageUrl;
+      form.setValue("image", imageUrl);
+      setImagePreview(imageUrl);
+      setUploadingImage(false);
+      toast({
+        title: "موفقیت",
+        description: "تصویر با موفقیت آپلود شد",
+      });
+    },
+    onError: (error) => {
+      setUploadingImage(false);
+      toast({
+        title: "خطا",
+        description: `خطا در آپلود تصویر: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // File validation function
+  const validateFile = (file: File): string | null => {
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      return 'لطفاً فقط فایل‌های تصویری انتخاب کنید';
+    }
+    
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      return 'حجم فایل نباید بیشتر از ۵ مگابایت باشد';
+    }
+    
+    return null;
+  };
+
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    const validation = validateFile(file);
+    if (validation) {
+      toast({
+        title: "خطا",
+        description: validation,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    
+    // Create preview immediately for better UX
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setImagePreview(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload the file
+    imageUploadMutation.mutate(file);
+  };
+
+  // Handle drag and drop
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  // Handle image removal
+  const handleImageRemove = () => {
+    form.setValue("image", "");
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    toast({
+      title: "تصویر حذف شد",
+      description: "تصویر محصول با موفقیت حذف شد",
+    });
+  };
 
   const productMutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
@@ -480,22 +618,168 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
             {/* Content Tab */}
             <TabsContent value="content" className="space-y-6 mt-6">
-              <div>
-                <Label htmlFor="image" className="text-sm font-medium">
-                  Product Main Image
+              {/* Image Upload Component */}
+              <div className="space-y-4">
+                <Label className="text-sm font-medium block" dir="rtl">
+                  تصویر اصلی محصول
                 </Label>
-                <Input
-                  id="image"
-                  type="url"
-                  {...form.register("image")}
-                  placeholder="https://example.com/image.jpg"
-                  className="mt-1"
-                  data-testid="input-image"
-                  dir="ltr"
+                
+                {/* Image Preview */}
+                {imagePreview ? (
+                  <div className="relative group">
+                    <div className="relative w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
+                      <img
+                        src={imagePreview}
+                        alt="پیش‌نمای تصویر محصول"
+                        className="w-full h-full object-cover"
+                        data-testid="image-preview"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            if (imagePreview.startsWith('http')) {
+                              window.open(imagePreview, '_blank');
+                            }
+                          }}
+                          className="bg-white/90 text-gray-900 hover:bg-white"
+                          data-testid="button-view-image"
+                        >
+                          <Eye className="h-4 w-4 ml-1" />
+                          مشاهده
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="bg-blue-500/90 text-white hover:bg-blue-600"
+                          disabled={uploadingImage}
+                          data-testid="button-replace-image"
+                        >
+                          <Upload className="h-4 w-4 ml-1" />
+                          تغییر
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleImageRemove}
+                          className="bg-red-500/90 text-white hover:bg-red-600"
+                          disabled={uploadingImage}
+                          data-testid="button-remove-image"
+                        >
+                          <X className="h-4 w-4 ml-1" />
+                          حذف
+                        </Button>
+                      </div>
+                    </div>
+                    {uploadingImage && (
+                      <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 rounded-lg flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">در حال آپلود...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Upload Drop Zone */
+                  <div
+                    className={`relative w-full h-64 border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer ${
+                      dragActive 
+                        ? 'border-red-500 bg-red-50 dark:bg-red-950/20' 
+                        : 'border-gray-300 dark:border-gray-600 hover:border-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/10'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    data-testid="image-upload-zone"
+                  >
+                    {uploadingImage ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">در حال آپلود...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6" dir="rtl">
+                        <ImageIcon className="h-12 w-12 text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                          تصویر محصول را آپلود کنید
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          فایل را اینجا بکشید و رها کنید یا کلیک کنید تا انتخاب کنید
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span>PNG، JPG، GIF</span>
+                          <span>•</span>
+                          <span>حداکثر ۵ مگابایت</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-4 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                          data-testid="button-select-image"
+                        >
+                          <Upload className="h-4 w-4 ml-2" />
+                          انتخاب فایل
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                  data-testid="file-input"
                 />
-                <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                  URL to the product's main image
-                </p>
+
+                {/* Manual URL input (alternative option) */}
+                <div className="border-t pt-4">
+                  <Label htmlFor="image-url" className="text-sm font-medium block mb-2" dir="rtl">
+                    یا آدرس تصویر را وارد کنید
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="image-url"
+                      type="url"
+                      {...form.register("image")}
+                      placeholder="https://example.com/image.jpg"
+                      className="flex-1"
+                      data-testid="input-image-url"
+                      dir="ltr"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const imageUrl = form.getValues("image");
+                        if (imageUrl) {
+                          setImagePreview(imageUrl);
+                        }
+                      }}
+                      disabled={!form.watch("image")}
+                      data-testid="button-load-url"
+                    >
+                      بارگذاری
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1" dir="rtl">
+                    به‌جای آپلود فایل، می‌توانید آدرس مستقیم تصویر را وارد کنید
+                  </p>
+                </div>
               </div>
 
               {/* Backward compatibility description field */}

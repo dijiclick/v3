@@ -744,36 +744,35 @@ export default function ProductDetails() {
         </div>
 
 
-        {/* Why Choose Section */}
-        <div className="bg-white p-10 rounded-3xl shadow-lg mb-16">
-          <div className="text-center mb-12">
-            <p className="text-gray-600 text-lg mb-3">چرا {product.title}؟</p>
-            <h2 className="text-4xl font-bold text-gray-800 relative inline-block">
+        {/* Benefits Section */}
+        <div className="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 relative inline-block">
               مزایای انتخاب ما
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-red-400 to-red-500 rounded"></div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-red-400 to-red-500 rounded"></div>
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
-              <div className="text-5xl mb-5">🔒</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">امن و مطمئن</h3>
-              <p className="text-gray-600 leading-relaxed">تمام اشتراک‌ها از طریق روش‌های امن تهیه می‌شوند</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-50 p-4 rounded-xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+              <div className="text-3xl mb-3">🔒</div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">امن و مطمئن</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">تمام اشتراک‌ها از طریق روش‌های امن تهیه می‌شوند</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
-              <div className="text-5xl mb-5">💰</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">صرفه‌جویی</h3>
-              <p className="text-gray-600 leading-relaxed">با لیمیت‌پس تا ۷۰٪ کمتر پرداخت کنید</p>
+            <div className="bg-gray-50 p-4 rounded-xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+              <div className="text-3xl mb-3">💰</div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">صرفه‌جویی</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">با لیمیت‌پس تا ۷۰٪ کمتر پرداخت کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
-              <div className="text-5xl mb-5">⚡</div>
-              <h3 className="text-xl font-semibent text-gray-800 mb-3">فوری</h3>
-              <p className="text-gray-600 leading-relaxed">در کمتر از ۱۰ دقیقه اشتراک خود را فعال کنید</p>
+            <div className="bg-gray-50 p-4 rounded-xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+              <div className="text-3xl mb-3">⚡</div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">فوری</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">در کمتر از ۱۰ دقیقه اشتراک خود را فعال کنید</p>
             </div>
-            <div className="bg-gray-50 p-8 rounded-2xl text-center border-2 border-transparent hover:border-red-200 transition-all">
-              <div className="text-5xl mb-5">🎯</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">با کیفیت</h3>
-              <p className="text-gray-600 leading-relaxed">همه اشتراک‌ها کیفیت پریمیوم دارند</p>
+            <div className="bg-gray-50 p-4 rounded-xl text-center border-2 border-transparent hover:border-red-200 transition-all">
+              <div className="text-3xl mb-3">🎯</div>
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">با کیفیت</h3>
+              <p className="text-xs text-gray-600 leading-relaxed">همه اشتراک‌ها کیفیت پریمیوم دارند</p>
             </div>
           </div>
         </div>

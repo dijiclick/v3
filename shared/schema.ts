@@ -196,7 +196,6 @@ export const insertProductSchema = createInsertSchema(products).omit({
   mainDescription: z.any().optional(), // Rich text JSON format
   featuredTitle: z.string().optional(),
   featuredFeatures: z.array(z.string().min(1)).optional(),
-  featuredAreaText: z.string().optional(),
   layoutStyle: z.string().optional().default("chatgpt"),
   heroSection: heroSectionSchema,
   pricingPlans: z.array(pricingPlanSchema).optional(),

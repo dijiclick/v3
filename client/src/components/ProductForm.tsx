@@ -539,19 +539,20 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
               {/* Backward compatibility description field */}
               <div>
-                <Label className="text-sm font-medium block mb-3">
+                <Label htmlFor="description" className="text-sm font-medium">
                   Simple Description (Legacy Compatibility)
                 </Label>
-                <RichTextEditor
-                  value={form.watch("description") || ""}
-                  onChange={(value) => form.setValue("description", value)}
-                  placeholder="Enter simple product description with rich text formatting..."
-                  className="min-h-[200px]"
-                  productId={product?.id}
-                  data-testid="rich-editor-description"
+                <Textarea
+                  id="description"
+                  {...form.register("description")}
+                  placeholder="Simple product description"
+                  rows={4}
+                  className="mt-1"
+                  data-testid="textarea-description"
+                  dir="ltr"
                 />
-                <p className="text-xs text-gray-500 mt-2" dir="ltr">
-                  Rich text editor for legacy compatibility field
+                <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                  This field is kept for backward compatibility
                 </p>
               </div>
             </TabsContent>

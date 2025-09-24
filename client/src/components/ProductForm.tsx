@@ -17,6 +17,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/lib/content-service";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/RichTextEditor";
+
+// Helper function to get CSRF token from cookies (same as queryClient.ts)
+function getCSRFToken(): string | null {
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'csrf_token') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
 import SEOPreview from "@/components/SEOPreview";
 import { type Product, insertProductSchema } from "@shared/schema";
 import { Plus, Trash2, Save, RotateCcw, Upload, Image as ImageIcon, X, Eye } from "lucide-react";
@@ -160,9 +172,18 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       const formData = new FormData();
       formData.append('image', file);
       
+      // Get CSRF token for authenticated image upload
+      const csrfToken = getCSRFToken();
+      const headers: Record<string, string> = {};
+      
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
+      
       // Use fetch directly for file upload with progress
       const response = await fetch('/api/uploads/image', {
         method: 'POST',
+        headers,
         body: formData,
         credentials: 'include',
       });

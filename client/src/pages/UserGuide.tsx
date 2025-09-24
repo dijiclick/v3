@@ -76,7 +76,7 @@ export default function UserGuide() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center" data-testid="cms-page-userguide-loading">
+      <div className="min-h-screen bg-gradient-to-br from-slate-600 to-slate-700 font-vazir flex items-center justify-center" data-testid="cms-page-userguide-loading">
         <Card className="p-8">
           <CardContent className="flex items-center gap-4">
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -90,9 +90,9 @@ export default function UserGuide() {
   // Error state - only show for real errors, not missing CMS pages
   if (isCMSError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir flex items-center justify-center" data-testid="cms-page-userguide-error">
+      <div className="min-h-screen bg-gradient-to-br from-slate-600 to-slate-700 font-vazir flex items-center justify-center" data-testid="cms-page-userguide-error">
         <Card className="p-8">
-          <CardContent className="flex items-center gap-4 text-green-600">
+          <CardContent className="flex items-center gap-4 text-slate-700">
             <AlertCircle className="h-6 w-6" />
             <span className="text-lg">خطا در بارگذاری محتوا. لطفاً دوباره تلاش کنید.</span>
           </CardContent>
@@ -102,7 +102,7 @@ export default function UserGuide() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-600 to-slate-700 font-vazir" dir="rtl">
       <main className="bg-white pt-10 pb-10 min-h-screen">
         <div className="max-w-6xl mx-auto px-5">
           {/* Page Header */}
@@ -193,7 +193,7 @@ export default function UserGuide() {
                     xattr -cr /Users/hamid/Desktop/mac-arm64/Seotech\ Super\ App.app
                   </div>
                   
-                  <p className="text-sm text-green-700">
+                  <p className="text-sm text-slate-600">
                     ✅ بعد از این دستور، اپ اجرا می‌شود و ارور نمی‌دهد
                   </p>
                 </div>
@@ -207,9 +207,9 @@ export default function UserGuide() {
               </h2>
               
               <div className="space-y-6">
-                <div className="bg-green-50 p-4 rounded-xl">
-                  <h4 className="font-bold text-green-800 mb-2">🔄 آپدیت</h4>
-                  <p className="text-green-700 text-sm">
+                <div className="bg-slate-50 p-4 rounded-xl">
+                  <h4 className="font-bold text-slate-800 mb-2">🔄 آپدیت</h4>
+                  <p className="text-slate-700 text-sm">
                     حتماً ورژن قبلی را اول uninstall کنید که به مشکل نخورید
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export default function UserGuide() {
                 <p className="text-gray-600 mb-6">
                   دقت کنید که پشتیبانی فقط از طریق تلگرام انجام می‌شود
                 </p>
-                <button className="bg-green-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-600 transition-colors" data-testid="support-button">
+                <button className="bg-slate-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors" data-testid="support-button">
                   ارتباط با پشتیبانی
                 </button>
               </div>
@@ -267,9 +267,9 @@ export default function UserGuide() {
               <h3 className="text-xl font-bold text-gray-800 text-center mb-6" data-testid="error-title">
                 عیب‌یابی
               </h3>
-              <div className="bg-green-50 p-6 rounded-xl">
-                <h4 className="font-bold text-green-800 mb-3">❌ ارور Maximum session</h4>
-                <p className="text-green-700">
+              <div className="bg-slate-50 p-6 rounded-xl">
+                <h4 className="font-bold text-slate-800 mb-3">❌ ارور Maximum session</h4>
+                <p className="text-slate-700">
                   در صورت مواجهه با این ارور با پشتیبانی تماس بگیرید
                 </p>
               </div>
@@ -278,7 +278,7 @@ export default function UserGuide() {
 
           {/* Quick Start CTA */}
           <div className="text-center mt-16">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-8 rounded-3xl text-white">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-8 rounded-3xl text-white">
               <h2 className="text-2xl font-bold mb-4" data-testid="quick-start-title">
                 آماده شروع هستید؟
               </h2>
@@ -286,10 +286,10 @@ export default function UserGuide() {
                 سوپر اپ را دانلود کنید و به همه ابزارها دسترسی پیدا کنید
               </p>
               <div className="flex justify-center gap-4">
-                <a href="https://limitpass.com/superapp1.0.7.exe" className="bg-white text-green-500 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors" data-testid="download-windows-cta">
+                <a href="https://limitpass.com/superapp1.0.7.exe" className="bg-white text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors" data-testid="download-windows-cta">
                   دانلود ویندوز
                 </a>
-                <a href="https://limitpass.com/mac.zip" className="bg-green-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-800 transition-colors" data-testid="download-mac-cta">
+                <a href="https://limitpass.com/mac.zip" className="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-900 transition-colors" data-testid="download-mac-cta">
                   دانلود مک
                 </a>
               </div>

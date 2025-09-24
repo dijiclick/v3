@@ -250,7 +250,7 @@ export default function ProductDetails() {
             
             
             
-            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
+            <div className="w-32 h-32 bg-gradient-to-br from-slate-600 to-slate-700 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               {getProductIcon()}
             </div>
             
@@ -275,7 +275,7 @@ export default function ProductDetails() {
                 // Display featured features
                 product.featuredFeatures.map((feature: string, index: number) => (
                   <li key={index} className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <CheckCircle className="text-slate-700 h-5 w-5" />
                     <span>{feature}</span>
                   </li>
                 ))
@@ -283,26 +283,26 @@ export default function ProductDetails() {
                 // Default features
                 <>
                   <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <CheckCircle className="text-slate-700 h-5 w-5" />
                     <span>دسترسی کامل به {product.title}</span>
                   </li>
                   <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <CheckCircle className="text-slate-700 h-5 w-5" />
                     <span>کیفیت پریمیوم و سرعت بالا</span>
                   </li>
                   <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <CheckCircle className="text-slate-700 h-5 w-5" />
                     <span>پشتیبانی ۲۴/۷</span>
                   </li>
                   <li className="flex items-center gap-3 text-gray-700">
-                    <CheckCircle className="text-green-500 h-5 w-5" />
+                    <CheckCircle className="text-slate-700 h-5 w-5" />
                     <span>تضمین کیفیت و امنیت</span>
                   </li>
                 </>
               )}
               {product.inStock && (
-                <li className="flex items-center gap-3 text-green-700 font-medium">
-                  <CheckCircle className="text-green-600 h-5 w-5" />
+                <li className="flex items-center gap-3 text-slate-700 font-medium">
+                  <CheckCircle className="text-slate-600 h-5 w-5" />
                   <span>موجود و آماده تحویل فوری</span>
                 </li>
               )}
@@ -318,12 +318,12 @@ export default function ProductDetails() {
                       onClick={() => setSelectedPlan('individual')}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'individual'
-                          ? 'border-green-500 bg-green-50 text-green-700'
+                          ? 'border-slate-500 bg-slate-50 text-slate-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'individual' ? 'border-green-500 bg-green-500' : 'border-gray-400'
+                        selectedPlan === 'individual' ? 'border-slate-500 bg-slate-500' : 'border-gray-400'
                       }`}></div>
                       <div>
                         <div className="font-medium">پلن فردی</div>
@@ -336,12 +336,12 @@ export default function ProductDetails() {
                       onClick={() => setSelectedPlan('shared')}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'shared'
-                          ? 'border-green-500 bg-green-50 text-green-700'
+                          ? 'border-slate-500 bg-slate-50 text-slate-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'shared' ? 'border-green-500 bg-green-500' : 'border-gray-400'
+                        selectedPlan === 'shared' ? 'border-slate-500 bg-slate-500' : 'border-gray-400'
                       }`}></div>
                       <div>
                         <div className="font-medium">پلن مشترک</div>
@@ -353,7 +353,7 @@ export default function ProductDetails() {
               )}
               {!product.inStock && (
                 <li className="flex items-center gap-3 text-green-600 font-medium">
-                  <div className="text-green-500 h-5 w-5">✗</div>
+                  <div className="text-slate-500 h-5 w-5">✗</div>
                   <span>موقتاً ناموجود</span>
                 </li>
               )}
@@ -363,7 +363,7 @@ export default function ProductDetails() {
           {/* Purchase Section */}
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="text-center mb-8 hidden lg:block">
-              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+              <div className="w-32 h-32 bg-gradient-to-br from-slate-600 to-slate-700 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
                 {getProductIcon()}
               </div>
             </div>
@@ -389,7 +389,7 @@ export default function ProductDetails() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-800 dark:text-gray-200">قیمت نهایی:</span>
                   <div className="text-left">
-                    <span className="text-3xl font-bold text-green-600 dark:text-green-500">
+                    <span className="text-3xl font-bold text-slate-700 dark:text-slate-600">
                       {formatPersianPrice(product.price)}
                     </span>
                     <span className="text-lg text-gray-600 dark:text-gray-400 mr-2">تومان</span>
@@ -407,7 +407,7 @@ export default function ProductDetails() {
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
                   !product.inStock 
                     ? 'bg-gray-400 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-60'
-                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-1 hover:shadow-lg'
+                    : 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-800 hover:to-slate-900 hover:-translate-y-1 hover:shadow-lg'
                 }`}
                 data-testid="buy-now-btn"
               >
@@ -477,7 +477,7 @@ export default function ProductDetails() {
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl">
                   <div className="bg-white rounded-xl p-4 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">✓</div>
+                      <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-white text-sm font-bold">✓</div>
                       <div>
                         <div className="text-sm font-semibold text-gray-800">کیفیت پریمیوم</div>
                         <div className="text-xs text-gray-500">بهترین کیفیت موجود</div>

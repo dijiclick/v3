@@ -4,12 +4,12 @@ export default function PersianFooter() {
   return (
     <div className="font-vazir" dir="rtl">
       {/* Social Media Section */}
-      <section className="bg-green-500 py-8">
+      <section className="bg-slate-700 py-8">
         <div className="max-w-7xl mx-auto px-5">
           <div className="flex justify-center gap-4">
             <a 
               href="#" 
-              className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
+              className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
               title="تلگرام"
               data-testid="social-telegram"
             >
@@ -19,7 +19,7 @@ export default function PersianFooter() {
             </a>
             <a 
               href="#" 
-              className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
+              className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
               title="ایمیل"
               data-testid="social-email"
             >
@@ -29,7 +29,7 @@ export default function PersianFooter() {
             </a>
             <a 
               href="#" 
-              className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
+              className="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-white hover:-translate-y-1 transition-transform" 
               title="اینستاگرام"
               data-testid="social-instagram"
             >

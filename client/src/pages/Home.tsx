@@ -246,10 +246,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-400 to-green-500 font-vazir" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-600 to-slate-700 font-vazir" dir="rtl">
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-400 to-green-500 py-10 text-center text-white">
+      <section className="bg-gradient-to-br from-slate-600 to-slate-700 py-10 text-center text-white">
         <div 
           className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5" 
           data-testid="text-hero-title"
@@ -259,7 +259,7 @@ export default function Home() {
         
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-10 px-5">
-          <div className="flex items-center bg-white rounded-full p-2 shadow-lg border-2 border-transparent focus-within:border-green-500 focus-within:shadow-green-500/20 hover:-translate-y-1 transition-all">
+          <div className="flex items-center bg-white rounded-full p-2 shadow-lg border-2 border-transparent focus-within:border-slate-500 focus-within:shadow-slate-500/20 hover:-translate-y-1 transition-all">
             <input
               type="text"
               placeholder="جستجو در تمام اشتراک‌ها..."
@@ -274,7 +274,7 @@ export default function Home() {
               data-testid="input-search"
             />
             <button 
-              className="bg-gradient-to-r from-green-400 to-green-500 text-white px-6 py-3 rounded-full text-sm font-semibold hover:from-green-500 hover:to-green-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-green-500/30 transition-all"
+              className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-full text-sm font-semibold hover:from-slate-700 hover:to-slate-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-500/30 transition-all"
               data-testid="button-search"
             >
               جستجو
@@ -289,7 +289,7 @@ export default function Home() {
               key={category.id}
               className={`flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 ${
                 activeCategory === category.id
-                  ? 'bg-white text-green-500 border-2 border-white -translate-y-2 shadow-lg shadow-green-500/30'
+                  ? 'bg-white text-slate-700 border-2 border-white -translate-y-2 shadow-lg shadow-slate-500/30'
                   : 'bg-white/10 hover:bg-white/20 hover:-translate-y-1'
               }`}
               onClick={() => setActiveCategory(category.id)}
@@ -297,7 +297,7 @@ export default function Home() {
             >
               <span className="text-3xl mb-1">{category.icon}</span>
               <span className={`text-sm font-bold ${
-                activeCategory === category.id ? 'text-green-500' : 'text-white'
+                activeCategory === category.id ? 'text-slate-700' : 'text-white'
               }`}>
                 {category.label}
               </span>
@@ -331,7 +331,7 @@ export default function Home() {
                 {/* Status Badge */}
                 {service.status && service.status !== 'active' && (
                   <div className={`absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-bold z-10 ${
-                    service.status === 'آزمایشی رایگان' ? 'bg-green-400 text-green-900' :
+                    service.status === 'آزمایشی رایگان' ? 'bg-slate-200 text-slate-800' :
                     'bg-gray-400 text-gray-900'
                   }`}>
                     {service.status === 'inactive' ? 'ناموجود' : service.status}
@@ -342,7 +342,7 @@ export default function Home() {
                 <div className={`p-5 min-h-[180px] flex flex-col justify-between ${
                   service.status === 'inactive' 
                     ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-800' 
-                    : 'bg-gradient-to-br from-green-400 to-green-500 text-white'
+                    : 'bg-gradient-to-br from-slate-600 to-slate-700 text-white'
                 }`}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${
@@ -397,7 +397,7 @@ export default function Home() {
                   <ul className="list-none space-y-3 flex-1">
                     {service.features.map((feature, index) => (
                       <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
-                        <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
+                        <span className="absolute right-0 text-slate-700 font-bold text-base">✓</span>
                         {feature}
                       </li>
                     ))}
@@ -421,7 +421,7 @@ export default function Home() {
                             e.stopPropagation();
                             window.open(service.buyLink || '', '_blank', 'noopener,noreferrer');
                           }}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/40 text-center mb-2"
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-500/40 text-center mb-2"
                           data-testid={`button-buy-now-${service.id}`}
                         >
                           خرید فوری
@@ -429,7 +429,7 @@ export default function Home() {
                       ) : (
                         <a 
                           href={getProductUrl(service)}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-green-500 hover:bg-green-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/40 text-center"
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-slate-700 hover:bg-slate-800 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-500/40 text-center"
                           data-testid={`button-purchase-${service.id}`}
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -442,7 +442,7 @@ export default function Home() {
                   <div className="text-center mt-3">
                     <a 
                       href={getProductUrl(service)} 
-                      className="text-green-500 text-sm font-medium hover:underline" 
+                      className="text-slate-700 text-sm font-medium hover:underline" 
                       data-testid={`link-details-${service.id}`}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -459,7 +459,7 @@ export default function Home() {
             <div className="text-center mb-10">
               <button
                 onClick={() => setShowAllProducts(true)}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-2xl font-bold text-lg hover:from-green-500 hover:to-green-600 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/30 transition-all"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-2xl font-bold text-lg hover:from-slate-700 hover:to-slate-800 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-500/30 transition-all"
                 data-testid="button-show-all-products"
               >
                 نمایش همه محصولات
@@ -480,7 +480,7 @@ export default function Home() {
               <button 
                 onClick={loadMoreProducts}
                 disabled={isLoading}
-                className={`inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-400 to-green-500 text-white rounded-full font-bold text-lg hover:from-green-500 hover:to-green-600 hover:-translate-y-1 hover:shadow-lg transition-all ${
+                className={`inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-full font-bold text-lg hover:from-slate-700 hover:to-slate-800 hover:-translate-y-1 hover:shadow-lg transition-all ${
                   isLoading ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
                 data-testid="button-load-more"

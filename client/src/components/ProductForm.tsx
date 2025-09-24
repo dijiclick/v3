@@ -282,7 +282,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     dir="ltr"
                   />
                   {form.formState.errors.title && (
-                    <p className="text-sm text-green-600 mt-1" dir="ltr">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.title.message}
                     </p>
                   )}
@@ -304,7 +304,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     Auto-generated from title
                   </p>
                   {form.formState.errors.slug && (
-                    <p className="text-sm text-green-600 mt-1" dir="ltr">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.slug.message}
                     </p>
                   )}
@@ -327,7 +327,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     dir="ltr"
                   />
                   {form.formState.errors.buyLink && (
-                    <p className="text-sm text-green-600 mt-1" dir="ltr">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.buyLink.message}
                     </p>
                   )}
@@ -353,7 +353,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </SelectContent>
                   </Select>
                   {form.formState.errors.categoryId && (
-                    <p className="text-sm text-green-600 mt-1" dir="ltr">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.categoryId.message}
                     </p>
                   )}
@@ -427,7 +427,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     Product's current price
                   </p>
                   {form.formState.errors.price && (
-                    <p className="text-sm text-green-600 mt-1" dir="ltr">
+                    <p className="text-sm text-red-600 mt-1" dir="ltr">
                       {form.formState.errors.price.message}
                     </p>
                   )}

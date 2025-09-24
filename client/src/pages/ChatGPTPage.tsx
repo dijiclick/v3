@@ -55,7 +55,7 @@ export default function ChatGPTPage() {
             <h1 className="text-5xl font-bold text-gray-800 mb-6" data-testid="chatgpt-page-title">
               ChatGPT Plus
             </h1>
-            <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
+            <div className="w-32 h-32 bg-gradient-to-br from-slate-600 to-slate-700 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
               🤖
             </div>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
@@ -63,23 +63,23 @@ export default function ChatGPTPage() {
             </p>
             <ul className="space-y-3 mb-8">
               <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
+                <span className="text-slate-700 font-bold text-lg">✓</span>
                 <span>به جدیدترین نسخه ChatGPT وصل شوید و همیشه یک قدم جلوتر باشید</span>
               </li>
               <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
+                <span className="text-slate-700 font-bold text-lg">✓</span>
                 <span>سرعت پاسخ بالاتر</span>
               </li>
               <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
+                <span className="text-slate-700 font-bold text-lg">✓</span>
                 <span>دسترسی در ساعات شلوغ</span>
               </li>
               <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
+                <span className="text-slate-700 font-bold text-lg">✓</span>
                 <span>ویژگی‌های جدید زودتر</span>
               </li>
               <li className="flex items-center gap-3 text-gray-700">
-                <span className="text-green-500 font-bold text-lg">✓</span>
+                <span className="text-slate-700 font-bold text-lg">✓</span>
                 <span>تحلیل تصاویر</span>
               </li>
             </ul>
@@ -88,7 +88,7 @@ export default function ChatGPTPage() {
           {/* Purchase Section */}
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
             <div className="text-center mb-8 hidden lg:block">
-              <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-green-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+              <div className="w-32 h-32 bg-gradient-to-br from-slate-600 to-slate-700 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
                 🤖
               </div>
             </div>
@@ -97,33 +97,33 @@ export default function ChatGPTPage() {
             <div className="space-y-3 mb-8">
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === 'monthly' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                  selectedPlan === 'monthly' ? 'border-slate-500 bg-slate-50' : 'border-gray-200 hover:border-slate-300'
                 }`}
                 onClick={() => setSelectedPlan('monthly')}
                 data-testid="plan-monthly"
               >
                 <span className="font-semibold text-gray-800">ماهانه</span>
-                <span className="font-bold text-green-500 text-lg">۱۴۹,۰۰۰ تومان</span>
+                <span className="font-bold text-slate-700 text-lg">۱۴۹,۰۰۰ تومان</span>
               </div>
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === '3months' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                  selectedPlan === '3months' ? 'border-slate-500 bg-slate-50' : 'border-gray-200 hover:border-slate-300'
                 }`}
                 onClick={() => setSelectedPlan('3months')}
                 data-testid="plan-3months"
               >
                 <span className="font-semibold text-gray-800">۳ ماهه</span>
-                <span className="font-bold text-green-500 text-lg">۳۹۰,۰۰۰ تومان</span>
+                <span className="font-bold text-slate-700 text-lg">۳۹۰,۰۰۰ تومان</span>
               </div>
               <div 
                 className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                  selectedPlan === '6months' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                  selectedPlan === '6months' ? 'border-slate-500 bg-slate-50' : 'border-gray-200 hover:border-slate-300'
                 }`}
                 onClick={() => setSelectedPlan('6months')}
                 data-testid="plan-6months"
               >
                 <span className="font-semibold text-gray-800">۶ ماهه</span>
-                <span className="font-bold text-green-500 text-lg">۷۵۰,۰۰۰ تومان</span>
+                <span className="font-bold text-slate-700 text-lg">۷۵۰,۰۰۰ تومان</span>
               </div>
             </div>
             
@@ -135,12 +135,12 @@ export default function ChatGPTPage() {
               </div>
               <div className="flex justify-between mb-2">
                 <span className="text-gray-600">تخفیف:</span>
-                <span className="text-green-600">-۱۰۱,۰۰۰ تومان</span>
+                <span className="text-slate-600">-۱۰۱,۰۰۰ تومان</span>
               </div>
               <div className="border-t border-gray-300 pt-3 mt-3">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-800">جمع کل:</span>
-                  <span className="text-2xl font-bold text-green-500">
+                  <span className="text-2xl font-bold text-slate-700">
                     {selectedPlan === 'monthly' ? '۱۴۹,۰۰۰' : 
                      selectedPlan === '3months' ? '۳۹۰,۰۰۰' : '۷۵۰,۰۰۰'} تومان
                   </span>
@@ -149,14 +149,14 @@ export default function ChatGPTPage() {
             </div>
             
             <button 
-              className="w-full bg-green-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-600 transition-all hover:-translate-y-1 hover:shadow-lg mb-5"
+              className="w-full bg-slate-700 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-all hover:-translate-y-1 hover:shadow-lg mb-5"
               data-testid="join-btn"
             >
               شروع آزمایش رایگان
             </button>
             
             <div className="text-center">
-              <a href="#" className="text-green-500 text-sm font-medium hover:underline">
+              <a href="#" className="text-slate-700 text-sm font-medium hover:underline">
                 نمایش جزئیات
               </a>
             </div>
@@ -171,7 +171,7 @@ export default function ChatGPTPage() {
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-2xl" data-testid="screenshot-chat">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">AI</div>
+                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-white text-sm font-bold">AI</div>
                   <div>
                     <div className="text-sm font-semibold text-gray-800">چت هوشمند</div>
                     <div className="text-xs text-gray-500">پاسخ‌های سریع و دقیق</div>
@@ -241,7 +241,7 @@ export default function ChatGPTPage() {
             <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-2xl" data-testid="screenshot-translate">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">🌍</div>
+                  <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-white text-sm">🌍</div>
                   <div>
                     <div className="text-sm font-semibold text-gray-800">ترجمه</div>
                     <div className="text-xs text-gray-500">زبان‌های مختلف</div>

@@ -413,44 +413,49 @@ export default function ProductDetails() {
                       </div>
                     )}
                   </li>
-                  {!plansLoading && activePlans.map((plan: ProductPlan) => (
-                    <li key={plan.id} className="mb-3">
-                      <button
-                        onClick={() => setSelectedPlanId(plan.id)}
-                        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full relative ${
-                          selectedPlanId === plan.id
-                            ? 'border-red-500 bg-red-50 text-red-700'
-                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                        }`}
-                        data-testid={`plan-option-${plan.id}`}
-                      >
-                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                          selectedPlanId === plan.id ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                        }`}></div>
-                        <div className="flex-1 text-right">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{plan.name}</span>
-                            {plan.isDefault && (
-                              <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1" data-testid="plan-recommended">
-                                پیشنهادی
-                              </Badge>
-                            )}
-                          </div>
-                          {plan.description && (
-                            <div className="text-sm opacity-75 mt-1">{plan.description}</div>
-                          )}
-                          <div className="text-sm font-medium text-green-600 mt-1">
-                            {formatPersianPrice(plan.price)} تومان
-                            {plan.originalPrice && parseFloat(plan.originalPrice) > parseFloat(plan.price) && (
-                              <span className="mr-2 text-gray-500 line-through text-xs">
-                                {formatPersianPrice(plan.originalPrice)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </button>
+                  {!plansLoading && (
+                    <li className="mb-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        {activePlans.map((plan: ProductPlan) => (
+                          <button
+                            key={plan.id}
+                            onClick={() => setSelectedPlanId(plan.id)}
+                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all shadow-sm hover:shadow-md relative ${
+                              selectedPlanId === plan.id
+                                ? 'border-red-500 bg-red-50 text-red-700'
+                                : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                            }`}
+                            data-testid={`plan-option-${plan.id}`}
+                          >
+                            <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
+                              selectedPlanId === plan.id ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                            }`}></div>
+                            <div className="text-center">
+                              <div className="flex flex-col items-center gap-2 mb-2">
+                                <span className="font-medium text-center">{plan.name}</span>
+                                {plan.isDefault && (
+                                  <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1" data-testid="plan-recommended">
+                                    پیشنهادی
+                                  </Badge>
+                                )}
+                              </div>
+                              {plan.description && (
+                                <div className="text-sm opacity-75 mb-2 text-center leading-relaxed">{plan.description}</div>
+                              )}
+                              <div className="text-sm font-medium text-green-600">
+                                {formatPersianPrice(plan.price)} تومان
+                                {plan.originalPrice && parseFloat(plan.originalPrice) > parseFloat(plan.price) && (
+                                  <div className="text-gray-500 line-through text-xs mt-1">
+                                    {formatPersianPrice(plan.originalPrice)}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </li>
-                  ))}
+                  )}
                   
                   {/* Duration Selection */}
                   {selectedPlan && (

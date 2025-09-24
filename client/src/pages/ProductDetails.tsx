@@ -326,7 +326,7 @@ export default function ProductDetails() {
                   <li className="mb-3">
                     <button
                       onClick={() => setSelectedPlan('individual')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'individual'
                           ? 'border-red-500 bg-red-50 text-red-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -344,7 +344,7 @@ export default function ProductDetails() {
                   <li className="mb-3">
                     <button
                       onClick={() => setSelectedPlan('shared')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
                         selectedPlan === 'shared'
                           ? 'border-red-500 bg-red-50 text-red-700'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'

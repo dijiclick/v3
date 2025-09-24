@@ -1,5 +1,6 @@
 import { useRoute } from "wouter";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +12,8 @@ import {
   generateMetaDescription, 
   getEnhancedProductStructuredData 
 } from "@/lib/seo";
-import { ExternalLink, Share, Heart, Star, CheckCircle, Home, ChevronRight } from "lucide-react";
+import { ExternalLink, Share, Heart, Star, CheckCircle, Home, ChevronRight, Loader2 } from "lucide-react";
+import type { ProductPlan } from "@shared/schema";
 
 // Utility function to format prices in Persian Toman
 const formatPersianPrice = (price: string | null): string => {
@@ -51,11 +53,97 @@ const renderRichText = (richText: any): string => {
 export default function ProductDetails() {
   const [, params] = useRoute("/:categorySlug/:productSlug");
   const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState('individual');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<'monthly' | '3months' | '6months'>('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const { data: product, isLoading, error } = useProductByCategoryAndSlug(params?.categorySlug || "", params?.productSlug || "");
   const { data: categories = [] } = useCategories();
+  
+  // Fetch product plans when product is available
+  const { data: plans = [], isLoading: plansLoading, error: plansError } = useQuery<ProductPlan[]>({
+    queryKey: ['/api/products', product?.id, 'plans'],
+    enabled: !!product?.id,
+  });
+  
+  // Find the selected plan or default plan
+  const selectedPlan = useMemo(() => {
+    if (!plans.length) return null;
+    
+    // If a plan is selected, find it
+    if (selectedPlanId) {
+      return plans.find((plan: ProductPlan) => plan.id === selectedPlanId) || null;
+    }
+    
+    // Otherwise, find the default plan or first active plan
+    const defaultPlan = plans.find((plan: ProductPlan) => plan.isDefault && plan.isActive);
+    const firstActivePlan = plans.find((plan: ProductPlan) => plan.isActive);
+    
+    return defaultPlan || firstActivePlan || null;
+  }, [plans, selectedPlanId]);
+  
+  // Set default selected plan when plans are loaded
+  useEffect(() => {
+    if (plans.length > 0 && !selectedPlanId) {
+      const defaultPlan = plans.find((plan: ProductPlan) => plan.isDefault && plan.isActive);
+      const firstActivePlan = plans.find((plan: ProductPlan) => plan.isActive);
+      const planToSelect = defaultPlan || firstActivePlan;
+      if (planToSelect) {
+        setSelectedPlanId(planToSelect.id);
+      }
+    }
+  }, [plans, selectedPlanId]);
+  
+  // Handle plans error with toast notification
+  useEffect(() => {
+    if (plansError) {
+      toast({
+        title: "خطا در بارگذاری پلن‌ها",
+        description: "امکان بارگذاری پلن‌های محصول وجود ندارد. لطفاً دوباره تلاش کنید.",
+        variant: "destructive",
+      });
+    }
+  }, [plansError, toast]);
+  
+  // Calculate final pricing based on selected plan and duration
+  const finalPricing = useMemo(() => {
+    let basePrice: string;
+    let originalPrice: string | null = null;
+    
+    if (selectedPlan) {
+      basePrice = selectedPlan.price;
+      originalPrice = selectedPlan.originalPrice;
+    } else {
+      // Fallback to product pricing
+      basePrice = product?.price || "0";
+      originalPrice = product?.originalPrice || null;
+    }
+    
+    const basePriceNum = parseFloat(basePrice.replace(/[^\d.-]/g, ''));
+    const originalPriceNum = originalPrice ? parseFloat(originalPrice.replace(/[^\d.-]/g, '')) : null;
+    
+    // Apply duration multipliers
+    let finalPrice = basePriceNum;
+    let finalOriginalPrice = originalPriceNum;
+    
+    if (selectedDuration === '3months') {
+      finalPrice = basePriceNum * 3 * 0.95; // 5% discount for 3 months
+      if (finalOriginalPrice) finalOriginalPrice = originalPriceNum! * 3;
+    } else if (selectedDuration === '6months') {
+      finalPrice = basePriceNum * 6 * 0.9; // 10% discount for 6 months  
+      if (finalOriginalPrice) finalOriginalPrice = originalPriceNum! * 6;
+    }
+    
+    return {
+      price: finalPrice.toString(),
+      originalPrice: finalOriginalPrice?.toString() || null,
+      discountPercentage: originalPriceNum && finalOriginalPrice ? 
+        Math.round(((finalOriginalPrice - finalPrice) / finalOriginalPrice) * 100) : null
+    };
+  }, [selectedPlan, selectedDuration, product]);
+  
+  // Filter active plans for display
+  const activePlans = plans.filter((plan: ProductPlan) => plan.isActive);
 
   // Get current category
   const currentCategory = categories.find(cat => cat.slug === params?.categorySlug);
@@ -163,12 +251,14 @@ export default function ProductDetails() {
     { icon: "💼", name: "Adobe", price: "۱۹۰ تومان", bg: "bg-blue-500" }
   ];
 
-  if (isLoading) {
+  if (isLoading || (product && plansLoading)) {
     return (
       <div className="min-h-screen bg-gray-50 font-vazir flex items-center justify-center" dir="rtl">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-lg text-gray-600">در حال بارگذاری...</p>
+          <p className="text-lg text-gray-600">
+            {isLoading ? 'در حال بارگذاری محصول...' : 'در حال بارگذاری پلن‌ها...'}
+          </p>
         </div>
       </div>
     );
@@ -311,49 +401,107 @@ export default function ProductDetails() {
                 </li>
               )}
               
-              {/* Plan Selection in Features List */}
-              {product.inStock && (
+              {/* Dynamic Plan Selection */}
+              {product.inStock && activePlans.length > 0 && (
                 <>
                   <li className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="text-gray-700 font-medium mb-3">نوع پلن:</div>
-                  </li>
-                  <li className="mb-3">
-                    <button
-                      onClick={() => setSelectedPlan('individual')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
-                        selectedPlan === 'individual'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'individual' ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium">پلن فردی</div>
-                        <div className="text-sm opacity-75">برای استفاده شخصی</div>
+                    <div className="text-gray-700 font-medium mb-3">انتخاب پلن:</div>
+                    {plansLoading && (
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">در حال بارگذاری پلن‌ها...</span>
                       </div>
-                    </button>
+                    )}
                   </li>
-                  <li className="mb-3">
-                    <button
-                      onClick={() => setSelectedPlan('shared')}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-1/2 ${
-                        selectedPlan === 'shared'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        selectedPlan === 'shared' ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium">پلن مشترک</div>
-                        <div className="text-sm opacity-75">برای چند کاربر</div>
-                      </div>
-                    </button>
-                  </li>
+                  {!plansLoading && activePlans.map((plan: ProductPlan) => (
+                    <li key={plan.id} className="mb-3">
+                      <button
+                        onClick={() => setSelectedPlanId(plan.id)}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full relative ${
+                          selectedPlanId === plan.id
+                            ? 'border-red-500 bg-red-50 text-red-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                        data-testid={`plan-option-${plan.id}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                          selectedPlanId === plan.id ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                        }`}></div>
+                        <div className="flex-1 text-right">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{plan.name}</span>
+                            {plan.isDefault && (
+                              <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1" data-testid="plan-recommended">
+                                پیشنهادی
+                              </Badge>
+                            )}
+                          </div>
+                          {plan.description && (
+                            <div className="text-sm opacity-75 mt-1">{plan.description}</div>
+                          )}
+                          <div className="text-sm font-medium text-green-600 mt-1">
+                            {formatPersianPrice(plan.price)} تومان
+                            {plan.originalPrice && parseFloat(plan.originalPrice) > parseFloat(plan.price) && (
+                              <span className="mr-2 text-gray-500 line-through text-xs">
+                                {formatPersianPrice(plan.originalPrice)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                  
+                  {/* Duration Selection */}
+                  {selectedPlan && (
+                    <>
+                      <li className="mt-4 pt-3 border-t border-gray-200">
+                        <div className="text-gray-700 font-medium mb-3">مدت زمان:</div>
+                      </li>
+                      <li className="mb-3">
+                        <div className="space-y-2">
+                          {[
+                            { key: 'monthly', label: 'یک ماه', discount: null },
+                            { key: '3months', label: 'سه ماه', discount: '5% تخفیف' },
+                            { key: '6months', label: 'شش ماه', discount: '10% تخفیف' }
+                          ].map((duration) => (
+                            <button
+                              key={duration.key}
+                              onClick={() => setSelectedDuration(duration.key as any)}
+                              className={`flex items-center justify-between gap-3 p-2 rounded-lg border-2 transition-all w-full ${
+                                selectedDuration === duration.key
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                              }`}
+                              data-testid={`duration-option-${duration.key}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full border-2 ${
+                                  selectedDuration === duration.key ? 'border-blue-500 bg-blue-500' : 'border-gray-400'
+                                }`}></div>
+                                <span className="text-sm font-medium">{duration.label}</span>
+                              </div>
+                              {duration.discount && (
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                  {duration.discount}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </li>
+                    </>
+                  )}
                 </>
+              )}
+              
+              {/* Fallback message when no plans available */}
+              {product.inStock && activePlans.length === 0 && !plansLoading && (
+                <li className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="text-gray-600 text-sm bg-gray-50 p-3 rounded-lg">
+                    در حال حاضر پلنی برای این محصول تعریف نشده است. از قیمت پایه محصول استفاده می‌شود.
+                  </div>
+                </li>
               )}
               {!product.inStock && (
                 <li className="flex items-center gap-3 text-red-600 font-medium">
@@ -383,33 +531,78 @@ export default function ProductDetails() {
             </div>
             
             
-            {/* Enhanced Price Section */}
+            {/* Enhanced Price Section with Dynamic Plan Pricing */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl mb-6 text-right border">
-              {/* Original Price (if available) */}
-              {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
-                <div className="mb-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">قیمت اصلی:</span>
-                    <span className="text-gray-500 dark:text-gray-400 line-through text-lg font-medium">
-                      {formatPersianPrice(product.originalPrice)} تومان
+              {/* Plan Information */}
+              {selectedPlan && (
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-blue-800 dark:text-blue-200">پلن انتخابی:</span>
+                    <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">{selectedPlan.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-sm font-medium text-blue-800 dark:text-blue-200">مدت زمان:</span>
+                    <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                      {selectedDuration === 'monthly' ? 'یک ماه' : selectedDuration === '3months' ? 'سه ماه' : 'شش ماه'}
                     </span>
                   </div>
                 </div>
               )}
               
-              
-              {/* Final Price */}
-              <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-800 dark:text-gray-200">قیمت نهایی:</span>
-                  <div className="text-left">
-                    <span className="text-3xl font-bold text-green-600 dark:text-green-500">
-                      {formatPersianPrice(product.price)}
-                    </span>
-                    <span className="text-lg text-gray-600 dark:text-gray-400 mr-2">تومان</span>
-                  </div>
+              {/* Loading State */}
+              {plansLoading && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+                  <span className="text-gray-600">در حال محاسبه قیمت...</span>
                 </div>
-              </div>
+              )}
+              
+              {!plansLoading && (
+                <>
+                  {/* Original Price (if available) */}
+                  {finalPricing.originalPrice && parseFloat(finalPricing.originalPrice) > parseFloat(finalPricing.price) && (
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400">قیمت اصلی:</span>
+                        <span className="text-gray-500 dark:text-gray-400 line-through text-lg font-medium">
+                          {formatPersianPrice(finalPricing.originalPrice)} تومان
+                        </span>
+                      </div>
+                      {finalPricing.discountPercentage && (
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-green-600 dark:text-green-400 text-sm">تخفیف:</span>
+                          <span className="text-green-600 dark:text-green-400 text-sm font-medium">
+                            %{finalPricing.discountPercentage}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Final Price */}
+                  <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-gray-800 dark:text-gray-200">قیمت نهایی:</span>
+                      <div className="text-left">
+                        <span className="text-3xl font-bold text-green-600 dark:text-green-500" data-testid="final-price">
+                          {formatPersianPrice(finalPricing.price)}
+                        </span>
+                        <span className="text-lg text-gray-600 dark:text-gray-400 mr-2">تومان</span>
+                      </div>
+                    </div>
+                    
+                    {/* Price per month calculation for multi-month plans */}
+                    {selectedDuration !== 'monthly' && (
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">هزینه ماهانه:</span>
+                        <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">
+                          {formatPersianPrice((parseFloat(finalPricing.price.replace(/[^\d.-]/g, '')) / (selectedDuration === '3months' ? 3 : 6)).toString())} تومان
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
             
             {/* Enhanced Purchase Buttons */}

@@ -131,6 +131,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Product Plans API endpoints - moved above general routes to avoid conflicts
+  app.get("/api/products/:productId/plans", async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const plans = await storage.getProductPlans(productId);
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching product plans: " + error.message });
+    }
+  });
+
+  app.post("/api/products/:productId/plans", requireAdmin, async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const result = insertProductPlanSchema.safeParse({
+        ...req.body,
+        productId
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid plan data", 
+          errors: result.error.errors 
+        });
+      }
+      
+      const plan = await storage.createProductPlan(result.data);
+      res.status(201).json(plan);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating product plan: " + error.message });
+    }
+  });
+
   app.get("/api/products/:categorySlug/:productSlug", async (req, res) => {
     try {
       const { categorySlug, productSlug } = req.params;
@@ -214,38 +247,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Product Plans API endpoints
-  app.get("/api/products/:productId/plans", async (req, res) => {
-    try {
-      const { productId } = req.params;
-      const plans = await storage.getProductPlans(productId);
-      res.json(plans);
-    } catch (error: any) {
-      res.status(500).json({ message: "Error fetching product plans: " + error.message });
-    }
-  });
-
-  app.post("/api/products/:productId/plans", requireAdmin, async (req, res) => {
-    try {
-      const { productId } = req.params;
-      const result = insertProductPlanSchema.safeParse({
-        ...req.body,
-        productId
-      });
-      
-      if (!result.success) {
-        return res.status(400).json({ 
-          message: "Invalid plan data", 
-          errors: result.error.errors 
-        });
-      }
-      
-      const plan = await storage.createProductPlan(result.data);
-      res.status(201).json(plan);
-    } catch (error: any) {
-      res.status(500).json({ message: "Error creating product plan: " + error.message });
-    }
-  });
 
   app.put("/api/product-plans/:id", requireAdmin, async (req, res) => {
     try {

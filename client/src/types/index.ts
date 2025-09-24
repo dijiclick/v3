@@ -143,3 +143,16 @@ export interface FilterState {
   rating: number | null;
   search: string;
 }
+
+export interface ProductPlan {
+  id: string;
+  productId: string;
+  name: string;
+  price: string;
+  originalPrice: string | null;
+  description: string | null;
+  isDefault: boolean | null;
+  sortOrder: number | null;
+  isActive: boolean | null;
+  createdAt: Date | null;
+}

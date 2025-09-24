@@ -232,7 +232,18 @@ export default function ProductDetails() {
         
         {/* Product Header */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-10 mb-16 bg-white p-10 rounded-3xl shadow-lg">
-          <div className="text-right">
+          <div className="text-right relative">
+            {/* Small Share Icon in Top Right */}
+            <Button
+              onClick={handleShare}
+              variant="ghost"
+              size="sm"
+              className="absolute top-0 left-0 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              data-testid="small-share-btn"
+            >
+              <Share className="h-4 w-4" />
+            </Button>
+            
             <h1 className="text-5xl font-bold text-gray-800 mb-4" data-testid="product-title">
               {product.title}
             </h1>
@@ -305,6 +316,51 @@ export default function ProductDetails() {
                   <span>موجود و آماده تحویل فوری</span>
                 </li>
               )}
+              
+              {/* Plan Selection in Features List */}
+              {product.inStock && (
+                <>
+                  <li className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="text-gray-700 font-medium mb-3">نوع پلن:</div>
+                  </li>
+                  <li className="mb-3">
+                    <button
+                      onClick={() => setSelectedPlan('individual')}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full ${
+                        selectedPlan === 'individual'
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 ${
+                        selectedPlan === 'individual' ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium">پلن فردی</div>
+                        <div className="text-sm opacity-75">برای استفاده شخصی</div>
+                      </div>
+                    </button>
+                  </li>
+                  <li className="mb-3">
+                    <button
+                      onClick={() => setSelectedPlan('shared')}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all w-full ${
+                        selectedPlan === 'shared'
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 ${
+                        selectedPlan === 'shared' ? 'border-red-500 bg-red-500' : 'border-gray-400'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium">پلن مشترک</div>
+                        <div className="text-sm opacity-75">برای چند کاربر</div>
+                      </div>
+                    </button>
+                  </li>
+                </>
+              )}
               {!product.inStock && (
                 <li className="flex items-center gap-3 text-red-600 font-medium">
                   <div className="text-red-500 h-5 w-5">✗</div>
@@ -322,34 +378,6 @@ export default function ProductDetails() {
               </div>
             </div>
             
-            {/* Plan Type Selector */}
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 text-right">نوع پلن:</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setSelectedPlan('individual')}
-                  className={`p-4 rounded-xl border-2 transition-all text-right ${
-                    selectedPlan === 'individual'
-                      ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-medium">پلن فردی</div>
-                  <div className="text-sm opacity-75">برای استفاده شخصی</div>
-                </button>
-                <button
-                  onClick={() => setSelectedPlan('shared')}
-                  className={`p-4 rounded-xl border-2 transition-all text-right ${
-                    selectedPlan === 'shared'
-                      ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="font-medium">پلن مشترک</div>
-                  <div className="text-sm opacity-75">برای چند کاربر</div>
-                </button>
-              </div>
-            </div>
             
             {/* Enhanced Price Section */}
             <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl mb-6 text-right border">
@@ -365,18 +393,6 @@ export default function ProductDetails() {
                 </div>
               )}
               
-              {/* Discount Amount */}
-              {product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price) && (
-                <div className="mb-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">میزان تخفیف:</span>
-                    <span className="text-green-600 dark:text-green-400 font-bold">
-                      -{(parseFloat(product.originalPrice) - parseFloat(product.price)).toLocaleString('fa-IR')} تومان
-                      ({Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)}%)
-                    </span>
-                  </div>
-                </div>
-              )}
               
               {/* Final Price */}
               <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4">
@@ -415,18 +431,6 @@ export default function ProductDetails() {
                 )}
               </Button>
               
-              {/* Share Button */}
-              {product.inStock && (
-                <Button 
-                  onClick={handleShare}
-                  variant="outline"
-                  className="w-full py-3 rounded-xl font-medium text-base transition-all hover:-translate-y-0.5 hover:shadow-md border-gray-300 dark:border-border"
-                  data-testid="share-btn"
-                >
-                  <Share className="h-4 w-4 mr-2" />
-                  اشتراک گذاری
-                </Button>
-              )}
             </div>
             
             <div className="text-center">

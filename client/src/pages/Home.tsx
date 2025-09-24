@@ -447,7 +447,7 @@ export default function Home() {
                       data-testid={`link-details-${service.id}`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      View Details
+                      نمایش جزئیات
                     </a>
                   </div>
                 </div>

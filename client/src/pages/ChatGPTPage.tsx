@@ -157,7 +157,7 @@ export default function ChatGPTPage() {
             
             <div className="text-center">
               <a href="#" className="text-red-500 text-sm font-medium hover:underline">
-                View Details
+                نمایش جزئیات
               </a>
             </div>
           </div>

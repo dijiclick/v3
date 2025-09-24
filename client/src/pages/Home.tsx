@@ -177,15 +177,6 @@ export default function Home() {
     return [];
   }, [products, categories]);
 
-  // Get featured product text for hero section
-  const featuredHeroText = useMemo(() => {
-    const featuredProducts = products.filter(product => product.featured && product.featuredAreaText);
-    if (featuredProducts.length > 0) {
-      // Use the first featured product's text, or combine multiple if needed
-      return featuredProducts[0].featuredAreaText || "دسترسی به تمام اشتراک های پریمیوم در یک جا";
-    }
-    return "دسترسی به تمام اشتراک های پریمیوم در یک جا"; // Fallback to original text
-  }, [products]);
 
   useSEO({
     title: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
@@ -259,8 +250,9 @@ export default function Home() {
           data-testid="text-hero-title"
           dir="rtl"
           style={{ direction: 'rtl', fontFamily: 'Vazir, IRANSans, sans-serif' }}
-          dangerouslySetInnerHTML={{ __html: featuredHeroText || "دسترسی به تمام اشتراک های پریمیوم در یک جا" }}
-        />
+        >
+          دسترسی به تمام اشتراک های پریمیوم در یک جا
+        </div>
         
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-10 px-5">

@@ -68,28 +68,144 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProducts(): Promise<Product[]> {
-    return await db.select().from(products);
+    return await db.select({
+      id: products.id,
+      title: products.title,
+      slug: products.slug,
+      description: products.description,
+      buyLink: products.buyLink,
+      mainDescription: products.mainDescription,
+      featuredTitle: products.featuredTitle,
+      featuredFeatures: products.featuredFeatures,
+      price: products.price,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      image: products.image,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+      inStock: products.inStock,
+      featured: products.featured,
+      featuredAreaText: products.featuredAreaText,
+      layoutStyle: products.layoutStyle,
+      tags: products.tags,
+      heroSection: products.heroSection,
+      pricingPlans: products.pricingPlans,
+      screenshots: products.screenshots,
+      statisticsSection: products.statisticsSection,
+      benefitsSection: products.benefitsSection,
+      sidebarContent: products.sidebarContent,
+      footerCTA: products.footerCTA,
+      blogContent: products.blogContent,
+      createdAt: products.createdAt
+    }).from(products);
   }
 
   async getProduct(id: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
+    const [product] = await db.select({
+      id: products.id,
+      title: products.title,
+      slug: products.slug,
+      description: products.description,
+      buyLink: products.buyLink,
+      mainDescription: products.mainDescription,
+      featuredTitle: products.featuredTitle,
+      featuredFeatures: products.featuredFeatures,
+      price: products.price,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      image: products.image,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+      inStock: products.inStock,
+      featured: products.featured,
+      featuredAreaText: products.featuredAreaText,
+      layoutStyle: products.layoutStyle,
+      tags: products.tags,
+      heroSection: products.heroSection,
+      pricingPlans: products.pricingPlans,
+      screenshots: products.screenshots,
+      statisticsSection: products.statisticsSection,
+      benefitsSection: products.benefitsSection,
+      sidebarContent: products.sidebarContent,
+      footerCTA: products.footerCTA,
+      blogContent: products.blogContent,
+      createdAt: products.createdAt
+    }).from(products).where(eq(products.id, id));
     return product || undefined;
   }
 
   async getProductBySlug(slug: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.slug, slug));
+    const [product] = await db.select({
+      id: products.id,
+      title: products.title,
+      slug: products.slug,
+      description: products.description,
+      buyLink: products.buyLink,
+      mainDescription: products.mainDescription,
+      featuredTitle: products.featuredTitle,
+      featuredFeatures: products.featuredFeatures,
+      price: products.price,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      image: products.image,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+      inStock: products.inStock,
+      featured: products.featured,
+      featuredAreaText: products.featuredAreaText,
+      layoutStyle: products.layoutStyle,
+      tags: products.tags,
+      heroSection: products.heroSection,
+      pricingPlans: products.pricingPlans,
+      screenshots: products.screenshots,
+      statisticsSection: products.statisticsSection,
+      benefitsSection: products.benefitsSection,
+      sidebarContent: products.sidebarContent,
+      footerCTA: products.footerCTA,
+      blogContent: products.blogContent,
+      createdAt: products.createdAt
+    }).from(products).where(eq(products.slug, slug));
     return product || undefined;
   }
 
   async getProductByCategoryAndSlug(categorySlug: string, productSlug: string): Promise<Product | undefined> {
     const [product] = await db
-      .select()
+      .select({
+        id: products.id,
+        title: products.title,
+        slug: products.slug,
+        description: products.description,
+        buyLink: products.buyLink,
+        mainDescription: products.mainDescription,
+        featuredTitle: products.featuredTitle,
+        featuredFeatures: products.featuredFeatures,
+        price: products.price,
+        originalPrice: products.originalPrice,
+        categoryId: products.categoryId,
+        image: products.image,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        inStock: products.inStock,
+        featured: products.featured,
+        featuredAreaText: products.featuredAreaText,
+        layoutStyle: products.layoutStyle,
+        tags: products.tags,
+        heroSection: products.heroSection,
+        pricingPlans: products.pricingPlans,
+        screenshots: products.screenshots,
+        statisticsSection: products.statisticsSection,
+        benefitsSection: products.benefitsSection,
+        sidebarContent: products.sidebarContent,
+        footerCTA: products.footerCTA,
+        blogContent: products.blogContent,
+        createdAt: products.createdAt
+      })
       .from(products)
       .innerJoin(categories, eq(products.categoryId, categories.id))
       .where(
         sql`${categories.slug} = ${categorySlug} AND ${products.slug} = ${productSlug}`
       );
-    return product?.products || undefined;
+    return product || undefined;
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
@@ -166,11 +282,69 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFeaturedProducts(): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.featured, true));
+    return await db.select({
+      id: products.id,
+      title: products.title,
+      slug: products.slug,
+      description: products.description,
+      buyLink: products.buyLink,
+      mainDescription: products.mainDescription,
+      featuredTitle: products.featuredTitle,
+      featuredFeatures: products.featuredFeatures,
+      price: products.price,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      image: products.image,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+      inStock: products.inStock,
+      featured: products.featured,
+      featuredAreaText: products.featuredAreaText,
+      layoutStyle: products.layoutStyle,
+      tags: products.tags,
+      heroSection: products.heroSection,
+      pricingPlans: products.pricingPlans,
+      screenshots: products.screenshots,
+      statisticsSection: products.statisticsSection,
+      benefitsSection: products.benefitsSection,
+      sidebarContent: products.sidebarContent,
+      footerCTA: products.footerCTA,
+      blogContent: products.blogContent,
+      createdAt: products.createdAt
+    }).from(products).where(eq(products.featured, true));
   }
 
   async getProductsByCategory(categoryId: string): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.categoryId, categoryId));
+    return await db.select({
+      id: products.id,
+      title: products.title,
+      slug: products.slug,
+      description: products.description,
+      buyLink: products.buyLink,
+      mainDescription: products.mainDescription,
+      featuredTitle: products.featuredTitle,
+      featuredFeatures: products.featuredFeatures,
+      price: products.price,
+      originalPrice: products.originalPrice,
+      categoryId: products.categoryId,
+      image: products.image,
+      rating: products.rating,
+      reviewCount: products.reviewCount,
+      inStock: products.inStock,
+      featured: products.featured,
+      featuredAreaText: products.featuredAreaText,
+      layoutStyle: products.layoutStyle,
+      tags: products.tags,
+      heroSection: products.heroSection,
+      pricingPlans: products.pricingPlans,
+      screenshots: products.screenshots,
+      statisticsSection: products.statisticsSection,
+      benefitsSection: products.benefitsSection,
+      sidebarContent: products.sidebarContent,
+      footerCTA: products.footerCTA,
+      blogContent: products.blogContent,
+      createdAt: products.createdAt
+    }).from(products).where(eq(products.categoryId, categoryId));
   }
 
   async getCategories(): Promise<Category[]> {

@@ -316,25 +316,45 @@ export default function Home() {
 
         {/* Category Tabs */}
         <div className="flex justify-center gap-4 mb-8 flex-wrap px-5">
-          {filterCategories.map((category) => (
-            <div
-              key={category.id}
-              className={`flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 ${
-                activeCategory === category.id
-                  ? 'bg-white text-red-500 border-2 border-white -translate-y-2 shadow-lg shadow-red-500/30'
-                  : 'bg-white/10 hover:bg-white/20 hover:-translate-y-1'
-              }`}
-              onClick={() => setActiveCategory(category.id)}
-              data-testid={`tab-category-${category.id}`}
-            >
-              <span className="text-3xl mb-1">{category.icon}</span>
-              <span className={`text-sm font-bold ${
-                activeCategory === category.id ? 'text-red-500' : 'text-white'
-              }`}>
-                {category.label}
-              </span>
-            </div>
-          ))}
+          {filterCategories.map((category) => {
+            // "All" tab stays on homepage with filtering, others link to category pages
+            if (category.id === "all") {
+              return (
+                <div
+                  key={category.id}
+                  className={`flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 ${
+                    activeCategory === category.id
+                      ? 'bg-white text-red-500 border-2 border-white -translate-y-2 shadow-lg shadow-red-500/30'
+                      : 'bg-white/10 hover:bg-white/20 hover:-translate-y-1'
+                  }`}
+                  onClick={() => setActiveCategory(category.id)}
+                  data-testid={`tab-category-${category.id}`}
+                >
+                  <span className="text-3xl mb-1">{category.icon}</span>
+                  <span className={`text-sm font-bold ${
+                    activeCategory === category.id ? 'text-red-500' : 'text-white'
+                  }`}>
+                    {category.label}
+                  </span>
+                </div>
+              );
+            } else {
+              // Other categories link to their dedicated pages
+              return (
+                <div
+                  key={category.id}
+                  className="flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 bg-white/10 hover:bg-white/20 hover:-translate-y-1"
+                  onClick={() => setLocation(`/category/${category.id}`)}
+                  data-testid={`tab-category-${category.id}`}
+                >
+                  <span className="text-3xl mb-1">{category.icon}</span>
+                  <span className="text-sm font-bold text-white">
+                    {category.label}
+                  </span>
+                </div>
+              );
+            }
+          })}
         </div>
       </section>
 

@@ -166,17 +166,35 @@ export function useCategoryBySlug(slug: string) {
     queryKey: ['/api/categories', 'slug', slug],
     queryFn: async () => {
       if (!slug) return null;
-      try {
-        const response = await fetch(`/api/categories`);
-        if (!response.ok) return null;
-        const categories = await response.json();
-        return categories.find((cat: Category) => cat.slug === slug) || null;
-      } catch (error) {
-        console.error('Error fetching category by slug:', error);
-        return null;
+      const response = await fetch(`/api/categories/slug/${slug}`);
+      if (response.status === 404) {
+        return null; // Category not found - this will be handled as empty data
       }
+      if (!response.ok) {
+        throw new Error(`Failed to fetch category: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
     },
     enabled: Boolean(slug),
+  });
+}
+
+// Hook to get products filtered by category
+export function useProductsByCategory(categoryId: string) {
+  return useQuery({
+    queryKey: ['/api/categories', categoryId, 'products'],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      const response = await fetch(`/api/categories/${categoryId}/products`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return []; // Category not found, return empty array
+        }
+        throw new Error(`Failed to fetch products for category: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(categoryId),
   });
 }
 

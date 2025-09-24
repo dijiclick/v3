@@ -22,6 +22,7 @@ import AdminCategories from "@/pages/AdminCategories";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
+import CategoryPage from "@/pages/CategoryPage";
 
 function AdminRouter() {
   return (
@@ -80,6 +81,13 @@ function PublicRouter() {
       <Route path="/products">
         <PersianLayout>
           <ProductCatalog />
+        </PersianLayout>
+      </Route>
+      
+      {/* Category page route */}
+      <Route path="/category/:categorySlug">
+        <PersianLayout>
+          <CategoryPage />
         </PersianLayout>
       </Route>
       

@@ -429,38 +429,6 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        {/* Featured Product Section */}
-        {product.featured && (product.featuredFeatures && product.featuredFeatures.length > 0) && (
-          <div className="mb-16 bg-gradient-to-r from-purple-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg" data-testid="featured-product-section">
-            <div className="text-center mb-8">
-              <Badge className="bg-white/20 text-white font-bold px-4 py-2 text-base rounded-lg mb-4">
-                🌟 محصول ویژه
-              </Badge>
-              <h2 className="text-3xl font-bold mb-4">
-                {product.title}
-              </h2>
-            </div>
-            
-            {/* Featured Features Grid */}
-            {product.featuredFeatures && product.featuredFeatures.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="featured-features-grid">
-                {product.featuredFeatures.map((feature: string, index: number) => (
-                  <div key={index} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <CheckCircle className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="font-semibold text-white">{feature}</span>
-                    </div>
-                    <div className="text-sm text-purple-100 opacity-90">
-                      ویژگی منحصر به فرد این محصول
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Content Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_1.5fr] gap-10 mb-16">

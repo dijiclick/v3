@@ -35,7 +35,6 @@ export const products = pgTable("products", {
   reviewCount: integer("review_count").default(0),
   inStock: boolean("in_stock").default(true),
   featured: boolean("featured").default(false),
-  featuredAreaText: text("featured_area_text"),
   layoutStyle: text("layout_style").default("chatgpt"),
   tags: text("tags").array(),
   // ChatGPT-style layout fields

@@ -8,6 +8,10 @@ export function adaptSanityProduct(sanityProduct: SanityProduct): Product {
     title: sanityProduct.title,
     slug: sanityProduct.slug.current,
     description: sanityProduct.description || '',
+    buyLink: null, // Sanity products don't have this field
+    mainDescription: null, // Sanity products don't have this field
+    featuredTitle: null, // Sanity products don't have this field
+    featuredFeatures: null, // Sanity products don't have this field
     price: sanityProduct.price.toString(),
     originalPrice: sanityProduct.originalPrice?.toString() || null,
     categoryId: sanityProduct.category?._id || '',
@@ -16,7 +20,6 @@ export function adaptSanityProduct(sanityProduct: SanityProduct): Product {
     reviewCount: sanityProduct.reviewCount || 0,
     inStock: sanityProduct.inStock,
     featured: sanityProduct.featured,
-    featuredAreaText: null, // Sanity products don't have this field
     tags: sanityProduct.tags || [],
     createdAt: new Date(sanityProduct._createdAt),
     

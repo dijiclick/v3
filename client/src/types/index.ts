@@ -106,7 +106,6 @@ export interface Product {
   reviewCount: number | null;
   inStock: boolean | null;
   featured: boolean | null;
-  featuredAreaText: string | null;
   tags: string[] | null;
   createdAt: Date | null;
   

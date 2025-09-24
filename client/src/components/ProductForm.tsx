@@ -63,7 +63,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: product.featured ?? false,
       featuredTitle: product.featuredTitle || "",
       featuredFeatures: Array.isArray(product.featuredFeatures) ? product.featuredFeatures : [],
-      featuredAreaText: product.featuredAreaText || "",
       tags: Array.isArray(product.tags) ? product.tags : [],
     } : {
       title: "",
@@ -79,7 +78,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: false,
       featuredTitle: "",
       featuredFeatures: [],
-      featuredAreaText: "",
       tags: [],
     },
   });
@@ -162,7 +160,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         buyLink: data.buyLink || undefined,
         mainDescription: data.mainDescription || undefined,
         featuredTitle: data.featuredTitle || undefined,
-        featuredAreaText: data.featuredAreaText || undefined,
         // Convert arrays properly
         featuredFeatures: data.featuredFeatures?.filter(Boolean) || undefined,
         tags: data.tags?.filter(Boolean) || undefined,
@@ -620,22 +617,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="featuredAreaText" className="text-sm font-medium">
-                      Featured Area Text
-                    </Label>
-                    <div className="mt-1">
-                      <RichTextEditor
-                        value={form.watch("featuredAreaText") || ""}
-                        onChange={(value) => form.setValue("featuredAreaText", value)}
-                        placeholder="Additional text for display in the featured products section"
-                        productId={product?.id}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                      This rich text will be displayed in the featured products section on the homepage
-                    </p>
-                  </div>
                 </div>
               )}
             </TabsContent>

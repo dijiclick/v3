@@ -430,7 +430,7 @@ export default function ProductDetails() {
         </div>
 
         {/* Featured Product Section */}
-        {product.featured && (product.featuredAreaText || (product.featuredFeatures && product.featuredFeatures.length > 0)) && (
+        {product.featured && (product.featuredFeatures && product.featuredFeatures.length > 0) && (
           <div className="mb-16 bg-gradient-to-r from-purple-500 to-pink-600 text-white p-10 rounded-3xl shadow-lg" data-testid="featured-product-section">
             <div className="text-center mb-8">
               <Badge className="bg-white/20 text-white font-bold px-4 py-2 text-base rounded-lg mb-4">
@@ -439,11 +439,6 @@ export default function ProductDetails() {
               <h2 className="text-3xl font-bold mb-4">
                 {product.title}
               </h2>
-              {product.featuredAreaText && (
-                <p className="text-lg text-purple-100 leading-relaxed max-w-3xl mx-auto" data-testid="featured-area-text">
-                  {product.featuredAreaText}
-                </p>
-              )}
             </div>
             
             {/* Featured Features Grid */}

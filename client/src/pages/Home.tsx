@@ -21,7 +21,6 @@ interface ServiceCard {
   // New schema fields
   featured: boolean | null;
   buyLink: string | null;
-  featuredAreaText: string | null;
 }
 
 // Utility function to format prices in Persian Toman
@@ -91,8 +90,7 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     categoryId: product.categoryId,
     // New featured fields
     featured: product.featured,
-    buyLink: product.buyLink,
-    featuredAreaText: product.featuredAreaText
+    buyLink: product.buyLink
   };
 }
 
@@ -177,10 +175,10 @@ export default function Home() {
 
   // Get featured product text for hero section
   const featuredHeroText = useMemo(() => {
-    const featuredProducts = products.filter(product => product.featured && product.featuredAreaText);
+    const featuredProducts = products.filter(product => product.featured);
     if (featuredProducts.length > 0) {
       // Use the first featured product's text, or combine multiple if needed
-      return featuredProducts[0].featuredAreaText || "دسترسی به تمام اشتراک های پریمیوم در یک جا";
+      return "دسترسی به تمام اشتراک های پریمیوم در یک جا";
     }
     return "دسترسی به تمام اشتراک های پریمیوم در یک جا"; // Fallback to original text
   }, [products]);

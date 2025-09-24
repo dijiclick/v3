@@ -77,6 +77,19 @@ export const images = pgTable("images", {
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
+export const productPlans = pgTable("product_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // Plan name like "پلان فوری", "پلان مشترک"
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  originalPrice: decimal("original_price", { precision: 10, scale: 2 }),
+  description: text("description"), // Optional plan description
+  isDefault: boolean("is_default").default(false), // Mark default plan
+  sortOrder: integer("sort_order").default(0), // For ordering plans
+  isActive: boolean("is_active").default(true), // Enable/disable plans
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   passwordHash: true,
@@ -218,6 +231,17 @@ export const insertImageSchema = createInsertSchema(images).omit({
   productId: z.string().optional(),
 });
 
+export const insertProductPlanSchema = createInsertSchema(productPlans).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  name: z.string().min(1, "Plan name is required"),
+  price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
+  originalPrice: z.string().regex(/^\d+(\.\d{1,2})?$/, "Invalid price format").optional().or(z.literal("")),
+  description: z.string().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -228,6 +252,8 @@ export type InsertPage = z.infer<typeof insertPageSchema>;
 export type Page = typeof pages.$inferSelect;
 export type InsertImage = z.infer<typeof insertImageSchema>;
 export type Image = typeof images.$inferSelect;
+export type InsertProductPlan = z.infer<typeof insertProductPlanSchema>;
+export type ProductPlan = typeof productPlans.$inferSelect;
 
 // Cart types for frontend
 export const cartItemSchema = z.object({

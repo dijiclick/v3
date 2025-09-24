@@ -328,15 +328,7 @@ export default function Home() {
                 data-testid={`card-service-${service.id}`}
                 onClick={() => handleCardClick(service)}
               >
-                {/* Status Badge */}
-                {service.status && service.status !== 'active' && (
-                  <div className={`absolute top-3 right-3 px-2 py-1 rounded-lg text-xs font-bold z-10 ${
-                    service.status === 'آزمایشی رایگان' ? 'bg-green-400 text-green-900' :
-                    'bg-gray-400 text-gray-900'
-                  }`}>
-                    {service.status === 'inactive' ? 'ناموجود' : service.status}
-                  </div>
-                )}
+                
                 
                 {/* Card Top */}
                 <div className={`p-5 min-h-[180px] flex flex-col justify-between ${

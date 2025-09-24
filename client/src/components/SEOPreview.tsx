@@ -22,7 +22,7 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
   const isOptimalDescription = descriptionLength >= 120 && descriptionLength <= 160;
   
   // Generate URL preview
-  const urlPreview = product.slug ? `limitpass.com/${categoryName || 'category'}/${product.slug}` : 'limitpass.com/category/product-slug';
+  const urlPreview = product.slug ? `limitpass.com/${categoryName || 'default-category'}/${product.slug}` : 'limitpass.com/default-category/product-slug';
 
   return (
     <Card className="w-full" data-testid="seo-preview">

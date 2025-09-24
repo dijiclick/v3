@@ -344,7 +344,7 @@ export default function Home() {
                 <div
                   key={category.id}
                   className="flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 bg-white/10 hover:bg-white/20 hover:-translate-y-1"
-                  onClick={() => setLocation(`/category/${category.id}`)}
+                  onClick={() => setLocation(`/${category.id}`)}
                   data-testid={`tab-category-${category.id}`}
                 >
                   <span className="text-3xl mb-1">{category.icon}</span>

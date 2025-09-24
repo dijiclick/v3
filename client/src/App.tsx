@@ -84,17 +84,17 @@ function PublicRouter() {
         </PersianLayout>
       </Route>
       
-      {/* Category page route */}
-      <Route path="/category/:categorySlug">
-        <PersianLayout>
-          <CategoryPage />
-        </PersianLayout>
-      </Route>
-      
-      {/* New product detail route with category/product slug */}
+      {/* Product detail route with category/product slug - must come before generic category route */}
       <Route path="/:categorySlug/:productSlug">
         <PersianLayout>
           <ProductDetails />
+        </PersianLayout>
+      </Route>
+      
+      {/* Category page route - generic route comes after specific routes */}
+      <Route path="/:categorySlug">
+        <PersianLayout>
+          <CategoryPage />
         </PersianLayout>
       </Route>
       

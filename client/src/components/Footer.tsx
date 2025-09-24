@@ -51,11 +51,11 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="font-semibold text-card" data-testid="categories-title">Categories</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/category/electronics" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-electronics">Electronics</Link></li>
-              <li><Link href="/category/home-garden" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-home-garden">Home & Garden</Link></li>
-              <li><Link href="/category/fashion" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-fashion">Fashion</Link></li>
-              <li><Link href="/category/sports" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-sports">Sports</Link></li>
-              <li><Link href="/category/books" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-books">Books</Link></li>
+              <li><Link href="/electronics" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-electronics">Electronics</Link></li>
+              <li><Link href="/home-garden" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-home-garden">Home & Garden</Link></li>
+              <li><Link href="/fashion" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-fashion">Fashion</Link></li>
+              <li><Link href="/sports" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-sports">Sports</Link></li>
+              <li><Link href="/books" className="opacity-80 hover:opacity-100 hover:text-accent transition-colors" data-testid="footer-books">Books</Link></li>
             </ul>
           </div>
 

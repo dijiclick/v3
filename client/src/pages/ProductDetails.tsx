@@ -459,7 +459,7 @@ export default function ProductDetails() {
                         <div className="text-gray-700 font-medium mb-3">مدت زمان:</div>
                       </li>
                       <li className="mb-3">
-                        <div className="space-y-2">
+                        <div className="flex gap-3 justify-center">
                           {[
                             { key: 'monthly', label: 'یک ماه', discount: null },
                             { key: '3months', label: 'سه ماه', discount: '5% تخفیف' },
@@ -468,21 +468,19 @@ export default function ProductDetails() {
                             <button
                               key={duration.key}
                               onClick={() => setSelectedDuration(duration.key as any)}
-                              className={`flex items-center justify-between gap-3 p-2 rounded-lg border-2 transition-all w-full ${
+                              className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-md min-w-[90px] flex-1 ${
                                 selectedDuration === duration.key
                                   ? 'border-blue-500 bg-blue-50 text-blue-700'
                                   : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                               }`}
                               data-testid={`duration-option-${duration.key}`}
                             >
-                              <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full border-2 ${
-                                  selectedDuration === duration.key ? 'border-blue-500 bg-blue-500' : 'border-gray-400'
-                                }`}></div>
-                                <span className="text-sm font-medium">{duration.label}</span>
-                              </div>
+                              <div className={`w-4 h-4 rounded-full border-2 ${
+                                selectedDuration === duration.key ? 'border-blue-500 bg-blue-500' : 'border-gray-400'
+                              }`}></div>
+                              <span className="text-sm font-medium text-center">{duration.label}</span>
                               {duration.discount && (
-                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
                                   {duration.discount}
                                 </span>
                               )}

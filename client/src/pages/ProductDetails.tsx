@@ -250,8 +250,20 @@ export default function ProductDetails() {
             
             
             
-            <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto mb-8 lg:hidden">
-              {getProductIcon()}
+            {/* Product Image - Mobile */}
+            <div className="w-32 h-32 mx-auto mb-8 lg:hidden">
+              {product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.title}
+                  className="w-full h-full object-cover rounded-3xl shadow-lg"
+                  data-testid="product-image-mobile"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white">
+                  {getProductIcon()}
+                </div>
+              )}
             </div>
             
             {/* Main Description - fallback to description if mainDescription not available */}
@@ -362,10 +374,20 @@ export default function ProductDetails() {
           
           {/* Purchase Section */}
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+            {/* Product Image - Desktop */}
             <div className="text-center mb-8 hidden lg:block">
-              <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
-                {getProductIcon()}
-              </div>
+              {product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.title}
+                  className="w-32 h-32 object-cover rounded-3xl shadow-lg mx-auto"
+                  data-testid="product-image-desktop"
+                />
+              ) : (
+                <div className="w-32 h-32 bg-gradient-to-br from-red-400 to-red-500 rounded-3xl flex items-center justify-center text-5xl text-white mx-auto">
+                  {getProductIcon()}
+                </div>
+              )}
             </div>
             
             

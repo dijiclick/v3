@@ -266,19 +266,11 @@ export default function ProductDetails() {
               )}
             </div>
             
-            {/* Main Description - fallback to description if mainDescription not available */}
+            {/* Simple Description from Legacy Compatibility field */}
             <div className="mb-8">
-              {product.mainDescription ? (
-                <div 
-                  className="prose prose-lg max-w-none text-right leading-relaxed text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: renderRichText(product.mainDescription) }}
-                  data-testid="product-main-description"
-                />
-              ) : (
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  {product.description || `دسترسی به ${product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
-                </p>
-              )}
+              <p className="text-lg text-gray-600 leading-relaxed" data-testid="product-simple-description">
+                {product.description || `دسترسی به ${product.title} با کیفیت پریمیوم و قیمت مناسب. تجربه بهترین سرویس‌ها را با لیمیت پس آغاز کنید.`}
+              </p>
             </div>
             
             {/* Features List - Use featuredFeatures if available, otherwise default */}

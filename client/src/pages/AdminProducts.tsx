@@ -116,7 +116,7 @@ export default function AdminProducts() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" dir="ltr">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -135,7 +135,7 @@ export default function AdminProducts() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="ltr">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

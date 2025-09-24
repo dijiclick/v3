@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,10 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories } from "@/lib/content-service";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 // Helper function to get CSRF token from cookies (same as queryClient.ts)
 function getCSRFToken(): string | null {
@@ -30,20 +32,41 @@ function getCSRFToken(): string | null {
   return null;
 }
 import SEOPreview from "@/components/SEOPreview";
-import { type Product, insertProductSchema } from "@shared/schema";
-import { Plus, Trash2, Save, RotateCcw, Upload, Image as ImageIcon, X, Eye } from "lucide-react";
+import { type Product, insertProductSchema, insertProductPlanSchema, type ProductPlan } from "@shared/schema";
+import { Plus, Trash2, Save, RotateCcw, Upload, Image as ImageIcon, X, Eye, ArrowUp, ArrowDown, Edit, CheckCircle, XCircle, DollarSign, Star } from "lucide-react";
 
 // English-localized form validation schema based on shared schema
-const productFormSchema = insertProductSchema.extend({
-  title: z.string().min(1, "Title is required"),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be URL-safe"),
-  price: z.string().min(1, "Price is required"),
-  categoryId: z.string().min(1, "Category is required"),
-  featuredFeatures: z.array(z.string().min(1)).optional(),
-  tags: z.array(z.string()).optional(),
+const getProductFormSchema = (isEditMode: boolean) => {
+  const baseSchema = insertProductSchema.extend({
+    title: z.string().min(1, "Title is required"),
+    slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be URL-safe"),
+    categoryId: z.string().min(1, "Category is required"),
+    featuredFeatures: z.array(z.string().min(1)).optional(),
+    tags: z.array(z.string()).optional(),
+  });
+  
+  if (isEditMode) {
+    // In edit mode, remove price fields since plans handle pricing
+    return baseSchema.omit({ price: true, originalPrice: true });
+  } else {
+    // In create mode, require price fields
+    return baseSchema.extend({
+      price: z.string().min(1, "Price is required"),
+    });
+  }
+};
+
+type ProductFormData = z.infer<ReturnType<typeof getProductFormSchema>>;
+
+// Product plan form data and schema
+const productPlanFormSchema = insertProductPlanSchema.extend({
+  name: z.string().min(1, "نام پلان الزامی است"),
+  price: z.string().min(1, "قیمت الزامی است").regex(/^\d+(\.\d{1,2})?$/, "فرمت قیمت نامعتبر است"),
+  originalPrice: z.string().regex(/^\d+(\.\d{1,2})?$/, "فرمت قیمت نامعتبر است").optional().or(z.literal("")),
+  description: z.string().optional(),
 });
 
-type ProductFormData = z.infer<typeof productFormSchema>;
+type ProductPlanFormData = z.infer<typeof productPlanFormSchema>;
 
 interface ProductFormProps {
   product?: Product;
@@ -66,14 +89,12 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema),
+    resolver: zodResolver(getProductFormSchema(isEditMode)),
     defaultValues: isEditMode ? {
       title: product.title || "",
       slug: product.slug || "",
       description: product.description || "",
       mainDescription: (product.mainDescription as string) || "",
-      price: product.price?.toString() || "",
-      originalPrice: product.originalPrice?.toString() || "",
       buyLink: product.buyLink || "",
       categoryId: product.categoryId || "",
       image: product.image || "",
@@ -87,8 +108,6 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       slug: "",
       description: "",
       mainDescription: "",
-      price: "",
-      originalPrice: "",
       buyLink: "",
       categoryId: "",
       image: "",
@@ -97,7 +116,11 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featuredTitle: "",
       featuredFeatures: [],
       tags: [],
-    },
+      ...(isEditMode ? {} : {
+        price: "",
+        originalPrice: "",
+      }),
+    } as any,
   });
 
   // Watch form values for auto-generation features
@@ -130,6 +153,25 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     }
   }, [watchedTitle, isEditMode, form]);
 
+  // Plans-related hooks and state
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [showAddPlan, setShowAddPlan] = useState(false);
+  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
+  
+  // Plans form for adding/editing plans
+  const planForm = useForm<ProductPlanFormData>({
+    resolver: zodResolver(productPlanFormSchema),
+    defaultValues: {
+      name: "",
+      price: "",
+      originalPrice: "",
+      description: "",
+      isDefault: false,
+      isActive: true,
+      sortOrder: 0,
+    },
+  });
+
   // Auto-sync featured title with main title when featured is enabled
   useEffect(() => {
     if (watchedFeatured && watchedTitle && !form.getValues("featuredTitle")) {
@@ -148,6 +190,19 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     name: "tags",
   });
 
+  // Fetch product plans when in edit mode
+  const { 
+    data: plans = [], 
+    isLoading: plansLoading, 
+    error: plansError 
+  } = useQuery<ProductPlan[]>({
+    queryKey: ['/api/products', product?.id, 'plans'],
+    enabled: isEditMode && !!product?.id,
+  });
+
+  // Get default plan for price synchronization
+  const defaultPlan = plans.find((plan: ProductPlan) => plan.isDefault);
+  
   // Auto-save functionality (visual indicator only)
   useEffect(() => {
     const subscription = form.watch(() => {
@@ -322,9 +377,11 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       const productData = {
         ...data,
         ...(isEditMode ? {} : { slug }),
-        // Ensure prices are strings for decimal fields
-        price: data.price || "0",
-        originalPrice: data.originalPrice || undefined,
+        // In create mode, ensure prices are included
+        ...(!isEditMode && {
+          price: (data as any).price || "0",
+          originalPrice: (data as any).originalPrice || undefined,
+        }),
         // Clean up empty values
         buyLink: data.buyLink || undefined,
         mainDescription: data.mainDescription || undefined,
@@ -363,8 +420,224 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     },
   });
 
+  // Plans mutations
+  const createPlanMutation = useMutation({
+    mutationFn: async (planData: ProductPlanFormData) => {
+      if (!product?.id) throw new Error("Product ID is required");
+      return apiRequest('POST', `/api/products/${product.id}/plans`, planData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products', product?.id, 'plans'] });
+      toast({
+        title: "موفقیت",
+        description: "پلان جدید با موفقیت اضافه شد",
+      });
+      planForm.reset();
+      setShowAddPlan(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "خطا",
+        description: `خطا در ایجاد پلان: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePlanMutation = useMutation<ProductPlan, Error, ProductPlanFormData & { id: string }>({
+    mutationFn: async ({ id, ...planData }: ProductPlanFormData & { id: string }) => {
+      const response = await apiRequest('PUT', `/api/product-plans/${id}`, planData);
+      return response as unknown as ProductPlan;
+    },
+    onSuccess: (updatedPlan: ProductPlan) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products', product?.id, 'plans'] });
+      
+      // If this plan became default, sync product price
+      if (updatedPlan.isDefault) {
+        syncProductPrice(updatedPlan);
+      }
+      
+      toast({
+        title: "موفقیت",
+        description: "پلان با موفقیت به‌روزرسانی شد",
+      });
+      setEditingPlanId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "خطا",
+        description: `خطا در به‌روزرسانی پلان: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePlanMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      return apiRequest('DELETE', `/api/product-plans/${planId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products', product?.id, 'plans'] });
+      toast({
+        title: "موفقیت",
+        description: "پلان با موفقیت حذف شد",
+      });
+      setDeletingPlanId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "خطا",
+        description: `خطا در حذف پلان: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Price synchronization function
+  const syncProductPrice = async (plan: ProductPlan) => {
+    if (!product?.id) return;
+    
+    try {
+      await apiRequest('PATCH', `/api/products/${product.id}`, {
+        price: plan.price,
+        originalPrice: plan.originalPrice || undefined,
+      });
+      
+      // Invalidate product cache
+      queryClient.invalidateQueries({ queryKey: [`/api/products/${product.id}`] });
+    } catch (error) {
+      console.error('Failed to sync product price:', error);
+    }
+  };
+
   const onSubmit: SubmitHandler<ProductFormData> = (data) => {
     productMutation.mutate(data);
+  };
+
+  const onPlanSubmit: SubmitHandler<ProductPlanFormData> = (data) => {
+    if (editingPlanId) {
+      updatePlanMutation.mutate({ ...data, id: editingPlanId });
+    } else {
+      createPlanMutation.mutate(data);
+    }
+  };
+
+  // Start editing a plan
+  const startEditingPlan = (plan: ProductPlan) => {
+    setEditingPlanId(plan.id);
+    planForm.reset({
+      name: plan.name,
+      price: plan.price.toString(),
+      originalPrice: plan.originalPrice?.toString() || "",
+      description: plan.description || "",
+      isDefault: plan.isDefault,
+      isActive: plan.isActive,
+      sortOrder: plan.sortOrder ?? 0,
+    });
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingPlanId(null);
+    planForm.reset();
+  };
+
+  // Handle add new plan
+  const handleAddPlan = () => {
+    setShowAddPlan(true);
+    planForm.reset({
+      name: "",
+      price: "",
+      originalPrice: "",
+      description: "",
+      isDefault: plans.length === 0, // First plan is default
+      isActive: true,
+      sortOrder: Math.max(...plans.map((p: ProductPlan) => p.sortOrder ?? 0), -1) + 1,
+    });
+  };
+
+  // Handle plan default toggle
+  const handleToggleDefault = async (planId: string, currentDefault: boolean) => {
+    if (currentDefault) {
+      toast({
+        title: "هشدار",
+        description: "حداقل یک پلان باید به عنوان پیش‌فرض انتخاب شود",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // First, set all other plans to non-default
+    const otherPlans = plans.filter((plan: ProductPlan) => plan.id !== planId && plan.isDefault);
+    for (const otherPlan of otherPlans) {
+      await updatePlanMutation.mutateAsync({ 
+        id: otherPlan.id, 
+        productId: product!.id,
+        isDefault: false,
+        name: otherPlan.name,
+        price: otherPlan.price.toString(),
+        originalPrice: otherPlan.originalPrice?.toString() || "",
+        description: otherPlan.description || "",
+        isActive: otherPlan.isActive,
+        sortOrder: otherPlan.sortOrder ?? 0,
+      });
+    }
+
+    // Then set this plan as default
+    const plan = plans.find((p: ProductPlan) => p.id === planId);
+    if (plan) {
+      await updatePlanMutation.mutateAsync({ 
+        id: planId, 
+        productId: product!.id,
+        isDefault: true,
+        name: plan.name,
+        price: plan.price.toString(),
+        originalPrice: plan.originalPrice?.toString() || "",
+        description: plan.description || "",
+        isActive: plan.isActive,
+        sortOrder: plan.sortOrder ?? 0,
+      });
+    }
+  };
+
+  // Handle plan reordering
+  const handleReorderPlan = async (planId: string, direction: 'up' | 'down') => {
+    const plan = plans.find((p: ProductPlan) => p.id === planId);
+    if (!plan) return;
+
+    const currentOrder = plan.sortOrder ?? 0;
+    const newOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
+    
+    // Find plan to swap with
+    const swapPlan = plans.find((p: ProductPlan) => p.sortOrder === newOrder);
+    
+    if (swapPlan) {
+      // Swap sort orders
+      await Promise.all([
+        updatePlanMutation.mutateAsync({ 
+          id: plan.id, 
+          productId: product!.id,
+          sortOrder: newOrder,
+          name: plan.name,
+          price: plan.price.toString(),
+          originalPrice: plan.originalPrice?.toString() || "",
+          description: plan.description || "",
+          isDefault: plan.isDefault,
+          isActive: plan.isActive,
+        }),
+        updatePlanMutation.mutateAsync({ 
+          id: swapPlan.id, 
+          productId: product!.id,
+          sortOrder: currentOrder ?? 0,
+          name: swapPlan.name,
+          price: swapPlan.price.toString(),
+          originalPrice: swapPlan.originalPrice?.toString() || "",
+          description: swapPlan.description || "",
+          isDefault: swapPlan.isDefault,
+          isActive: swapPlan.isActive,
+        }),
+      ]);
+    }
   };
 
   return (
@@ -390,7 +663,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       </CardHeader>
       
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-5 w-full h-auto p-1">
               <TabsTrigger 
@@ -577,50 +850,78 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
             {/* Pricing Tab */}
             <TabsContent value="pricing" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="price" className="text-sm font-medium">
-                    Current Price *
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    {...form.register("price")}
-                    placeholder="0.00"
-                    className="mt-1"
-                    data-testid="input-price"
-                    dir="ltr"
-                  />
-                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                    Product's current price
-                  </p>
-                  {form.formState.errors.price && (
-                    <p className="text-sm text-red-600 mt-1" dir="ltr">
-                      {form.formState.errors.price.message}
+              {!isEditMode ? (
+                /* Create Mode - Show pricing fields */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="price" className="text-sm font-medium">
+                      Current Price *
+                    </Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      {...form.register("price" as any)}
+                      placeholder="0.00"
+                      className="mt-1"
+                      data-testid="input-price"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                      Product's current price
                     </p>
-                  )}
-                </div>
+                    {(form.formState.errors as any).price && (
+                      <p className="text-sm text-red-600 mt-1" dir="ltr">
+                        {(form.formState.errors as any).price?.message}
+                      </p>
+                    )}
+                  </div>
 
-                <div>
-                  <Label htmlFor="originalPrice" className="text-sm font-medium">
-                    Original Price
-                  </Label>
-                  <Input
-                    id="originalPrice"
-                    type="number"
-                    step="0.01"
-                    {...form.register("originalPrice")}
-                    placeholder="0.00"
-                    className="mt-1"
-                    data-testid="input-original-price"
-                    dir="ltr"
-                  />
-                  <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                    Price before discount (optional)
-                  </p>
+                  <div>
+                    <Label htmlFor="originalPrice" className="text-sm font-medium">
+                      Original Price
+                    </Label>
+                    <Input
+                      id="originalPrice"
+                      type="number"
+                      step="0.01"
+                      {...form.register("originalPrice" as any)}
+                      placeholder="0.00"
+                      className="mt-1"
+                      data-testid="input-original-price"
+                      dir="ltr"
+                    />
+                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                      Price before discount (optional)
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Edit Mode - Show plans management */
+                <div className="space-y-6">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      Plan Management
+                    </h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      In edit mode, pricing is managed through product plans. Use the plans section below to manage different pricing options.
+                    </p>
+                    {defaultPlan && (
+                      <div className="mt-3 p-3 bg-white dark:bg-blue-900 rounded border">
+                        <p className="text-sm font-medium">Current Default Plan: {defaultPlan.name}</p>
+                        <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                          ${defaultPlan.price}
+                          {defaultPlan.originalPrice && (
+                            <span className="text-sm text-gray-500 line-through ml-2">
+                              ${defaultPlan.originalPrice}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div>
@@ -959,7 +1260,9 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   featured: form.watch("featured"),
                   featuredTitle: form.watch("featuredTitle"),
                   image: form.watch("image"),
-                  price: form.watch("price") || "0"
+                  price: isEditMode 
+                    ? (defaultPlan?.price?.toString() || "0") 
+                    : (form.watch("price" as any) || "0")
                 }}
                 categoryName={categories.find(cat => cat.id === form.watch("categoryId"))?.name}
               />

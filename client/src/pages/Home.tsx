@@ -20,6 +20,7 @@ interface ServiceCard {
   categoryId: string | null;
   // New schema fields
   featured: boolean | null;
+  shortDescription: string | null;
   buyLink: string | null;
   featuredAreaText: string | null;
 }
@@ -91,6 +92,7 @@ function transformProductToServiceCard(product: Product, categories: Category[] 
     categoryId: product.categoryId,
     // New featured fields
     featured: product.featured,
+    shortDescription: product.shortDescription,
     buyLink: product.buyLink,
     featuredAreaText: product.featuredAreaText
   };
@@ -175,6 +177,15 @@ export default function Home() {
     return [];
   }, [products, categories]);
 
+  // Get featured product text for hero section
+  const featuredHeroText = useMemo(() => {
+    const featuredProducts = products.filter(product => product.featured && product.featuredAreaText);
+    if (featuredProducts.length > 0) {
+      // Use the first featured product's text, or combine multiple if needed
+      return featuredProducts[0].featuredAreaText || "دسترسی به تمام اشتراک های پریمیوم در یک جا";
+    }
+    return "دسترسی به تمام اشتراک های پریمیوم در یک جا"; // Fallback to original text
+  }, [products]);
 
   useSEO({
     title: "لیمیت پس - اشتراک پریمیوم مشترک با قیمت پایین‌تر",
@@ -244,13 +255,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-red-400 to-red-500 py-10 text-center text-white">
         <div 
-          className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5 text-right font-vazir" 
+          className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5" 
           data-testid="text-hero-title"
-          dir="rtl"
-          style={{ direction: 'rtl', fontFamily: 'Vazir, IRANSans, sans-serif' }}
-        >
-          دسترسی به تمام اشتراک های پریمیوم در یک جا
-        </div>
+          dangerouslySetInnerHTML={{ __html: featuredHeroText || "دسترسی به تمام اشتراک های پریمیوم در یک جا" }}
+        />
         
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-10 px-5">
@@ -397,22 +405,14 @@ export default function Home() {
 
                 {/* Card Bottom */}
                 <div className="p-6 flex-1 flex flex-col justify-between">
-                  {/* Hide features list for featured products */}
-                  {!service.featured && (
-                    <ul className="list-none space-y-3 flex-1">
-                      {service.features.map((feature, index) => (
-                        <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
-                          <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  
-                  {/* Add spacer for featured products to maintain layout */}
-                  {service.featured && (
-                    <div className="flex-1"></div>
-                  )}
+                  <ul className="list-none space-y-3 flex-1">
+                    {service.features.map((feature, index) => (
+                      <li key={index} className="text-sm text-gray-600 pr-5 relative leading-relaxed text-right">
+                        <span className="absolute right-0 text-green-500 font-bold text-base">✓</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                   
                   {service.status === 'inactive' ? (
                     <button 

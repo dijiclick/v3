@@ -52,6 +52,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     defaultValues: isEditMode ? {
       title: product.title || "",
       slug: product.slug || "",
+      shortDescription: product.shortDescription || "",
       description: product.description || "",
       mainDescription: (product.mainDescription as string) || "",
       price: product.price?.toString() || "",
@@ -63,10 +64,12 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: product.featured ?? false,
       featuredTitle: product.featuredTitle || "",
       featuredFeatures: Array.isArray(product.featuredFeatures) ? product.featuredFeatures : [],
+      featuredAreaText: product.featuredAreaText || "",
       tags: Array.isArray(product.tags) ? product.tags : [],
     } : {
       title: "",
       slug: "",
+      shortDescription: "",
       description: "",
       mainDescription: "",
       price: "",
@@ -78,6 +81,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
       featured: false,
       featuredTitle: "",
       featuredFeatures: [],
+      featuredAreaText: "",
       tags: [],
     },
   });
@@ -158,8 +162,10 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
         originalPrice: data.originalPrice || undefined,
         // Clean up empty values
         buyLink: data.buyLink || undefined,
+        shortDescription: data.shortDescription || undefined,
         mainDescription: data.mainDescription || undefined,
         featuredTitle: data.featuredTitle || undefined,
+        featuredAreaText: data.featuredAreaText || undefined,
         // Convert arrays properly
         featuredFeatures: data.featuredFeatures?.filter(Boolean) || undefined,
         tags: data.tags?.filter(Boolean) || undefined,
@@ -311,6 +317,22 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 </div>
               </div>
 
+              <div>
+                <Label className="text-sm font-medium block mb-3">
+                  Short Description
+                </Label>
+                <RichTextEditor
+                  value={form.watch("shortDescription")}
+                  onChange={(value) => form.setValue("shortDescription", value)}
+                  placeholder="Brief product description with rich text formatting..."
+                  className="min-h-[120px]"
+                  productId={product?.id}
+                  data-testid="rich-editor-short-description"
+                />
+                <p className="text-xs text-gray-500 mt-2" dir="ltr">
+                  This text is displayed under the product title
+                </p>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -617,6 +639,22 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </div>
                   </div>
 
+                  <div>
+                    <Label htmlFor="featuredAreaText" className="text-sm font-medium">
+                      Featured Area Text
+                    </Label>
+                    <div className="mt-1">
+                      <RichTextEditor
+                        value={form.watch("featuredAreaText") || ""}
+                        onChange={(value) => form.setValue("featuredAreaText", value)}
+                        placeholder="Additional text for display in the featured products section"
+                        productId={product?.id}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1" dir="ltr">
+                      This rich text will be displayed in the featured products section on the homepage
+                    </p>
+                  </div>
                 </div>
               )}
             </TabsContent>
@@ -627,6 +665,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                 product={{
                   title: form.watch("title"),
                   slug: form.watch("slug"),
+                  shortDescription: form.watch("shortDescription"),
                   description: form.watch("description"),
                   mainDescription: form.watch("mainDescription"),
                   featured: form.watch("featured"),

@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, type Image, type InsertImage, users, products, categories, pages, images } from "@shared/schema";
+import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, type Image, type InsertImage, type ProductPlan, type InsertProductPlan, users, products, categories, pages, images, productPlans } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, asc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -37,6 +37,13 @@ export interface IStorage {
   getImagesByProductId(productId: string): Promise<Image[]>;
   createImage(image: InsertImage): Promise<Image>;
   deleteImage(id: string): Promise<boolean>;
+  
+  getProductPlans(productId: string): Promise<ProductPlan[]>;
+  getProductPlan(id: string): Promise<ProductPlan | undefined>;
+  createProductPlan(plan: InsertProductPlan): Promise<ProductPlan>;
+  updateProductPlan(id: string, plan: Partial<InsertProductPlan>): Promise<ProductPlan>;
+  deleteProductPlan(id: string): Promise<boolean>;
+  getDefaultProductPlan(productId: string): Promise<ProductPlan | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -444,6 +451,47 @@ export class DatabaseStorage implements IStorage {
   async deleteImage(id: string): Promise<boolean> {
     const result = await db.delete(images).where(eq(images.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Product Plans methods
+  async getProductPlans(productId: string): Promise<ProductPlan[]> {
+    return await db.select().from(productPlans)
+      .where(eq(productPlans.productId, productId))
+      .orderBy(asc(productPlans.sortOrder), asc(productPlans.createdAt));
+  }
+
+  async getProductPlan(id: string): Promise<ProductPlan | undefined> {
+    const [plan] = await db.select().from(productPlans).where(eq(productPlans.id, id));
+    return plan || undefined;
+  }
+
+  async createProductPlan(insertPlan: InsertProductPlan): Promise<ProductPlan> {
+    const [plan] = await db.insert(productPlans).values(insertPlan).returning();
+    return plan;
+  }
+
+  async updateProductPlan(id: string, updateData: Partial<InsertProductPlan>): Promise<ProductPlan> {
+    const [plan] = await db.update(productPlans)
+      .set(updateData)
+      .where(eq(productPlans.id, id))
+      .returning();
+    
+    if (!plan) {
+      throw new Error(`Product plan with id ${id} not found`);
+    }
+    
+    return plan;
+  }
+
+  async deleteProductPlan(id: string): Promise<boolean> {
+    const result = await db.delete(productPlans).where(eq(productPlans.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getDefaultProductPlan(productId: string): Promise<ProductPlan | undefined> {
+    const [plan] = await db.select().from(productPlans)
+      .where(sql`${productPlans.productId} = ${productId} AND ${productPlans.isDefault} = true`);
+    return plan || undefined;
   }
 
   // Initialize database with sample data if empty

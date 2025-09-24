@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
-import { insertProductSchema, insertCategorySchema, insertPageSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertPageSchema, insertProductPlanSchema } from "@shared/schema";
 import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -211,6 +211,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: error.message });
       }
       res.status(500).json({ message: "Error duplicating product: " + error.message });
+    }
+  });
+
+  // Product Plans API endpoints
+  app.get("/api/products/:productId/plans", async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const plans = await storage.getProductPlans(productId);
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching product plans: " + error.message });
+    }
+  });
+
+  app.post("/api/products/:productId/plans", requireAdmin, async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const result = insertProductPlanSchema.safeParse({
+        ...req.body,
+        productId
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid plan data", 
+          errors: result.error.errors 
+        });
+      }
+      
+      const plan = await storage.createProductPlan(result.data);
+      res.status(201).json(plan);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating product plan: " + error.message });
+    }
+  });
+
+  app.put("/api/product-plans/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = insertProductPlanSchema.partial().omit({ productId: true }).safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid plan data", 
+          errors: result.error.errors 
+        });
+      }
+      
+      const plan = await storage.updateProductPlan(id, result.data);
+      res.json(plan);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Error updating product plan: " + error.message });
+    }
+  });
+
+  app.delete("/api/product-plans/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteProductPlan(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Product plan not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting product plan: " + error.message });
     }
   });
 

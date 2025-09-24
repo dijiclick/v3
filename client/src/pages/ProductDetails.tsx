@@ -415,41 +415,23 @@ export default function ProductDetails() {
                   </li>
                   {!plansLoading && (
                     <li className="mb-3">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-wrap gap-3">
                         {activePlans.map((plan: ProductPlan) => (
                           <button
                             key={plan.id}
                             onClick={() => setSelectedPlanId(plan.id)}
-                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all shadow-sm hover:shadow-md relative ${
+                            className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex-1 min-w-0 ${
                               selectedPlanId === plan.id
-                                ? 'border-red-500 bg-red-50 text-red-700'
-                                : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                                ? 'border-red-500 text-red-600 bg-red-50'
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
                             }`}
                             data-testid={`plan-option-${plan.id}`}
                           >
-                            <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
-                              selectedPlanId === plan.id ? 'border-red-500 bg-red-500' : 'border-gray-400'
-                            }`}></div>
                             <div className="text-center">
-                              <div className="flex flex-col items-center gap-2 mb-2">
-                                <span className="font-medium text-center">{plan.name}</span>
-                                {plan.isDefault && (
-                                  <Badge className="bg-green-100 text-green-700 text-xs px-2 py-1" data-testid="plan-recommended">
-                                    پیشنهادی
-                                  </Badge>
-                                )}
-                              </div>
+                              <div>{plan.name}</div>
                               {plan.description && (
-                                <div className="text-sm opacity-75 mb-2 text-center leading-relaxed">{plan.description}</div>
+                                <div className="text-xs opacity-75 mt-1">({plan.description})</div>
                               )}
-                              <div className="text-sm font-medium text-green-600">
-                                {formatPersianPrice(plan.price)} تومان
-                                {plan.originalPrice && parseFloat(plan.originalPrice) > parseFloat(plan.price) && (
-                                  <div className="text-gray-500 line-through text-xs mt-1">
-                                    {formatPersianPrice(plan.originalPrice)}
-                                  </div>
-                                )}
-                              </div>
                             </div>
                           </button>
                         ))}
@@ -464,7 +446,7 @@ export default function ProductDetails() {
                         <div className="text-gray-700 font-medium mb-3">مدت زمان:</div>
                       </li>
                       <li className="mb-3">
-                        <div className="flex gap-3 justify-center">
+                        <div className="flex gap-3">
                           {[
                             { key: 'monthly', label: 'یک ماه', discount: null },
                             { key: '3months', label: 'سه ماه', discount: '5% تخفیف' },
@@ -473,22 +455,19 @@ export default function ProductDetails() {
                             <button
                               key={duration.key}
                               onClick={() => setSelectedDuration(duration.key as any)}
-                              className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all shadow-sm hover:shadow-md min-w-[90px] flex-1 ${
+                              className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex-1 ${
                                 selectedDuration === duration.key
-                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                  ? 'border-red-500 text-red-600 bg-red-50'
+                                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
                               }`}
                               data-testid={`duration-option-${duration.key}`}
                             >
-                              <div className={`w-4 h-4 rounded-full border-2 ${
-                                selectedDuration === duration.key ? 'border-blue-500 bg-blue-500' : 'border-gray-400'
-                              }`}></div>
-                              <span className="text-sm font-medium text-center">{duration.label}</span>
-                              {duration.discount && (
-                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                                  {duration.discount}
-                                </span>
-                              )}
+                              <div className="text-center">
+                                <div>{duration.label}</div>
+                                {duration.discount && (
+                                  <div className="text-xs text-green-600 mt-1">{duration.discount}</div>
+                                )}
+                              </div>
                             </button>
                           ))}
                         </div>

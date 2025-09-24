@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { pgTable, text, varchar, decimal, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -78,6 +79,30 @@ export const images = pgTable("images", {
   productId: varchar("product_id").references(() => products.id),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
+
+export const plans = pgTable("plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  title: text("title").notNull(), // "پلن فردی", "پلن مشترک"
+  description: text("description").notNull(), // توضیح یک خطی
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  productLink: text("product_link").notNull(), // لینک محصول
+  order: integer("order").default(0), // ترتیب نمایش
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const productRelations = relations(products, ({ many }) => ({
+  plans: many(plans),
+}));
+
+export const planRelations = relations(plans, ({ one }) => ({
+  product: one(products, {
+    fields: [plans.productId],
+    references: [products.id],
+  }),
+}));
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -222,6 +247,11 @@ export const insertImageSchema = createInsertSchema(images).omit({
   productId: z.string().optional(),
 });
 
+export const insertPlanSchema = createInsertSchema(plans).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -232,6 +262,8 @@ export type InsertPage = z.infer<typeof insertPageSchema>;
 export type Page = typeof pages.$inferSelect;
 export type InsertImage = z.infer<typeof insertImageSchema>;
 export type Image = typeof images.$inferSelect;
+export type InsertPlan = z.infer<typeof insertPlanSchema>;
+export type Plan = typeof plans.$inferSelect;
 
 // Cart types for frontend
 export const cartItemSchema = z.object({

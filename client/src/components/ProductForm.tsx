@@ -643,17 +643,16 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     <Label htmlFor="featuredAreaText" className="text-sm font-medium">
                       Featured Area Text
                     </Label>
-                    <Textarea
-                      id="featuredAreaText"
-                      {...form.register("featuredAreaText")}
-                      placeholder="Additional text for display in the featured products section"
-                      rows={3}
-                      className="mt-1"
-                      data-testid="textarea-featured-area-text"
-                      dir="ltr"
-                    />
+                    <div className="mt-1">
+                      <RichTextEditor
+                        value={form.watch("featuredAreaText") || ""}
+                        onChange={(value) => form.setValue("featuredAreaText", value)}
+                        placeholder="Additional text for display in the featured products section"
+                        productId={product?.id}
+                      />
+                    </div>
                     <p className="text-xs text-gray-500 mt-1" dir="ltr">
-                      This text will be displayed in the featured products section
+                      This rich text will be displayed in the featured products section on the homepage
                     </p>
                   </div>
                 </div>

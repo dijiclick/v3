@@ -594,6 +594,51 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                     </p>
                   </div>
 
+                  {/* Featured Features Array */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-sm font-medium">Featured Area Text</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => featuredFeatures.append("")}
+                        data-testid="button-add-featured-feature"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Feature
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {featuredFeatures.fields.map((field, index) => (
+                        <div key={field.id} className="flex gap-2">
+                          <Input
+                            {...form.register(`featuredFeatures.${index}` as const)}
+                            placeholder="New feature"
+                            className="flex-1"
+                            data-testid={`input-featured-feature-${index}`}
+                            dir="ltr"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => featuredFeatures.remove(index)}
+                            data-testid={`button-remove-featured-feature-${index}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {featuredFeatures.fields.length === 0 && (
+                        <p className="text-sm text-gray-500 italic text-center py-4" dir="ltr">
+                          No features added yet. Click "Add Feature" to get started.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <Label htmlFor="featuredAreaText" className="text-sm font-medium">
                       Featured Area Text

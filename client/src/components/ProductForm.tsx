@@ -207,11 +207,21 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
     },
     onError: (error) => {
       setUploadingImage(false);
-      toast({
-        title: "خطا",
-        description: `خطا در آپلود تصویر: ${error.message}`,
-        variant: "destructive",
-      });
+      
+      // Check for authentication errors and provide helpful message
+      if (error.message.includes('Invalid or expired session')) {
+        toast({
+          title: "جلسه منقضی شده",
+          description: "لطفاً دوباره وارد پنل مدیریت شوید و سپس تصویر را آپلود کنید.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "خطا",
+          description: `خطا در آپلود تصویر: ${error.message}`,
+          variant: "destructive",
+        });
+      }
     },
   });
 

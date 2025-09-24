@@ -255,8 +255,10 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-red-400 to-red-500 py-10 text-center text-white">
         <div 
-          className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5" 
+          className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5 text-right font-vazir" 
           data-testid="text-hero-title"
+          dir="rtl"
+          style={{ direction: 'rtl', fontFamily: 'Vazir, IRANSans, sans-serif' }}
           dangerouslySetInnerHTML={{ __html: featuredHeroText || "دسترسی به تمام اشتراک های پریمیوم در یک جا" }}
         />
         

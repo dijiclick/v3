@@ -412,7 +412,7 @@ export default function ProductDetails() {
                 data-testid="buy-now-btn"
               >
                 {!product.inStock ? (
-                  'ناموجود - غیرقابل خرید'
+                  'ناموجود'
                 ) : (
                   <>
                     <ExternalLink className="h-5 w-5 mr-2" />
@@ -736,7 +736,7 @@ export default function ProductDetails() {
                 }`}
                 data-testid="cta-main-button"
               >
-                {product.inStock ? '🔥 همین حالا شروع کن' : 'ناموجود - غیرقابل خرید'}
+                {product.inStock ? '🔥 همین حالا شروع کن' : 'ناموجود'}
               </Button>
             </div>
             

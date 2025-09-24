@@ -255,8 +255,9 @@ export default function Home() {
         <div 
           className="text-3xl font-light mb-8 opacity-95 max-w-4xl mx-auto px-5" 
           data-testid="text-hero-title"
-          dangerouslySetInnerHTML={{ __html: featuredHeroText || "دسترسی به تمام اشتراک های پریمیوم در یک جا" }}
-        />
+        >
+          دسترسی به همه اشتراک ها در یک جا
+        </div>
         
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-10 px-5">

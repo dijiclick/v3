@@ -597,7 +597,7 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                   {/* Featured Features Array */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <Label className="text-sm font-medium">Unique Features</Label>
+                      <Label className="text-sm font-medium">Featured Area Text</Label>
                       <Button
                         type="button"
                         variant="outline"

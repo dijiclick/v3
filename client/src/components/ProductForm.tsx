@@ -668,72 +668,14 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
 
                       {/* Controls and Info - Right Side */}
                       <div className="flex-1 space-y-3">
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 justify-start">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploadingImage}
-                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800"
-                            data-testid="button-replace-image"
-                          >
-                            <Upload className="h-4 w-4 ml-1" />
-                            تغییر تصویر
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              if (imagePreview.startsWith('http')) {
-                                window.open(imagePreview, '_blank');
-                              }
-                            }}
-                            className="text-gray-600 hover:bg-gray-100 dark:text-gray-400"
-                            data-testid="button-view-image"
-                          >
-                            <Eye className="h-4 w-4 ml-1" />
-                            مشاهده
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              navigator.clipboard.writeText(imagePreview);
-                              toast({
-                                title: "کپی شد",
-                                description: "آدرس تصویر در کلیپ‌بورد کپی شد"
-                              });
-                            }}
-                            className="text-gray-600 hover:bg-gray-100 dark:text-gray-400"
-                          >
-                            📋 کپی لینک
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleImageRemove}
-                            disabled={uploadingImage}
-                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800"
-                            data-testid="button-remove-image"
-                          >
-                            <X className="h-4 w-4 ml-1" />
-                            حذف
-                          </Button>
-                        </div>
-
-                        {/* File Information */}
+                        {/* File Information - Inline */}
                         <div className="space-y-1 text-sm">
-                          <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                            <span>وضعیت:</span>
+                          <div className="text-gray-600 dark:text-gray-400">
+                            <span>وضعیت: </span>
                             <span className="text-green-600 dark:text-green-400 font-medium">✓ آپلود شده</span>
                           </div>
-                          <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                            <span>نوع فایل:</span>
+                          <div className="text-gray-600 dark:text-gray-400">
+                            <span>نوع فایل: </span>
                             <span className="font-mono text-xs">
                               {imagePreview.includes('.png') ? 'PNG' : 
                                imagePreview.includes('.jpg') || imagePreview.includes('.jpeg') ? 'JPEG' : 
@@ -742,11 +684,73 @@ export default function ProductForm({ product, onSuccess, onCancel }: ProductFor
                             </span>
                           </div>
                           {uploadingImage && (
-                            <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                              <span>پیشرفت:</span>
+                            <div className="text-gray-600 dark:text-gray-400">
+                              <span>پیشرفت: </span>
                               <span className="text-blue-600 dark:text-blue-400">در حال آپلود...</span>
                             </div>
                           )}
+                        </div>
+
+                        {/* Action Buttons - 2x2 Grid */}
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploadingImage}
+                              className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800"
+                              data-testid="button-replace-image"
+                            >
+                              <Upload className="h-4 w-4 ml-1" />
+                              تغییر
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (imagePreview.startsWith('http')) {
+                                  window.open(imagePreview, '_blank');
+                                }
+                              }}
+                              className="flex-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400"
+                              data-testid="button-view-image"
+                            >
+                              <Eye className="h-4 w-4 ml-1" />
+                              مشاهده
+                            </Button>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(imagePreview);
+                                toast({
+                                  title: "کپی شد",
+                                  description: "آدرس تصویر در کلیپ‌بورد کپی شد"
+                                });
+                              }}
+                              className="flex-1 text-gray-600 hover:bg-gray-100 dark:text-gray-400"
+                            >
+                              📋 کپی
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleImageRemove}
+                              disabled={uploadingImage}
+                              className="flex-1 text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800"
+                              data-testid="button-remove-image"
+                            >
+                              <X className="h-4 w-4 ml-1" />
+                              حذف
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>

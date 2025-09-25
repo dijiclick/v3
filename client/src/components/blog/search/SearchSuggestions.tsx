@@ -45,11 +45,12 @@ export function SearchSuggestions({
   });
 
   // Get popular searches
-  const { data: popularSearches = [] } = useQuery({
+  const { data: popularSearchesData } = useQuery({
     queryKey: ['/api/blog/search/popular'],
     enabled: showPopular,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const popularSearches = (popularSearchesData as Array<{ query: string; frequency: number }>) || [];
 
   // Generate spelling suggestions (simple implementation)
   const getSpellingSuggestions = (query: string): string[] => {

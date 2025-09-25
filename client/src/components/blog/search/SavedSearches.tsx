@@ -45,19 +45,16 @@ export function SavedSearches({
   const queryClient = useQueryClient();
 
   // Get saved searches
-  const { data: savedSearches = [], isLoading } = useQuery({
+  const { data: savedSearchesData, isLoading } = useQuery({
     queryKey: ['/api/blog/search/saved', sessionId],
     refetchOnWindowFocus: false,
   });
+  const savedSearches = (savedSearchesData as SavedSearch[]) || [];
 
   // Save search mutation
   const saveSearchMutation = useMutation({
     mutationFn: async (data: { name: string; searchQuery: string; filters?: any; sessionId?: string; isPublic?: boolean }) => {
-      return apiRequest({
-        endpoint: '/api/blog/search/saved',
-        method: 'POST',
-        body: data
-      });
+      return apiRequest('POST', '/api/blog/search/saved', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/search/saved'] });
@@ -80,10 +77,7 @@ export function SavedSearches({
   // Delete search mutation
   const deleteSearchMutation = useMutation({
     mutationFn: async (searchId: string) => {
-      return apiRequest({
-        endpoint: `/api/blog/search/saved/${searchId}`,
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/blog/search/saved/${searchId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/search/saved'] });

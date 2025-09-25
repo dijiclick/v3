@@ -53,16 +53,18 @@ export function SearchFilters({
   const [isOpen, setIsOpen] = useState(false);
 
   // Get categories for filter options
-  const { data: categories = [] } = useQuery({
+  const { data: categoriesData } = useQuery({
     queryKey: ['/api/blog/categories'],
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const categories = (categoriesData as Array<{ id: string; name: string }>) || [];
 
   // Get authors for filter options
-  const { data: authors = [] } = useQuery({
+  const { data: authorsData } = useQuery({
     queryKey: ['/api/blog/authors'],
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const authors = (authorsData as Array<{ id: string; name: string }>) || [];
 
   const updateFilters = (updates: Partial<SearchFilters>) => {
     onChange({ ...filters, ...updates });
@@ -218,7 +220,7 @@ export function SearchFilters({
                 دسته‌بندی‌ها
               </Label>
               <div className="mt-2 space-y-2">
-                {(facets?.categories || categories).slice(0, 8).map((category: any) => (
+                {(facets?.categories || categories).slice(0, 8).map((category) => (
                   <div key={category.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`category-${category.id}`}
@@ -251,7 +253,7 @@ export function SearchFilters({
                 نویسندگان
               </Label>
               <div className="mt-2 space-y-2">
-                {(facets?.authors || authors).slice(0, 6).map((author: any) => (
+                {(facets?.authors || authors).slice(0, 6).map((author) => (
                   <div key={author.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`author-${author.id}`}

@@ -39,20 +39,22 @@ export function SearchInput({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Get search suggestions
-  const { data: suggestions = [] } = useQuery({
+  const { data: suggestionsData } = useQuery({
     queryKey: ['/api/blog/search/suggestions', localValue],
     enabled: localValue.length >= 2 && isOpen,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+  const suggestions = (suggestionsData as string[]) || [];
 
   // Get popular searches when input is empty
-  const { data: popularSearches = [] } = useQuery({
+  const { data: popularSearchesData } = useQuery({
     queryKey: ['/api/blog/search/popular'],
     enabled: localValue.length === 0 && isOpen,
     refetchOnWindowFocus: false,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+  const popularSearches = (popularSearchesData as Array<{ query: string; frequency: number }>) || [];
 
   useEffect(() => {
     setLocalValue(value);
@@ -106,11 +108,11 @@ export function SearchInput({
 
   // Combine and format suggestions
   const formattedSuggestions: SearchSuggestion[] = [
-    ...suggestions.map((query: string) => ({
+    ...suggestions.map((query) => ({
       query,
       type: 'completion' as const
     })),
-    ...popularSearches.map((item: any) => ({
+    ...popularSearches.map((item) => ({
       query: item.query,
       type: 'popular' as const,
       frequency: item.frequency
@@ -154,7 +156,7 @@ export function SearchInput({
               <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
                 پیشنهادات جستجو
               </div>
-              {suggestions.map((suggestion: string, index: number) => (
+              {suggestions.map((suggestion, index) => (
                 <Button
                   key={`suggestion-${index}`}
                   variant="ghost"
@@ -175,7 +177,7 @@ export function SearchInput({
                 <TrendingUp className="ml-1 h-3 w-3" />
                 جستجوهای محبوب
               </div>
-              {popularSearches.slice(0, 8).map((item: any, index: number) => (
+              {popularSearches.slice(0, 8).map((item, index) => (
                 <Button
                   key={`popular-${index}`}
                   variant="ghost"

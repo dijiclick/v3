@@ -146,6 +146,28 @@ export default function BlogMainPage() {
     },
   });
 
+  // Fetch featured products for sidebar
+  const { 
+    data: featuredProducts, 
+    isLoading: isLoadingFeaturedProducts 
+  } = useQuery({
+    queryKey: ['/api/products/featured', 5],
+    queryFn: async () => {
+      const response = await fetch('/api/products?featured=true&limit=5&random=true');
+      if (!response.ok) {
+        // Fallback to first 5 products if featured endpoint fails
+        const fallbackResponse = await fetch('/api/products?limit=5');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          return fallbackData.products || [];
+        }
+        return [];
+      }
+      const data = await response.json();
+      return data.products || [];
+    },
+  });
+
   const posts = postsResponse?.posts || [];
   const totalPosts = postsResponse?.total || 0;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
@@ -217,13 +239,13 @@ export default function BlogMainPage() {
       title: post.title,
       slug: post.slug
     })),
-    subscriptionServices: [
-      { name: "Netflix", color: "bg-red-500" },
-      { name: "Disney Plus", color: "bg-blue-600" },
-      { name: "HBO Max", color: "bg-purple-600" },
-      { name: "Amazon Prime", color: "bg-yellow-500", textColor: "text-black" },
-      { name: "Apple TV+", color: "bg-gray-800" }
-    ],
+    featuredProducts: (featuredProducts || []).map((product: any) => ({
+      id: product.id,
+      title: product.title,
+      price: Number(product.price),
+      originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+      slug: product.slug
+    })),
     hotTags: hotTags || []
   };
 
@@ -435,7 +457,7 @@ export default function BlogMainPage() {
             <div className="lg:col-span-1">
               <ModernSidebar
                 popularBlogs={sidebarData.popularBlogs}
-                subscriptionServices={sidebarData.subscriptionServices}
+                featuredProducts={sidebarData.featuredProducts}
                 hotTags={sidebarData.hotTags}
                 onTagClick={handleTagClick}
               />

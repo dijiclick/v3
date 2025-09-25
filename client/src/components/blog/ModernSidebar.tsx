@@ -10,22 +10,24 @@ interface PopularBlog {
   slug?: string;
 }
 
-interface SubscriptionService {
-  name: string;
-  color: string;
-  textColor?: string;
+interface FeaturedProduct {
+  id: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  slug: string;
 }
 
 interface ModernSidebarProps {
   popularBlogs: PopularBlog[];
-  subscriptionServices: SubscriptionService[];
+  featuredProducts: FeaturedProduct[];
   hotTags: string[];
   onTagClick?: (tag: string) => void;
 }
 
 export function ModernSidebar({ 
   popularBlogs, 
-  subscriptionServices, 
+  featuredProducts, 
   hotTags, 
   onTagClick 
 }: ModernSidebarProps) {
@@ -57,31 +59,46 @@ export function ModernSidebar({
         </div>
       </div>
 
-      {/* Popular Subscriptions */}
-      <div className="bg-white rounded-xl p-6 shadow-sm" data-testid="popular-subscriptions">
+      {/* Featured Products */}
+      <div className="bg-white rounded-xl p-6 shadow-sm" data-testid="featured-products">
         <div className="flex items-center gap-2 mb-4">
           <Star className="w-4 h-4 text-red-500" />
-          <h3 className="text-gray-900 font-vazir">اشتراک‌های محبوب</h3>
+          <h3 className="text-gray-900 font-vazir">محصولات ویژه</h3>
         </div>
         <div className="space-y-4">
-          {subscriptionServices.map((service) => (
-            <div key={service.name} className="group">
-              <div className="flex items-center gap-3 mb-2">
-                <div 
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${service.color} shadow-sm group-hover:shadow-md transition-shadow duration-200`}
-                >
-                  <span className={`text-sm font-medium ${service.textColor || 'text-white'} font-vazir`}>
-                    {service.name.charAt(0).toUpperCase()}
-                  </span>
+          {featuredProducts.slice(0, 5).map((product) => (
+            <div key={product.id} className="group">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 shadow-sm group-hover:shadow-md transition-shadow duration-200">
+                    <Star className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200 font-vazir line-clamp-1">
+                      {product.title}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-red-600 font-vazir font-medium">
+                        {product.price.toLocaleString('fa-IR')} تومان
+                      </span>
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <span className="text-xs text-gray-400 line-through font-vazir">
+                          {product.originalPrice.toLocaleString('fa-IR')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200 font-vazir">{service.name}</span>
               </div>
-              <Button 
-                variant="link" 
-                className="text-red-500 hover:text-red-600 text-xs p-0 h-auto mr-13 font-vazir"
-              >
-                مشاهده جزئیات ←
-              </Button>
+              <Link href={`/products/${product.slug}`}>
+                <Button 
+                  variant="link" 
+                  className="text-red-500 hover:text-red-600 text-xs p-0 h-auto mr-13 font-vazir"
+                  data-testid={`featured-product-link-${product.id}`}
+                >
+                  مشاهده محصول ←
+                </Button>
+              </Link>
             </div>
           ))}
         </div>

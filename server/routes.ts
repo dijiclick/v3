@@ -96,8 +96,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product routes
   app.get("/api/products", async (req, res) => {
     try {
-      const products = await storage.getProducts();
-      res.json(products);
+      const { featured, limit, random } = req.query;
+      let products = await storage.getProducts();
+      
+      // Filter by featured if requested
+      if (featured === 'true') {
+        products = products.filter((product: any) => product.featured === true);
+      }
+      
+      // Randomize order if requested
+      if (random === 'true') {
+        products = [...products].sort(() => Math.random() - 0.5);
+      }
+      
+      // Apply limit if specified
+      if (limit) {
+        const limitNum = parseInt(limit as string, 10);
+        if (!isNaN(limitNum) && limitNum > 0) {
+          products = products.slice(0, limitNum);
+        }
+      }
+      
+      res.json({ products });
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching products: " + error.message });
     }

@@ -366,12 +366,33 @@ export function useBlogPostsByAuthor(authorId: string, options?: { limit?: numbe
   });
 }
 
-// Blog Authors hooks
-export function useBlogAuthors() {
-  return useQuery<BlogAuthor[]>({
-    queryKey: ['/api/blog/authors'],
+// Blog Authors hooks - updated for new API structure
+export function useBlogAuthors(options?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  active?: boolean;
+  featured?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
+  const queryParams = new URLSearchParams();
+  
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.offset) queryParams.append('offset', options.offset.toString());
+  if (options?.search) queryParams.append('search', options.search);
+  if (options?.active !== undefined) queryParams.append('active', options.active.toString());
+  if (options?.featured !== undefined) queryParams.append('featured', options.featured.toString());
+  if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
+  if (options?.sortOrder) queryParams.append('sortOrder', options.sortOrder);
+  
+  const queryString = queryParams.toString();
+  const url = `/api/blog/authors${queryString ? '?' + queryString : ''}`;
+  
+  return useQuery<{ authors: BlogAuthor[]; total: number }>({
+    queryKey: ['/api/blog/authors', options],
     queryFn: async () => {
-      const response = await fetch('/api/blog/authors');
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch blog authors: ${response.status} ${response.statusText}`);
       }
@@ -395,6 +416,52 @@ export function useBlogAuthor(id: string) {
       return response.json();
     },
     enabled: Boolean(id),
+  });
+}
+
+export function useBlogAuthorBySlug(slug: string) {
+  return useQuery<BlogAuthor>({
+    queryKey: ['/api/blog/authors/slug', slug],
+    queryFn: async () => {
+      if (!slug) throw new Error('Author slug is required');
+      const response = await fetch(`/api/blog/authors/slug/${slug}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog author: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(slug),
+  });
+}
+
+export function useBlogAuthorsWithStats() {
+  return useQuery<(BlogAuthor & { postCount: number; totalViews: number; lastPostDate: string | null })[]>({
+    queryKey: ['/api/blog/authors/with-stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/authors/with-stats');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog authors with stats: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useBlogAuthorStats(authorId: string) {
+  return useQuery<{ postCount: number; totalViews: number; lastPostDate: string | null; draftsCount: number }>({
+    queryKey: ['/api/blog/authors', authorId, 'stats'],
+    queryFn: async () => {
+      if (!authorId) throw new Error('Author ID is required');
+      const response = await fetch(`/api/blog/authors/${authorId}/stats`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog author stats: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(authorId),
   });
 }
 

@@ -80,15 +80,17 @@ export default function BlogCard({ post, showExcerpt = true, className = "" }: B
         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-muted-foreground mt-3">
           {/* Author */}
           {post.author && (
-            <div className="flex items-center gap-2">
-              <Avatar className="w-6 h-6">
-                <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
-                <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
-                  {getAuthorInitials(post.author.name)}
-                </AvatarFallback>
-              </Avatar>
-              <span data-testid={`author-${post.author.name}`}>{post.author.name}</span>
-            </div>
+            <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-link-${post.author.slug}`}>
+              <div className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
+                  <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                    {getAuthorInitials(post.author.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span data-testid={`author-${post.author.name}`}>{post.author.name}</span>
+              </div>
+            </Link>
           )}
 
           {/* Publication Date */}

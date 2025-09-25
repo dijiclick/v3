@@ -1124,6 +1124,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Blog Authors routes
+  app.get("/api/blog/authors", async (req, res) => {
+    try {
+      const options: any = {};
+      
+      // Parse query parameters
+      if (req.query.limit) options.limit = parseInt(req.query.limit as string);
+      if (req.query.offset) options.offset = parseInt(req.query.offset as string);
+      if (req.query.search) options.search = req.query.search as string;
+      if (req.query.active !== undefined) options.active = req.query.active === 'true';
+      if (req.query.featured !== undefined) options.featured = req.query.featured === 'true';
+      if (req.query.sortBy) options.sortBy = req.query.sortBy as string;
+      if (req.query.sortOrder) options.sortOrder = req.query.sortOrder as 'asc' | 'desc';
+      
+      const result = await storage.getBlogAuthors(options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog authors: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/authors/:id", async (req, res) => {
+    try {
+      const author = await storage.getBlogAuthor(req.params.id);
+      if (!author) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      res.json(author);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog author: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/authors/slug/:slug", async (req, res) => {
+    try {
+      const author = await storage.getBlogAuthorBySlug(req.params.slug);
+      if (!author) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      res.json(author);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog author: " + error.message });
+    }
+  });
+
+  app.post("/api/blog/authors", requireAdmin, async (req, res) => {
+    try {
+      const result = insertBlogAuthorSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog author data", errors: result.error.errors });
+      }
+      
+      const author = await storage.createBlogAuthor(result.data);
+      res.status(201).json(author);
+    } catch (error: any) {
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog author with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error creating blog author: " + error.message });
+    }
+  });
+
+  app.put("/api/blog/authors/:id", requireAdmin, async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const result = insertBlogAuthorSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog author data", errors: result.error.errors });
+      }
+      
+      const author = await storage.updateBlogAuthor(authorId, result.data);
+      res.json(author);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog author with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error updating blog author: " + error.message });
+    }
+  });
+
+  app.delete("/api/blog/authors/:id", requireAdmin, async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const deleted = await storage.deleteBlogAuthor(authorId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting blog author: " + error.message });
+    }
+  });
+
+  // Bulk operations for blog authors
+  app.post("/api/blog/authors/bulk-delete", requireAdmin, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid author IDs array" });
+      }
+      
+      const result = await storage.deleteBlogAuthorsBulk(ids);
+      res.json({ deletedCount: result });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error bulk deleting blog authors: " + error.message });
+    }
+  });
+
+  // Get blog authors with statistics
+  app.get("/api/blog/authors/with-stats", async (req, res) => {
+    try {
+      const authorsWithStats = await storage.getBlogAuthorsWithStats();
+      res.json(authorsWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog authors with stats: " + error.message });
+    }
+  });
+
+  // Get individual author statistics
+  app.get("/api/blog/authors/:id/stats", async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const stats = await storage.getBlogAuthorStats(authorId);
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog author stats: " + error.message });
+    }
+  });
+
+  // Get posts by author (by author ID)
+  app.get("/api/blog/authors/:id/posts", async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const options: any = {};
+      
+      // Parse query parameters
+      if (req.query.limit) options.limit = parseInt(req.query.limit as string);
+      if (req.query.offset) options.offset = parseInt(req.query.offset as string);
+      
+      const result = await storage.getBlogPostsByAuthor(authorId, options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts by author: " + error.message });
+    }
+  });
+
+  // Get posts by author slug
+  app.get("/api/blog/authors/slug/:slug/posts", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      
+      // First get the author by slug
+      const author = await storage.getBlogAuthorBySlug(slug);
+      if (!author) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      
+      const options: any = {};
+      // Parse query parameters
+      if (req.query.limit) options.limit = parseInt(req.query.limit as string);
+      if (req.query.offset) options.offset = parseInt(req.query.offset as string);
+      
+      const result = await storage.getBlogPostsByAuthor(author.id, options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts by author slug: " + error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

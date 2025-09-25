@@ -479,24 +479,26 @@ export default function BlogPostPage() {
                   <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-6">
                     {/* Author */}
                     {post.author && (
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
-                          <AvatarFallback className="bg-blue-100 text-blue-700">
-                            {getAuthorInitials(post.author.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium text-gray-900" data-testid="author-name">
-                            {post.author.name}
-                          </div>
-                          {post.author.jobTitle && (
-                            <div className="text-xs text-gray-500" data-testid="author-title">
-                              {post.author.jobTitle}
+                      <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-profile-link-${post.author.slug}`}>
+                        <div className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors cursor-pointer">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
+                            <AvatarFallback className="bg-blue-100 text-blue-700">
+                              {getAuthorInitials(post.author.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium text-gray-900 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" data-testid="author-name">
+                              {post.author.name}
                             </div>
-                          )}
+                            {post.author.jobTitle && (
+                              <div className="text-xs text-gray-500" data-testid="author-title">
+                                {post.author.jobTitle}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     )}
 
                     {/* Publication Date */}

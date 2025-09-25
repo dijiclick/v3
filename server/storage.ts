@@ -57,11 +57,15 @@ export interface IStorage {
   getBlogPostsByTag(tagSlug: string, options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; total: number }>;
   getBlogPostsByAuthor(authorId: string, options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; total: number }>;
   
-  getBlogAuthors(): Promise<BlogAuthor[]>;
+  getBlogAuthors(options?: { limit?: number; offset?: number; search?: string; active?: boolean; featured?: boolean; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ authors: BlogAuthor[]; total: number }>;
   getBlogAuthor(id: string): Promise<BlogAuthor | undefined>;
+  getBlogAuthorBySlug(slug: string): Promise<BlogAuthor | undefined>;
   createBlogAuthor(author: InsertBlogAuthor): Promise<BlogAuthor>;
   updateBlogAuthor(id: string, author: Partial<InsertBlogAuthor>): Promise<BlogAuthor>;
   deleteBlogAuthor(id: string): Promise<boolean>;
+  deleteBlogAuthorsBulk(ids: string[]): Promise<number>;
+  getBlogAuthorsWithStats(): Promise<(BlogAuthor & { postCount: number; totalViews: number; lastPostDate: string | null })[]>;
+  getBlogAuthorStats(authorId: string): Promise<{ postCount: number; totalViews: number; lastPostDate: string | null; draftsCount: number }>;
   
   getBlogCategories(): Promise<BlogCategory[]>;
   getBlogCategory(id: string): Promise<BlogCategory | undefined>;
@@ -909,12 +913,69 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Blog Authors methods
-  async getBlogAuthors(): Promise<BlogAuthor[]> {
-    return await db.select().from(blogAuthors).where(eq(blogAuthors.active, true));
+  async getBlogAuthors(options: { 
+    limit?: number; 
+    offset?: number; 
+    search?: string; 
+    active?: boolean; 
+    featured?: boolean; 
+    sortBy?: string; 
+    sortOrder?: 'asc' | 'desc' 
+  } = {}): Promise<{ authors: BlogAuthor[]; total: number }> {
+    const { limit = 50, offset = 0, search, active, featured, sortBy = 'name', sortOrder = 'asc' } = options;
+    
+    // Build where conditions
+    const whereConditions = [];
+    if (active !== undefined) {
+      whereConditions.push(eq(blogAuthors.active, active));
+    }
+    if (featured !== undefined) {
+      whereConditions.push(eq(blogAuthors.featured, featured));
+    }
+    if (search) {
+      whereConditions.push(
+        or(
+          ilike(blogAuthors.name, `%${search}%`),
+          ilike(blogAuthors.bio, `%${search}%`),
+          ilike(blogAuthors.jobTitle, `%${search}%`),
+          ilike(blogAuthors.company, `%${search}%`)
+        )
+      );
+    }
+    
+    const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+    
+    // Build sort order
+    const sortColumn = sortBy === 'name' ? blogAuthors.name :
+                      sortBy === 'createdAt' ? blogAuthors.createdAt :
+                      sortBy === 'updatedAt' ? blogAuthors.updatedAt :
+                      blogAuthors.name;
+    const orderBy = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn);
+    
+    // Get total count
+    const totalQuery = db.select({ count: count() }).from(blogAuthors);
+    if (whereClause) {
+      totalQuery.where(whereClause);
+    }
+    const [{ count: total }] = await totalQuery;
+    
+    // Get authors
+    const authorsQuery = db.select().from(blogAuthors).limit(limit).offset(offset).orderBy(orderBy);
+    if (whereClause) {
+      authorsQuery.where(whereClause);
+    }
+    const authors = await authorsQuery;
+    
+    return { authors, total };
   }
 
   async getBlogAuthor(id: string): Promise<BlogAuthor | undefined> {
     const [author] = await db.select().from(blogAuthors).where(eq(blogAuthors.id, id));
+    return author || undefined;
+  }
+
+  async getBlogAuthorBySlug(slug: string): Promise<BlogAuthor | undefined> {
+    const [author] = await db.select().from(blogAuthors).where(eq(blogAuthors.slug, slug));
     return author || undefined;
   }
 
@@ -945,6 +1006,89 @@ export class DatabaseStorage implements IStorage {
   async deleteBlogAuthor(id: string): Promise<boolean> {
     const result = await db.delete(blogAuthors).where(eq(blogAuthors.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async deleteBlogAuthorsBulk(ids: string[]): Promise<number> {
+    const result = await db.delete(blogAuthors).where(
+      sql`${blogAuthors.id} = ANY(${ids})`
+    );
+    return result.rowCount || 0;
+  }
+
+  async getBlogAuthorsWithStats(): Promise<(BlogAuthor & { postCount: number; totalViews: number; lastPostDate: string | null })[]> {
+    const authorsWithStats = await db
+      .select({
+        id: blogAuthors.id,
+        name: blogAuthors.name,
+        slug: blogAuthors.slug,
+        bio: blogAuthors.bio,
+        email: blogAuthors.email,
+        avatar: blogAuthors.avatar,
+        website: blogAuthors.website,
+        twitter: blogAuthors.twitter,
+        linkedin: blogAuthors.linkedin,
+        github: blogAuthors.github,
+        telegram: blogAuthors.telegram,
+        jobTitle: blogAuthors.jobTitle,
+        company: blogAuthors.company,
+        seoTitle: blogAuthors.seoTitle,
+        seoDescription: blogAuthors.seoDescription,
+        seoKeywords: blogAuthors.seoKeywords,
+        featured: blogAuthors.featured,
+        active: blogAuthors.active,
+        createdAt: blogAuthors.createdAt,
+        updatedAt: blogAuthors.updatedAt,
+        postCount: count(blogPosts.id),
+        totalViews: sql<number>`COALESCE(SUM(${blogPosts.viewCount}), 0)`,
+        lastPostDate: sql<string>`MAX(${blogPosts.publishedAt})`,
+      })
+      .from(blogAuthors)
+      .leftJoin(blogPosts, and(
+        eq(blogAuthors.id, blogPosts.authorId),
+        eq(blogPosts.status, 'published')
+      ))
+      .where(eq(blogAuthors.active, true))
+      .groupBy(blogAuthors.id)
+      .orderBy(asc(blogAuthors.name));
+    
+    return authorsWithStats.map(author => ({
+      ...author,
+      totalViews: Number(author.totalViews),
+      lastPostDate: author.lastPostDate || null
+    }));
+  }
+
+  async getBlogAuthorStats(authorId: string): Promise<{ postCount: number; totalViews: number; lastPostDate: string | null; draftsCount: number }> {
+    // Get published posts stats
+    const [publishedStats] = await db
+      .select({
+        postCount: count(blogPosts.id),
+        totalViews: sql<number>`COALESCE(SUM(${blogPosts.viewCount}), 0)`,
+        lastPostDate: sql<string>`MAX(${blogPosts.publishedAt})`,
+      })
+      .from(blogPosts)
+      .where(and(
+        eq(blogPosts.authorId, authorId),
+        eq(blogPosts.status, 'published')
+      ));
+
+    // Get drafts count
+    const [draftsStats] = await db
+      .select({
+        draftsCount: count(blogPosts.id)
+      })
+      .from(blogPosts)
+      .where(and(
+        eq(blogPosts.authorId, authorId),
+        eq(blogPosts.status, 'draft')
+      ));
+
+    return {
+      postCount: publishedStats?.postCount || 0,
+      totalViews: Number(publishedStats?.totalViews || 0),
+      lastPostDate: publishedStats?.lastPostDate || null,
+      draftsCount: draftsStats?.draftsCount || 0
+    };
   }
 
   // Blog Categories methods

@@ -93,6 +93,7 @@ export const productPlans = pgTable("product_plans", {
 export const blogAuthors = pgTable("blog_authors", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
   bio: text("bio"),
   email: text("email"),
   avatar: text("avatar"),
@@ -329,6 +330,7 @@ export const insertBlogAuthorSchema = createInsertSchema(blogAuthors).omit({
   updatedAt: true,
 }).extend({
   name: z.string().min(1, "Author name is required"),
+  slug: z.string().min(1, "Author slug is required"),
   email: z.string().email().optional().or(z.literal("")),
   website: z.string().url().optional().or(z.literal("")),
   twitter: z.string().optional(),

@@ -13,7 +13,8 @@ import {
   BookOpen,
   Hash,
   Bookmark,
-  PenTool
+  PenTool,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -31,6 +32,7 @@ const adminNavItems = [
     subItems: [
       { path: "/admin/blog", icon: PenTool, label: "Dashboard" },
       { path: "/admin/blog/posts", icon: FileText, label: "Posts" },
+      { path: "/admin/blog/authors", icon: Users, label: "Authors" },
       { path: "/admin/blog/categories", icon: FolderTree, label: "Categories" },
       { path: "/admin/blog/tags", icon: Hash, label: "Tags" },
     ]

@@ -24,12 +24,17 @@ import AdminSettings from "@/pages/AdminSettings";
 import AdminBlogDashboard from "@/pages/AdminBlogDashboard";
 import AdminBlogPosts from "@/pages/AdminBlogPosts";
 import AdminBlogEditor from "@/pages/AdminBlogEditor";
+import AdminBlogAuthors from "@/pages/AdminBlogAuthors";
+import AdminBlogAuthorNew from "@/pages/AdminBlogAuthorNew";
+import AdminBlogAuthorEdit from "@/pages/AdminBlogAuthorEdit";
 import AdminBlogCategories from "@/pages/AdminBlogCategories";
 import AdminBlogTags from "@/pages/AdminBlogTags";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
 import BlogPostPage from "@/pages/BlogPostPage";
+import AuthorDirectoryPage from "@/pages/AuthorDirectoryPage";
+import AuthorProfilePage from "@/pages/AuthorProfilePage";
 
 function AdminRouter() {
   return (
@@ -44,6 +49,9 @@ function AdminRouter() {
           <Route path="/admin/pages" component={AdminPages} />
           <Route path="/admin/blog" component={AdminBlogDashboard} />
           <Route path="/admin/blog/posts" component={AdminBlogPosts} />
+          <Route path="/admin/blog/authors" component={AdminBlogAuthors} />
+          <Route path="/admin/blog/authors/new" component={AdminBlogAuthorNew} />
+          <Route path="/admin/blog/authors/edit/:id" component={AdminBlogAuthorEdit} />
           <Route path="/admin/blog/categories" component={AdminBlogCategories} />
           <Route path="/admin/blog/tags" component={AdminBlogTags} />
           <Route path="/admin/blog/new" component={AdminBlogEditor} />
@@ -110,9 +118,16 @@ function PublicRouter() {
         </PersianLayout>
       </Route>
       
-      <Route path="/blog/author/:authorId">
+      {/* Author routes */}
+      <Route path="/blog/authors">
         <PersianLayout>
-          <BlogListPage />
+          <AuthorDirectoryPage />
+        </PersianLayout>
+      </Route>
+      
+      <Route path="/blog/author/:slug">
+        <PersianLayout>
+          <AuthorProfilePage />
         </PersianLayout>
       </Route>
       

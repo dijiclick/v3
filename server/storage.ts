@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, type Image, type InsertImage, type ProductPlan, type InsertProductPlan, users, products, categories, pages, images, productPlans } from "@shared/schema";
+import { type User, type InsertUser, type Product, type InsertProduct, type Category, type InsertCategory, type Page, type InsertPage, type Image, type InsertImage, type ProductPlan, type InsertProductPlan, type BlogPost, type InsertBlogPost, type BlogAuthor, type InsertBlogAuthor, type BlogCategory, type InsertBlogCategory, type BlogTag, type InsertBlogTag, users, products, categories, pages, images, productPlans, blogPosts, blogAuthors, blogCategories, blogTags } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, asc } from "drizzle-orm";
+import { eq, sql, asc, desc, and, or, like, ilike, count } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -44,6 +44,38 @@ export interface IStorage {
   updateProductPlan(id: string, plan: Partial<InsertProductPlan>): Promise<ProductPlan>;
   deleteProductPlan(id: string): Promise<boolean>;
   getDefaultProductPlan(productId: string): Promise<ProductPlan | undefined>;
+  
+  // Blog methods
+  getBlogPosts(options?: { limit?: number; offset?: number; status?: string; featured?: boolean; categoryId?: string; categoryIds?: string[]; authorId?: string; authorIds?: string[]; tags?: string[]; searchQuery?: string; startDate?: Date; endDate?: Date; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ posts: BlogPost[]; total: number }>;
+  getBlogPost(id: string): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: string, post: Partial<InsertBlogPost>): Promise<BlogPost>;
+  deleteBlogPost(id: string): Promise<boolean>;
+  getFeaturedBlogPosts(limit?: number): Promise<BlogPost[]>;
+  getBlogPostsByCategory(categoryId: string, options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; total: number }>;
+  getBlogPostsByTag(tagSlug: string, options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; total: number }>;
+  getBlogPostsByAuthor(authorId: string, options?: { limit?: number; offset?: number }): Promise<{ posts: BlogPost[]; total: number }>;
+  
+  getBlogAuthors(): Promise<BlogAuthor[]>;
+  getBlogAuthor(id: string): Promise<BlogAuthor | undefined>;
+  createBlogAuthor(author: InsertBlogAuthor): Promise<BlogAuthor>;
+  updateBlogAuthor(id: string, author: Partial<InsertBlogAuthor>): Promise<BlogAuthor>;
+  deleteBlogAuthor(id: string): Promise<boolean>;
+  
+  getBlogCategories(): Promise<BlogCategory[]>;
+  getBlogCategory(id: string): Promise<BlogCategory | undefined>;
+  getBlogCategoryBySlug(slug: string): Promise<BlogCategory | undefined>;
+  createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
+  updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory>;
+  deleteBlogCategory(id: string): Promise<boolean>;
+  
+  getBlogTags(): Promise<BlogTag[]>;
+  getBlogTag(id: string): Promise<BlogTag | undefined>;
+  getBlogTagBySlug(slug: string): Promise<BlogTag | undefined>;
+  createBlogTag(tag: InsertBlogTag): Promise<BlogTag>;
+  updateBlogTag(id: string, tag: Partial<InsertBlogTag>): Promise<BlogTag>;
+  deleteBlogTag(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -657,6 +689,336 @@ export class DatabaseStorage implements IStorage {
       console.error('Database initialization failed:', error);
       // Don't throw - allow server to continue without seeded data
     }
+  }
+
+  // Blog Posts methods
+  async getBlogPosts(options: { 
+    limit?: number; 
+    offset?: number; 
+    status?: string; 
+    featured?: boolean; 
+    categoryId?: string; // kept for backward compatibility
+    categoryIds?: string[]; 
+    authorId?: string; // kept for backward compatibility
+    authorIds?: string[]; 
+    tags?: string[]; 
+    searchQuery?: string; 
+    startDate?: Date; 
+    endDate?: Date; 
+    sortBy?: string; 
+    sortOrder?: 'asc' | 'desc' 
+  } = {}): Promise<{ posts: BlogPost[]; total: number }> {
+    const { 
+      limit = 10, 
+      offset = 0, 
+      status = 'published',
+      featured,
+      categoryId,
+      categoryIds,
+      authorId,
+      authorIds,
+      tags,
+      searchQuery,
+      startDate,
+      endDate,
+      sortBy = 'publishedAt',
+      sortOrder = 'desc'
+    } = options;
+
+    // Build conditions
+    const conditions = [];
+    
+    if (status) {
+      conditions.push(eq(blogPosts.status, status));
+    }
+    
+    if (featured !== undefined) {
+      conditions.push(eq(blogPosts.featured, featured));
+    }
+    
+    // Handle multiple categories (new) or single category (backward compatibility)
+    const allCategoryIds = categoryIds || (categoryId ? [categoryId] : []);
+    if (allCategoryIds.length > 0) {
+      if (allCategoryIds.length === 1) {
+        conditions.push(eq(blogPosts.categoryId, allCategoryIds[0]));
+      } else {
+        // Multiple categories: posts that match any of the categories
+        conditions.push(
+          or(...allCategoryIds.map(catId => eq(blogPosts.categoryId, catId)))
+        );
+      }
+    }
+    
+    // Handle multiple authors (new) or single author (backward compatibility)
+    const allAuthorIds = authorIds || (authorId ? [authorId] : []);
+    if (allAuthorIds.length > 0) {
+      if (allAuthorIds.length === 1) {
+        conditions.push(eq(blogPosts.authorId, allAuthorIds[0]));
+      } else {
+        // Multiple authors: posts that match any of the authors
+        conditions.push(
+          or(...allAuthorIds.map(authId => eq(blogPosts.authorId, authId)))
+        );
+      }
+    }
+    
+    if (tags && tags.length > 0) {
+      // PostgreSQL array contains any of the provided tags
+      conditions.push(sql`${blogPosts.tags} && ${tags}`);
+    }
+    
+    // Date range filtering
+    if (startDate) {
+      conditions.push(sql`${blogPosts.publishedAt} >= ${startDate}`);
+    }
+    
+    if (endDate) {
+      conditions.push(sql`${blogPosts.publishedAt} <= ${endDate}`);
+    }
+    
+    if (searchQuery) {
+      conditions.push(
+        or(
+          ilike(blogPosts.title, `%${searchQuery}%`),
+          ilike(blogPosts.excerpt, `%${searchQuery}%`),
+          sql`${blogPosts.tags}::text ILIKE ${'%' + searchQuery + '%'}`
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total count
+    const [{ count: total }] = await db
+      .select({ count: count() })
+      .from(blogPosts)
+      .where(whereClause);
+
+    // Get posts with ordering
+    let orderBy;
+    switch (sortBy) {
+      case 'title':
+        orderBy = sortOrder === 'asc' ? asc(blogPosts.title) : desc(blogPosts.title);
+        break;
+      case 'readingTime':
+        orderBy = sortOrder === 'asc' ? asc(blogPosts.readingTime) : desc(blogPosts.readingTime);
+        break;
+      case 'viewCount':
+        orderBy = sortOrder === 'asc' ? asc(blogPosts.viewCount) : desc(blogPosts.viewCount);
+        break;
+      default:
+        orderBy = sortOrder === 'asc' ? asc(blogPosts.publishedAt) : desc(blogPosts.publishedAt);
+    }
+
+    const posts = await db
+      .select()
+      .from(blogPosts)
+      .where(whereClause)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset);
+
+    return { posts, total: Number(total) };
+  }
+
+  async getBlogPost(id: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post || undefined;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post || undefined;
+  }
+
+  async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
+    const postData = {
+      ...insertPost,
+      publishedAt: insertPost.status === 'published' ? new Date() : null,
+      updatedAt: new Date()
+    };
+    const [post] = await db.insert(blogPosts).values(postData).returning();
+    return post;
+  }
+
+  async updateBlogPost(id: string, updateData: Partial<InsertBlogPost>): Promise<BlogPost> {
+    const updatePayload = {
+      ...updateData,
+      updatedAt: new Date()
+    };
+    
+    // Set publishedAt if changing status to published
+    if (updateData.status === 'published') {
+      const currentPost = await this.getBlogPost(id);
+      if (currentPost && !currentPost.publishedAt) {
+        updatePayload.publishedAt = new Date();
+      }
+    }
+    
+    const [post] = await db.update(blogPosts)
+      .set(updatePayload)
+      .where(eq(blogPosts.id, id))
+      .returning();
+    
+    if (!post) {
+      throw new Error(`Blog post with id ${id} not found`);
+    }
+    
+    return post;
+  }
+
+  async deleteBlogPost(id: string): Promise<boolean> {
+    const result = await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async getFeaturedBlogPosts(limit = 3): Promise<BlogPost[]> {
+    return await db.select()
+      .from(blogPosts)
+      .where(and(eq(blogPosts.featured, true), eq(blogPosts.status, 'published')))
+      .orderBy(desc(blogPosts.publishedAt))
+      .limit(limit);
+  }
+
+  async getBlogPostsByCategory(categoryId: string, options: { limit?: number; offset?: number } = {}): Promise<{ posts: BlogPost[]; total: number }> {
+    return this.getBlogPosts({
+      ...options,
+      categoryId,
+      status: 'published'
+    });
+  }
+
+  async getBlogPostsByTag(tagSlug: string, options: { limit?: number; offset?: number } = {}): Promise<{ posts: BlogPost[]; total: number }> {
+    return this.getBlogPosts({
+      ...options,
+      tags: [tagSlug],
+      status: 'published'
+    });
+  }
+
+  async getBlogPostsByAuthor(authorId: string, options: { limit?: number; offset?: number } = {}): Promise<{ posts: BlogPost[]; total: number }> {
+    return this.getBlogPosts({
+      ...options,
+      authorId,
+      status: 'published'
+    });
+  }
+
+  // Blog Authors methods
+  async getBlogAuthors(): Promise<BlogAuthor[]> {
+    return await db.select().from(blogAuthors).where(eq(blogAuthors.active, true));
+  }
+
+  async getBlogAuthor(id: string): Promise<BlogAuthor | undefined> {
+    const [author] = await db.select().from(blogAuthors).where(eq(blogAuthors.id, id));
+    return author || undefined;
+  }
+
+  async createBlogAuthor(insertAuthor: InsertBlogAuthor): Promise<BlogAuthor> {
+    const [author] = await db.insert(blogAuthors).values({
+      ...insertAuthor,
+      updatedAt: new Date()
+    }).returning();
+    return author;
+  }
+
+  async updateBlogAuthor(id: string, updateData: Partial<InsertBlogAuthor>): Promise<BlogAuthor> {
+    const [author] = await db.update(blogAuthors)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(blogAuthors.id, id))
+      .returning();
+    
+    if (!author) {
+      throw new Error(`Blog author with id ${id} not found`);
+    }
+    
+    return author;
+  }
+
+  async deleteBlogAuthor(id: string): Promise<boolean> {
+    const result = await db.delete(blogAuthors).where(eq(blogAuthors.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Blog Categories methods
+  async getBlogCategories(): Promise<BlogCategory[]> {
+    return await db.select().from(blogCategories)
+      .where(eq(blogCategories.active, true))
+      .orderBy(asc(blogCategories.sortOrder), asc(blogCategories.name));
+  }
+
+  async getBlogCategory(id: string): Promise<BlogCategory | undefined> {
+    const [category] = await db.select().from(blogCategories).where(eq(blogCategories.id, id));
+    return category || undefined;
+  }
+
+  async getBlogCategoryBySlug(slug: string): Promise<BlogCategory | undefined> {
+    const [category] = await db.select().from(blogCategories).where(eq(blogCategories.slug, slug));
+    return category || undefined;
+  }
+
+  async createBlogCategory(insertCategory: InsertBlogCategory): Promise<BlogCategory> {
+    const [category] = await db.insert(blogCategories).values(insertCategory).returning();
+    return category;
+  }
+
+  async updateBlogCategory(id: string, updateData: Partial<InsertBlogCategory>): Promise<BlogCategory> {
+    const [category] = await db.update(blogCategories)
+      .set(updateData)
+      .where(eq(blogCategories.id, id))
+      .returning();
+    
+    if (!category) {
+      throw new Error(`Blog category with id ${id} not found`);
+    }
+    
+    return category;
+  }
+
+  async deleteBlogCategory(id: string): Promise<boolean> {
+    const result = await db.delete(blogCategories).where(eq(blogCategories.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Blog Tags methods
+  async getBlogTags(): Promise<BlogTag[]> {
+    return await db.select().from(blogTags).orderBy(asc(blogTags.name));
+  }
+
+  async getBlogTag(id: string): Promise<BlogTag | undefined> {
+    const [tag] = await db.select().from(blogTags).where(eq(blogTags.id, id));
+    return tag || undefined;
+  }
+
+  async getBlogTagBySlug(slug: string): Promise<BlogTag | undefined> {
+    const [tag] = await db.select().from(blogTags).where(eq(blogTags.slug, slug));
+    return tag || undefined;
+  }
+
+  async createBlogTag(insertTag: InsertBlogTag): Promise<BlogTag> {
+    const [tag] = await db.insert(blogTags).values(insertTag).returning();
+    return tag;
+  }
+
+  async updateBlogTag(id: string, updateData: Partial<InsertBlogTag>): Promise<BlogTag> {
+    const [tag] = await db.update(blogTags)
+      .set(updateData)
+      .where(eq(blogTags.id, id))
+      .returning();
+    
+    if (!tag) {
+      throw new Error(`Blog tag with id ${id} not found`);
+    }
+    
+    return tag;
+  }
+
+  async deleteBlogTag(id: string): Promise<boolean> {
+    const result = await db.delete(blogTags).where(eq(blogTags.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }
 

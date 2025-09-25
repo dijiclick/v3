@@ -101,8 +101,103 @@ export type WebSiteSchema = {
   };
 };
 
+// Blog-specific schemas
+export type BlogSchema = {
+  "@context": string;
+  "@type": "Blog";
+  name: string;
+  description: string;
+  url: string;
+  inLanguage: string;
+  publisher: {
+    "@type": "Organization";
+    name: string;
+    url: string;
+    logo?: string;
+  };
+  mainEntityOfPage?: {
+    "@type": "WebPage";
+    "@id": string;
+  };
+};
+
+export type BlogPostSchema = {
+  "@context": string;
+  "@type": "BlogPosting";
+  headline: string;
+  description: string;
+  image?: string;
+  author: {
+    "@type": "Person";
+    name: string;
+    url?: string;
+    image?: string;
+  };
+  publisher: {
+    "@type": "Organization";
+    name: string;
+    url: string;
+    logo?: string;
+  };
+  datePublished: string;
+  dateModified?: string;
+  wordCount?: number;
+  timeRequired?: string;
+  articleSection?: string;
+  keywords?: string[];
+  articleBody?: string;
+  url: string;
+  mainEntityOfPage: {
+    "@type": "WebPage";
+    "@id": string;
+  };
+  inLanguage: string;
+};
+
+export type AuthorSchema = {
+  "@context": string;
+  "@type": "Person";
+  name: string;
+  description?: string;
+  url?: string;
+  image?: string;
+  jobTitle?: string;
+  worksFor?: {
+    "@type": "Organization";
+    name: string;
+    url: string;
+  };
+  sameAs?: string[];
+  knowsAbout?: string[];
+};
+
+export type CategorySchema = {
+  "@context": string;
+  "@type": "CollectionPage";
+  name: string;
+  description?: string;
+  url: string;
+  mainEntity: {
+    "@type": "ItemList";
+    numberOfItems: number;
+    itemListElement: {
+      "@type": "BlogPosting";
+      position: number;
+      url: string;
+      name: string;
+      description?: string;
+      datePublished: string;
+      author: {
+        "@type": "Person";
+        name: string;
+      };
+    }[];
+  };
+  breadcrumb?: BreadcrumbSchema;
+};
+
 // Union type for all structured data schemas
-export type StructuredDataSchema = ProductSchema | BreadcrumbSchema | OrganizationSchema | WebSiteSchema;
+export type StructuredDataSchema = ProductSchema | BreadcrumbSchema | OrganizationSchema | WebSiteSchema | BlogSchema | BlogPostSchema | AuthorSchema | CategorySchema;
 
 export interface SEOMetadata {
   title: string;
@@ -294,6 +389,224 @@ export const getHomepageStructuredData = (): WebSiteSchema => {
       "url": baseUrl
     }
   };
+};
+
+// Blog-specific SEO functions
+export const generateBlogTitle = (postTitle: string, categoryName?: string): string => {
+  const siteName = "وبلاگ لیمیت پس";
+  if (categoryName) {
+    return `${postTitle} - ${categoryName} | ${siteName}`;
+  }
+  return `${postTitle} | ${siteName}`;
+};
+
+export const generateBlogMetaDescription = (excerpt: string, authorName?: string): string => {
+  const maxLength = 155;
+  let description = excerpt;
+  
+  if (authorName) {
+    description += ` - نوشته ${authorName} در وبلاگ لیمیت پس`;
+  } else {
+    description += " - وبلاگ لیمیت پس";
+  }
+  
+  if (description.length > maxLength) {
+    description = description.substring(0, maxLength - 3) + "...";
+  }
+  
+  return description;
+};
+
+// Generate blog listing structured data
+export const getBlogStructuredData = (
+  blogTitle: string,
+  blogDescription: string,
+  blogUrl: string
+): BlogSchema => {
+  const baseUrl = window.location.origin;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": blogTitle,
+    "description": blogDescription,
+    "url": blogUrl,
+    "inLanguage": "fa-IR",
+    "publisher": {
+      "@type": "Organization",
+      "name": "لیمیت پس",
+      "url": baseUrl,
+      "logo": `${baseUrl}/logo.png`
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": blogUrl
+    }
+  };
+};
+
+// Generate blog post structured data
+export const getBlogPostStructuredData = (
+  post: {
+    title: string;
+    excerpt: string;
+    slug: string;
+    featuredImage?: string;
+    publishedAt: Date | string;
+    updatedAt?: Date | string;
+    readingTime?: number;
+    content?: any;
+    tags?: string[];
+    author?: {
+      name: string;
+      avatar?: string;
+      website?: string;
+    };
+    category?: {
+      name: string;
+      slug: string;
+    };
+  }
+): BlogPostSchema => {
+  const baseUrl = window.location.origin;
+  const postUrl = `${baseUrl}/blog/${post.slug}`;
+  const publishedDate = typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString();
+  const modifiedDate = post.updatedAt ? (typeof post.updatedAt === 'string' ? post.updatedAt : post.updatedAt.toISOString()) : publishedDate;
+  
+  // Calculate word count from content if available
+  const wordCount = post.content ? 
+    (typeof post.content === 'string' ? post.content.split(/\s+/).length : undefined) : undefined;
+  
+  // Format reading time
+  const timeRequired = post.readingTime ? `PT${post.readingTime}M` : undefined;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.excerpt,
+    "image": post.featuredImage,
+    "author": {
+      "@type": "Person",
+      "name": post.author?.name || "نویسنده وبلاگ",
+      "url": post.author?.website,
+      "image": post.author?.avatar
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "لیمیت پس",
+      "url": baseUrl,
+      "logo": `${baseUrl}/logo.png`
+    },
+    "datePublished": publishedDate,
+    "dateModified": modifiedDate,
+    "wordCount": wordCount,
+    "timeRequired": timeRequired,
+    "articleSection": post.category?.name,
+    "keywords": post.tags,
+    "url": postUrl,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": postUrl
+    },
+    "inLanguage": "fa-IR"
+  };
+};
+
+// Generate blog category page structured data
+export const getBlogCategoryStructuredData = (
+  category: {
+    name: string;
+    slug: string;
+    description?: string;
+  },
+  posts: {
+    title: string;
+    slug: string;
+    excerpt?: string;
+    publishedAt: Date | string;
+    author?: {
+      name: string;
+    };
+  }[],
+  breadcrumbs?: { name: string; url: string }[]
+): CategorySchema => {
+  const baseUrl = window.location.origin;
+  const categoryUrl = `${baseUrl}/blog/category/${category.slug}`;
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category.name,
+    "description": category.description,
+    "url": categoryUrl,
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": posts.length,
+      "itemListElement": posts.map((post, index) => ({
+        "@type": "BlogPosting",
+        "position": index + 1,
+        "url": `${baseUrl}/blog/${post.slug}`,
+        "name": post.title,
+        "description": post.excerpt,
+        "datePublished": typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toISOString(),
+        "author": {
+          "@type": "Person",
+          "name": post.author?.name || "نویسنده"
+        }
+      }))
+    },
+    "breadcrumb": breadcrumbs ? getBreadcrumbStructuredData(breadcrumbs) : undefined
+  };
+};
+
+// Generate author structured data
+export const getAuthorStructuredData = (
+  author: {
+    name: string;
+    bio?: string;
+    avatar?: string;
+    website?: string;
+    jobTitle?: string;
+    company?: string;
+    twitter?: string;
+    linkedin?: string;
+    github?: string;
+  }
+): AuthorSchema => {
+  const baseUrl = window.location.origin;
+  const sameAs: string[] = [];
+  
+  if (author.website) sameAs.push(author.website);
+  if (author.twitter) sameAs.push(`https://twitter.com/${author.twitter.replace('@', '')}`);
+  if (author.linkedin) sameAs.push(author.linkedin);
+  if (author.github) sameAs.push(`https://github.com/${author.github}`);
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": author.name,
+    "description": author.bio,
+    "image": author.avatar,
+    "jobTitle": author.jobTitle,
+    "worksFor": author.company ? {
+      "@type": "Organization",
+      "name": author.company,
+      "url": baseUrl
+    } : undefined,
+    "sameAs": sameAs.length > 0 ? sameAs : undefined
+  };
+};
+
+// Default blog SEO metadata
+export const defaultBlogSEO: SEOMetadata = {
+  title: "وبلاگ لیمیت پس - مقالات آموزشی و راهنمایی‌ها",
+  description: "وبلاگ لیمیت پس - مقالات آموزشی، راهنمایی‌ها و آخرین اخبار. منبع کاملی از اطلاعات کاربردی و روزآمد.",
+  keywords: "وبلاگ، آموزش، راهنمایی، مقالات، لیمیت پس، نکات کاربردی",
+  ogTitle: "وبلاگ لیمیت پس - مقالات آموزشی و راهنمایی‌ها",
+  ogDescription: "وبلاگ لیمیت پس - مقالات آموزشی، راهنمایی‌ها و آخرین اخبار",
+  ogLocale: "fa_IR",
+  hreflang: "fa"
 };
 
 export const defaultSEO: SEOMetadata = {

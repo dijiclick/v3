@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { storage } from "./storage";
-import { insertProductSchema, insertCategorySchema, insertPageSchema, insertProductPlanSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertPageSchema, insertProductPlanSchema, insertBlogPostSchema, insertBlogAuthorSchema, insertBlogCategorySchema, insertBlogTagSchema } from "@shared/schema";
 import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -591,6 +591,417 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: "Error deleting page: " + error.message });
+    }
+  });
+
+  // Blog Posts routes
+  app.get("/api/blog/posts", async (req, res) => {
+    try {
+      const {
+        limit = "10",
+        offset = "0",
+        status = "published",
+        featured,
+        categoryId,
+        categoryIds,
+        authorId,
+        authorIds,
+        tags,
+        search,
+        startDate,
+        endDate,
+        sortBy = "publishedAt",
+        sortOrder = "desc"
+      } = req.query;
+
+      const options = {
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10),
+        status: status as string,
+        featured: featured ? featured === 'true' : undefined,
+        // Support both old single ID format and new array format for backward compatibility
+        categoryIds: categoryIds ? 
+          (typeof categoryIds === 'string' ? categoryIds.split(',') : categoryIds) : 
+          (categoryId ? [categoryId as string] : undefined),
+        authorIds: authorIds ? 
+          (typeof authorIds === 'string' ? authorIds.split(',') : authorIds) : 
+          (authorId ? [authorId as string] : undefined),
+        tags: tags ? (typeof tags === 'string' ? tags.split(',') : tags) : undefined,
+        searchQuery: search as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc'
+      };
+
+      const result = await storage.getBlogPosts(options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/featured", async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 3;
+      const posts = await storage.getFeaturedBlogPosts(limit);
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching featured blog posts: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/:id", async (req, res) => {
+    try {
+      const post = await storage.getBlogPost(req.params.id);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      res.json(post);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog post: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/slug/:slug", async (req, res) => {
+    try {
+      const post = await storage.getBlogPostBySlug(req.params.slug);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      res.json(post);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog post: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/category/:categoryId", async (req, res) => {
+    try {
+      const { limit = "10", offset = "0" } = req.query;
+      const options = {
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10)
+      };
+      const result = await storage.getBlogPostsByCategory(req.params.categoryId, options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts by category: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/tag/:tagSlug", async (req, res) => {
+    try {
+      const { limit = "10", offset = "0" } = req.query;
+      const options = {
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10)
+      };
+      const result = await storage.getBlogPostsByTag(req.params.tagSlug, options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts by tag: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/posts/author/:authorId", async (req, res) => {
+    try {
+      const { limit = "10", offset = "0" } = req.query;
+      const options = {
+        limit: parseInt(limit as string, 10),
+        offset: parseInt(offset as string, 10)
+      };
+      const result = await storage.getBlogPostsByAuthor(req.params.authorId, options);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog posts by author: " + error.message });
+    }
+  });
+
+  app.post("/api/blog/posts", requireAdmin, async (req, res) => {
+    try {
+      const result = insertBlogPostSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog post data", errors: result.error.errors });
+      }
+      
+      const post = await storage.createBlogPost(result.data);
+      res.status(201).json(post);
+    } catch (error: any) {
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog post with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error creating blog post: " + error.message });
+    }
+  });
+
+  app.put("/api/blog/posts/:id", requireAdmin, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const result = insertBlogPostSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog post data", errors: result.error.errors });
+      }
+      
+      const post = await storage.updateBlogPost(postId, result.data);
+      res.json(post);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog post with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error updating blog post: " + error.message });
+    }
+  });
+
+  app.delete("/api/blog/posts/:id", requireAdmin, async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const deleted = await storage.deleteBlogPost(postId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting blog post: " + error.message });
+    }
+  });
+
+  // Blog Authors routes
+  app.get("/api/blog/authors", async (req, res) => {
+    try {
+      const authors = await storage.getBlogAuthors();
+      res.json(authors);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog authors: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/authors/:id", async (req, res) => {
+    try {
+      const author = await storage.getBlogAuthor(req.params.id);
+      if (!author) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      res.json(author);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog author: " + error.message });
+    }
+  });
+
+  app.post("/api/blog/authors", requireAdmin, async (req, res) => {
+    try {
+      const result = insertBlogAuthorSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog author data", errors: result.error.errors });
+      }
+      
+      const author = await storage.createBlogAuthor(result.data);
+      res.status(201).json(author);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating blog author: " + error.message });
+    }
+  });
+
+  app.put("/api/blog/authors/:id", requireAdmin, async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const result = insertBlogAuthorSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog author data", errors: result.error.errors });
+      }
+      
+      const author = await storage.updateBlogAuthor(authorId, result.data);
+      res.json(author);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Error updating blog author: " + error.message });
+    }
+  });
+
+  app.delete("/api/blog/authors/:id", requireAdmin, async (req, res) => {
+    try {
+      const authorId = req.params.id;
+      const deleted = await storage.deleteBlogAuthor(authorId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog author not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting blog author: " + error.message });
+    }
+  });
+
+  // Blog Categories routes
+  app.get("/api/blog/categories", async (req, res) => {
+    try {
+      const categories = await storage.getBlogCategories();
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog categories: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/categories/:id", async (req, res) => {
+    try {
+      const category = await storage.getBlogCategory(req.params.id);
+      if (!category) {
+        return res.status(404).json({ message: "Blog category not found" });
+      }
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog category: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/categories/slug/:slug", async (req, res) => {
+    try {
+      const category = await storage.getBlogCategoryBySlug(req.params.slug);
+      if (!category) {
+        return res.status(404).json({ message: "Blog category not found" });
+      }
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog category: " + error.message });
+    }
+  });
+
+  app.post("/api/blog/categories", requireAdmin, async (req, res) => {
+    try {
+      const result = insertBlogCategorySchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog category data", errors: result.error.errors });
+      }
+      
+      const category = await storage.createBlogCategory(result.data);
+      res.status(201).json(category);
+    } catch (error: any) {
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog category with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error creating blog category: " + error.message });
+    }
+  });
+
+  app.put("/api/blog/categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+      const result = insertBlogCategorySchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog category data", errors: result.error.errors });
+      }
+      
+      const category = await storage.updateBlogCategory(categoryId, result.data);
+      res.json(category);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog category with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error updating blog category: " + error.message });
+    }
+  });
+
+  app.delete("/api/blog/categories/:id", requireAdmin, async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+      const deleted = await storage.deleteBlogCategory(categoryId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog category not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting blog category: " + error.message });
+    }
+  });
+
+  // Blog Tags routes
+  app.get("/api/blog/tags", async (req, res) => {
+    try {
+      const tags = await storage.getBlogTags();
+      res.json(tags);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog tags: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/tags/:id", async (req, res) => {
+    try {
+      const tag = await storage.getBlogTag(req.params.id);
+      if (!tag) {
+        return res.status(404).json({ message: "Blog tag not found" });
+      }
+      res.json(tag);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog tag: " + error.message });
+    }
+  });
+
+  app.get("/api/blog/tags/slug/:slug", async (req, res) => {
+    try {
+      const tag = await storage.getBlogTagBySlug(req.params.slug);
+      if (!tag) {
+        return res.status(404).json({ message: "Blog tag not found" });
+      }
+      res.json(tag);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog tag: " + error.message });
+    }
+  });
+
+  app.post("/api/blog/tags", requireAdmin, async (req, res) => {
+    try {
+      const result = insertBlogTagSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog tag data", errors: result.error.errors });
+      }
+      
+      const tag = await storage.createBlogTag(result.data);
+      res.status(201).json(tag);
+    } catch (error: any) {
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog tag with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error creating blog tag: " + error.message });
+    }
+  });
+
+  app.put("/api/blog/tags/:id", requireAdmin, async (req, res) => {
+    try {
+      const tagId = req.params.id;
+      const result = insertBlogTagSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid blog tag data", errors: result.error.errors });
+      }
+      
+      const tag = await storage.updateBlogTag(tagId, result.data);
+      res.json(tag);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error.message.includes('unique constraint') || error.message.includes('UNIQUE constraint')) {
+        return res.status(409).json({ message: "Blog tag with this slug already exists" });
+      }
+      res.status(500).json({ message: "Error updating blog tag: " + error.message });
+    }
+  });
+
+  app.delete("/api/blog/tags/:id", requireAdmin, async (req, res) => {
+    try {
+      const tagId = req.params.id;
+      const deleted = await storage.deleteBlogTag(tagId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Blog tag not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: "Error deleting blog tag: " + error.message });
     }
   });
 

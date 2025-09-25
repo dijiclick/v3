@@ -23,6 +23,7 @@ import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
+import BlogListPage from "@/pages/BlogListPage";
 
 function AdminRouter() {
   return (
@@ -81,6 +82,31 @@ function PublicRouter() {
       <Route path="/products">
         <PersianLayout>
           <ProductCatalog />
+        </PersianLayout>
+      </Route>
+      
+      {/* Blog routes - specific routes come before generic ones */}
+      <Route path="/blog/category/:categorySlug">
+        <PersianLayout>
+          <BlogListPage />
+        </PersianLayout>
+      </Route>
+      
+      <Route path="/blog/tag/:tagSlug">
+        <PersianLayout>
+          <BlogListPage />
+        </PersianLayout>
+      </Route>
+      
+      <Route path="/blog/author/:authorId">
+        <PersianLayout>
+          <BlogListPage />
+        </PersianLayout>
+      </Route>
+      
+      <Route path="/blog">
+        <PersianLayout>
+          <BlogListPage />
         </PersianLayout>
       </Route>
       

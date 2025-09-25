@@ -1,4 +1,4 @@
-import { Product, Category } from '@/types';
+import { Product, Category, BlogPost, BlogAuthor, BlogCategory, BlogTag, BlogPostsResponse, BlogFilters } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { useSanityProducts, useSanityCategories, useSanityProduct, isSanityConfigured } from '@/hooks/use-sanity';
 import { adaptSanityProducts, adaptSanityCategories, adaptSanityProduct } from './content-adapter';
@@ -195,6 +195,306 @@ export function useProductsByCategory(categoryId: string) {
       return response.json();
     },
     enabled: Boolean(categoryId),
+  });
+}
+
+// Blog hooks - database API based for now (can be extended with Sanity support later)
+export function useBlogPosts(options?: {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  featured?: boolean;
+  categoryId?: string; // kept for backward compatibility
+  categoryIds?: string[];
+  authorId?: string; // kept for backward compatibility  
+  authorIds?: string[];
+  tags?: string[];
+  search?: string;
+  startDate?: string; // ISO string from frontend
+  endDate?: string; // ISO string from frontend
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) {
+  const queryParams = new URLSearchParams();
+  
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.offset) queryParams.append('offset', options.offset.toString());
+  if (options?.status) queryParams.append('status', options.status);
+  if (options?.featured !== undefined) queryParams.append('featured', options.featured.toString());
+  
+  // Handle new array parameters while maintaining backward compatibility
+  if (options?.categoryIds && options.categoryIds.length > 0) {
+    queryParams.append('categoryIds', options.categoryIds.join(','));
+  } else if (options?.categoryId) {
+    queryParams.append('categoryId', options.categoryId);
+  }
+  
+  if (options?.authorIds && options.authorIds.length > 0) {
+    queryParams.append('authorIds', options.authorIds.join(','));
+  } else if (options?.authorId) {
+    queryParams.append('authorId', options.authorId);
+  }
+  
+  if (options?.tags && options.tags.length > 0) queryParams.append('tags', options.tags.join(','));
+  if (options?.search) queryParams.append('search', options.search);
+  if (options?.startDate) queryParams.append('startDate', options.startDate);
+  if (options?.endDate) queryParams.append('endDate', options.endDate);
+  if (options?.sortBy) queryParams.append('sortBy', options.sortBy);
+  if (options?.sortOrder) queryParams.append('sortOrder', options.sortOrder);
+
+  const queryString = queryParams.toString();
+  const url = `/api/blog/posts${queryString ? '?' + queryString : ''}`;
+
+  return useQuery<BlogPostsResponse>({
+    queryKey: ['/api/blog/posts', options],
+    queryFn: async () => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog posts: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useFeaturedBlogPosts(limit = 3) {
+  return useQuery<BlogPost[]>({
+    queryKey: ['/api/blog/posts/featured', limit],
+    queryFn: async () => {
+      const response = await fetch(`/api/blog/posts/featured?limit=${limit}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch featured blog posts: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useBlogPost(id: string) {
+  return useQuery<BlogPost>({
+    queryKey: ['/api/blog/posts', id],
+    queryFn: async () => {
+      if (!id) throw new Error('Blog post ID is required');
+      const response = await fetch(`/api/blog/posts/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Blog post not found');
+        }
+        throw new Error(`Failed to fetch blog post: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(id),
+  });
+}
+
+export function useBlogPostBySlug(slug: string) {
+  return useQuery<BlogPost>({
+    queryKey: ['/api/blog/posts/slug', slug],
+    queryFn: async () => {
+      if (!slug) throw new Error('Blog post slug is required');
+      const response = await fetch(`/api/blog/posts/slug/${slug}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog post: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(slug),
+  });
+}
+
+export function useBlogPostsByCategory(categoryId: string, options?: { limit?: number; offset?: number }) {
+  const queryParams = new URLSearchParams();
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.offset) queryParams.append('offset', options.offset.toString());
+  const queryString = queryParams.toString();
+
+  return useQuery<BlogPostsResponse>({
+    queryKey: ['/api/blog/posts/category', categoryId, options],
+    queryFn: async () => {
+      if (!categoryId) throw new Error('Category ID is required');
+      const response = await fetch(`/api/blog/posts/category/${categoryId}${queryString ? '?' + queryString : ''}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog posts by category: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(categoryId),
+  });
+}
+
+export function useBlogPostsByTag(tagSlug: string, options?: { limit?: number; offset?: number }) {
+  const queryParams = new URLSearchParams();
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.offset) queryParams.append('offset', options.offset.toString());
+  const queryString = queryParams.toString();
+
+  return useQuery<BlogPostsResponse>({
+    queryKey: ['/api/blog/posts/tag', tagSlug, options],
+    queryFn: async () => {
+      if (!tagSlug) throw new Error('Tag slug is required');
+      const response = await fetch(`/api/blog/posts/tag/${tagSlug}${queryString ? '?' + queryString : ''}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog posts by tag: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(tagSlug),
+  });
+}
+
+export function useBlogPostsByAuthor(authorId: string, options?: { limit?: number; offset?: number }) {
+  const queryParams = new URLSearchParams();
+  if (options?.limit) queryParams.append('limit', options.limit.toString());
+  if (options?.offset) queryParams.append('offset', options.offset.toString());
+  const queryString = queryParams.toString();
+
+  return useQuery<BlogPostsResponse>({
+    queryKey: ['/api/blog/posts/author', authorId, options],
+    queryFn: async () => {
+      if (!authorId) throw new Error('Author ID is required');
+      const response = await fetch(`/api/blog/posts/author/${authorId}${queryString ? '?' + queryString : ''}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog posts by author: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(authorId),
+  });
+}
+
+// Blog Authors hooks
+export function useBlogAuthors() {
+  return useQuery<BlogAuthor[]>({
+    queryKey: ['/api/blog/authors'],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/authors');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog authors: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useBlogAuthor(id: string) {
+  return useQuery<BlogAuthor>({
+    queryKey: ['/api/blog/authors', id],
+    queryFn: async () => {
+      if (!id) throw new Error('Author ID is required');
+      const response = await fetch(`/api/blog/authors/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog author: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(id),
+  });
+}
+
+// Blog Categories hooks
+export function useBlogCategories() {
+  return useQuery<BlogCategory[]>({
+    queryKey: ['/api/blog/categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/categories');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog categories: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useBlogCategory(id: string) {
+  return useQuery<BlogCategory>({
+    queryKey: ['/api/blog/categories', id],
+    queryFn: async () => {
+      if (!id) throw new Error('Category ID is required');
+      const response = await fetch(`/api/blog/categories/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog category: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(id),
+  });
+}
+
+export function useBlogCategoryBySlug(slug: string) {
+  return useQuery<BlogCategory>({
+    queryKey: ['/api/blog/categories/slug', slug],
+    queryFn: async () => {
+      if (!slug) throw new Error('Category slug is required');
+      const response = await fetch(`/api/blog/categories/slug/${slug}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog category: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(slug),
+  });
+}
+
+// Blog Tags hooks
+export function useBlogTags() {
+  return useQuery<BlogTag[]>({
+    queryKey: ['/api/blog/tags'],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/tags');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blog tags: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useBlogTag(id: string) {
+  return useQuery<BlogTag>({
+    queryKey: ['/api/blog/tags', id],
+    queryFn: async () => {
+      if (!id) throw new Error('Tag ID is required');
+      const response = await fetch(`/api/blog/tags/${id}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog tag: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(id),
+  });
+}
+
+export function useBlogTagBySlug(slug: string) {
+  return useQuery<BlogTag>({
+    queryKey: ['/api/blog/tags/slug', slug],
+    queryFn: async () => {
+      if (!slug) throw new Error('Tag slug is required');
+      const response = await fetch(`/api/blog/tags/slug/${slug}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`Failed to fetch blog tag: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: Boolean(slug),
   });
 }
 

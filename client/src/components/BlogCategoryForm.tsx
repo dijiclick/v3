@@ -176,14 +176,14 @@ export default function BlogCategoryForm({ category, onSuccess, onCancel }: Blog
               <div>
                 <Label htmlFor="parentId">Parent Category</Label>
                 <Select 
-                  value={form.watch("parentId") || ""} 
-                  onValueChange={(value) => form.setValue("parentId", value || undefined)}
+                  value={form.watch("parentId") || "none"} 
+                  onValueChange={(value) => form.setValue("parentId", value === "none" ? undefined : value)}
                 >
                   <SelectTrigger data-testid="blog-category-parent-select">
                     <SelectValue placeholder="Select parent category (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No parent (top level)</SelectItem>
+                    <SelectItem value="none">No parent (top level)</SelectItem>
                     {availableParentCategories.map((cat: BlogCategory) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}

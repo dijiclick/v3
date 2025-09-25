@@ -43,8 +43,10 @@ export default function AdminBlogPosts() {
   };
 
   const { data: postsResponse, isLoading } = useBlogPosts(queryOptions);
-  const { data: authors = [] } = useBlogAuthors();
+  const { data: authorsData = { authors: [], total: 0 } } = useBlogAuthors();
   const { data: categories = [] } = useBlogCategories();
+  
+  const authors = authorsData.authors || [];
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -77,10 +79,11 @@ export default function AdminBlogPosts() {
     }
   };
 
-  const formatDate = (date: string | null) => {
+  const formatDate = (date: string | Date | null) => {
     if (!date) return "Never";
     try {
-      return formatDistanceToNow(new Date(date), { addSuffix: true });
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return formatDistanceToNow(dateObj, { addSuffix: true });
     } catch {
       return "Invalid date";
     }

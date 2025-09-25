@@ -745,6 +745,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get popular posts without category requirement - MUST BE BEFORE :id route
+  app.get("/api/blog/posts/popular", async (req, res) => {
+    try {
+      const { 
+        timeframe = "30d", 
+        limit = "10" 
+      } = req.query;
+
+      // Get popular posts from all categories by viewCount
+      const { posts } = await storage.getBlogPosts({
+        status: 'published',
+        sortBy: 'viewCount',
+        sortOrder: 'desc',
+        limit: parseInt(limit as string, 10),
+        offset: 0
+      });
+
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching popular posts: " + error.message });
+    }
+  });
+
   app.get("/api/blog/posts/:id", async (req, res) => {
     try {
       const post = await storage.getBlogPost(req.params.id);
@@ -782,6 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching blog posts by category: " + error.message });
     }
   });
+
 
   app.get("/api/blog/posts/tag/:tagSlug", async (req, res) => {
     try {
@@ -922,6 +946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Enhanced Blog API Endpoints for Content Discovery and Navigation
 
+
   // Get related posts for a specific post
   app.get("/api/blog/posts/:slug/related", async (req, res) => {
     try {
@@ -995,6 +1020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching post navigation: " + error.message });
     }
   });
+
 
   // Get popular posts by category
   app.get("/api/blog/popular", async (req, res) => {

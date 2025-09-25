@@ -869,8 +869,11 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (tags && tags.length > 0) {
-      // PostgreSQL array contains any of the provided tags
-      conditions.push(sql`${blogPosts.tags} && ${tags}`);
+      // Simple text search - convert array to text and search for tag
+      const tagConditions = tags.map(tag => 
+        like(sql`array_to_string(${blogPosts.tags}, ',')`, `%${tag}%`)
+      );
+      conditions.push(or(...tagConditions));
     }
     
     // Date range filtering

@@ -73,7 +73,11 @@ function BilingualAdminLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 ${isRTL ? 'right-0 border-l' : 'left-0 border-r'} z-50 w-64 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}`}>
+      <div className={`fixed inset-y-0 z-50 w-64 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out ${
+        isRTL 
+          ? `right-0 border-l lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`
+          : `left-0 border-r lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+      }`}>
         <div className={`flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
             Limitpass
@@ -168,7 +172,7 @@ function BilingualAdminLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main content */}
-      <div className={`lg:${isRTL ? 'pr-64' : 'pl-64'}`}>
+      <div className={isRTL ? 'lg:pr-64' : 'lg:pl-64'}>
         {/* Top bar */}
         <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className={`flex items-center justify-between h-16 px-4 sm:px-6 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>

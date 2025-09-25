@@ -24,6 +24,7 @@ import AdminSettings from "@/pages/AdminSettings";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
+import BlogPostPage from "@/pages/BlogPostPage";
 
 function AdminRouter() {
   return (
@@ -101,6 +102,13 @@ function PublicRouter() {
       <Route path="/blog/author/:authorId">
         <PersianLayout>
           <BlogListPage />
+        </PersianLayout>
+      </Route>
+      
+      {/* Individual blog post route - must come before generic /blog route */}
+      <Route path="/blog/:slug">
+        <PersianLayout>
+          <BlogPostPage />
         </PersianLayout>
       </Route>
       

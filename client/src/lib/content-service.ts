@@ -498,5 +498,90 @@ export function useBlogTagBySlug(slug: string) {
   });
 }
 
+// Related posts hook - get posts from same category or with matching tags
+export function useRelatedBlogPosts(post: BlogPost | undefined, limit = 3) {
+  return useQuery<BlogPost[]>({
+    queryKey: ['/api/blog/posts/related', post?.id, limit],
+    queryFn: async () => {
+      if (!post) return [];
+      
+      // Try to get posts from same category first
+      let relatedPosts: BlogPost[] = [];
+      
+      if (post.categoryId) {
+        const categoryResponse = await fetch(`/api/blog/posts/category/${post.categoryId}?limit=${limit * 2}&status=published`);
+        if (categoryResponse.ok) {
+          const categoryData: BlogPostsResponse = await categoryResponse.json();
+          relatedPosts = categoryData.posts.filter(p => p.id !== post.id);
+        }
+      }
+      
+      // If we don't have enough posts, supplement with posts that share tags
+      if (relatedPosts.length < limit && post.tags && post.tags.length > 0) {
+        const remainingLimit = limit - relatedPosts.length;
+        const existingIds = new Set([post.id, ...relatedPosts.map(p => p.id)]);
+        
+        // Try each tag to find more related posts
+        for (const tag of post.tags) {
+          if (relatedPosts.length >= limit) break;
+          
+          const tagResponse = await fetch(`/api/blog/posts/tag/${tag}?limit=${remainingLimit * 2}&status=published`);
+          if (tagResponse.ok) {
+            const tagData: BlogPostsResponse = await tagResponse.json();
+            const newPosts = tagData.posts.filter(p => !existingIds.has(p.id));
+            relatedPosts.push(...newPosts.slice(0, remainingLimit));
+            newPosts.forEach(p => existingIds.add(p.id));
+          }
+        }
+      }
+      
+      // Sort by publication date and limit results
+      return relatedPosts
+        .sort((a, b) => {
+          const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+          const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, limit);
+    },
+    enabled: !!post,
+  });
+}
+
+// Hook to get previous/next posts for navigation
+export function useBlogPostNavigation(currentPost: BlogPost | undefined) {
+  return useQuery<{ previous: BlogPost | null; next: BlogPost | null }>({
+    queryKey: ['/api/blog/posts/navigation', currentPost?.id],
+    queryFn: async () => {
+      if (!currentPost || !currentPost.publishedAt) {
+        return { previous: null, next: null };
+      }
+      
+      const currentDate = new Date(currentPost.publishedAt).toISOString();
+      
+      // Get previous post (older)
+      const previousResponse = await fetch(`/api/blog/posts?limit=1&status=published&endDate=${currentDate}&sortBy=publishedAt&sortOrder=desc`);
+      let previous: BlogPost | null = null;
+      if (previousResponse.ok) {
+        const previousData: BlogPostsResponse = await previousResponse.json();
+        const filteredPrevious = previousData.posts.filter(p => p.id !== currentPost.id);
+        previous = filteredPrevious.length > 0 ? filteredPrevious[0] : null;
+      }
+      
+      // Get next post (newer)
+      const nextResponse = await fetch(`/api/blog/posts?limit=1&status=published&startDate=${currentDate}&sortBy=publishedAt&sortOrder=asc`);
+      let next: BlogPost | null = null;
+      if (nextResponse.ok) {
+        const nextData: BlogPostsResponse = await nextResponse.json();
+        const filteredNext = nextData.posts.filter(p => p.id !== currentPost.id);
+        next = filteredNext.length > 0 ? filteredNext[0] : null;
+      }
+      
+      return { previous, next };
+    },
+    enabled: !!currentPost,
+  });
+}
+
 // Export the service instance
 export const contentService = new ContentService(ContentService.isSanityConfigured());

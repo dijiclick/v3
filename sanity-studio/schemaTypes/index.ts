@@ -1,5 +1,23 @@
+// Core content schemas
 import {product} from './product'
 import {category} from './category'
 import {page} from './page'
 
-export const schemaTypes = [product, category, page]
+// Blog system schemas
+import {blogPost} from './blogPost'
+import {blogCategory} from './blogCategory'
+import {author} from './author'
+import {tag} from './tag'
+
+export const schemaTypes = [
+  // Core content
+  product, 
+  category, 
+  page,
+  
+  // Blog system
+  blogPost,
+  blogCategory,
+  author,
+  tag,
+]

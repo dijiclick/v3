@@ -31,7 +31,7 @@ export function ModernSidebar({
   onTagClick 
 }: ModernSidebarProps) {
   return (
-    <aside className="space-y-8" dir="rtl" data-testid="modern-sidebar">
+    <aside className="space-y-8 mt-96" dir="rtl" data-testid="modern-sidebar">
       {/* Popular Blogs */}
       <div className="bg-white rounded-xl p-6 shadow-sm" data-testid="popular-blogs">
         <div className="flex items-center gap-2 mb-4">

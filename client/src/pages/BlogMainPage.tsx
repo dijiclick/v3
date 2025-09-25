@@ -303,11 +303,6 @@ export default function BlogMainPage() {
                           <h3 className="font-bold text-lg line-clamp-2 group-hover:text-yellow-300 transition-colors font-vazir">
                             {post.title}
                           </h3>
-                          {post.excerpt && (
-                            <p className="text-red-100 text-sm mt-2 line-clamp-2 font-vazir">
-                              {post.excerpt}
-                            </p>
-                          )}
                           <div className="flex items-center gap-4 mt-3 text-xs text-red-200">
                             {post.publishedAt && (
                               <span className="flex items-center gap-1">

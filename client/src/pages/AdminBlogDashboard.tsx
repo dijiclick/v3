@@ -1,4 +1,4 @@
-import { BookOpen, Edit, Eye, TrendingUp, Users, Calendar, Plus } from "lucide-react";
+import { BookOpen, Edit, Eye, TrendingUp, Users, Calendar, Plus, Copy } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,29 @@ export default function AdminBlogDashboard() {
       toast({
         title: "Error",
         description: `Failed to update post status: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for duplicating posts
+  const duplicatePostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      return apiRequest('POST', `/api/blog/posts/${postId}/duplicate`);
+    },
+    onSuccess: (duplicatedPost) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/blog/posts'] });
+      toast({
+        title: "Success",
+        description: "Post duplicated successfully!",
+      });
+      // Navigate to edit the duplicated post
+      window.location.href = `/admin/blog/edit/${duplicatedPost.id}`;
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to duplicate post: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -134,6 +157,10 @@ export default function AdminBlogDashboard() {
   const handleStatusChange = (postId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'published' ? 'draft' : 'published';
     updateStatusMutation.mutate({ postId, status: newStatus });
+  };
+
+  const handleDuplicatePost = (postId: string) => {
+    duplicatePostMutation.mutate(postId);
   };
 
   if (postsLoading || recentLoading) {
@@ -250,9 +277,11 @@ export default function AdminBlogDashboard() {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {post.title}
-                        </h4>
+                        <Link href={`/admin/blog/edit/${post.id}`}>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors" data-testid={`post-title-${post.id}`}>
+                            {post.title}
+                          </h4>
+                        </Link>
                         <Badge className={getStatusColor(post.status)} data-testid={`post-status-${post.id}`}>
                           {post.status}
                         </Badge>
@@ -275,6 +304,16 @@ export default function AdminBlogDashboard() {
                         data-testid={`toggle-status-${post.id}`}
                       >
                         {post.status === 'published' ? 'Unpublish' : 'Publish'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDuplicatePost(post.id)}
+                        disabled={duplicatePostMutation.isPending}
+                        data-testid={`duplicate-post-${post.id}`}
+                        title="Duplicate post"
+                      >
+                        <Copy className="h-4 w-4" />
                       </Button>
                       <Link href={`/admin/blog/edit/${post.id}`}>
                         <Button variant="ghost" size="sm" data-testid={`edit-post-${post.id}`}>

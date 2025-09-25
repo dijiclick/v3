@@ -842,6 +842,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Duplicate blog post endpoint
+  app.post("/api/blog/posts/:id/duplicate", requireAdmin, async (req, res) => {
+    try {
+      const sourcePostId = req.params.id;
+      const sourcePost = await storage.getBlogPost(sourcePostId);
+      
+      if (!sourcePost) {
+        return res.status(404).json({ message: "Source blog post not found" });
+      }
+
+      // Create a unique slug for the duplicated post
+      const baseCopyTitle = `Copy of ${sourcePost.title}`;
+      let copyTitle = baseCopyTitle;
+      let copySlug = copyTitle.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+      
+      // Ensure unique slug by appending number if needed
+      let counter = 1;
+      let finalSlug = copySlug;
+      while (await storage.getBlogPostBySlug(finalSlug)) {
+        finalSlug = `${copySlug}-${counter}`;
+        counter++;
+      }
+
+      // Create the duplicate post data
+      const duplicateData = {
+        title: copyTitle,
+        slug: finalSlug,
+        excerpt: sourcePost.excerpt,
+        content: sourcePost.content,
+        status: 'draft', // Always create duplicates as drafts
+        featuredImage: sourcePost.featuredImage,
+        authorId: sourcePost.authorId,
+        categoryId: sourcePost.categoryId,
+        tags: sourcePost.tags,
+        seoTitle: sourcePost.seoTitle,
+        seoDescription: sourcePost.seoDescription,
+        // Don't copy publishedAt - will be set when published
+      };
+
+      const result = insertBlogPostSchema.safeParse(duplicateData);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid duplicate blog post data", 
+          errors: result.error.errors 
+        });
+      }
+
+      const duplicatedPost = await storage.createBlogPost(result.data);
+      res.status(201).json(duplicatedPost);
+    } catch (error: any) {
+      console.error('Error duplicating blog post:', error);
+      res.status(500).json({ message: "Error duplicating blog post: " + error.message });
+    }
+  });
+
   // Enhanced Blog API Endpoints for Content Discovery and Navigation
 
   // Get related posts for a specific post

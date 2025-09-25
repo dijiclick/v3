@@ -52,7 +52,7 @@ export default function BlogCategoryForm({ category, onSuccess, onCancel }: Blog
       name: category?.name || "",
       slug: category?.slug || "",
       description: category?.description || "",
-      parentId: category?.parentId || "",
+      parentId: category?.parentId || undefined,
       color: category?.color || "#3B82F6",
       seoTitle: category?.seoTitle || "",
       seoDescription: category?.seoDescription || "",
@@ -68,6 +68,7 @@ export default function BlogCategoryForm({ category, onSuccess, onCancel }: Blog
       const categoryData = {
         ...data,
         slug: data.slug || data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+        parentId: data.parentId && data.parentId !== "" ? data.parentId : undefined,
         seoKeywords: data.seoKeywords?.filter(keyword => keyword.trim().length > 0),
       };
       

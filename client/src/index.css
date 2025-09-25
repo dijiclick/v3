@@ -679,3 +679,278 @@
 .cart-overlay.open {
   transform: translateX(0);
 }
+
+/* Enhanced Blog Content Typography */
+.blog-content-wrapper {
+  @apply space-y-8;
+}
+
+/* Persian Font Support */
+.font-persian {
+  font-family: 'Vazir', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Enhanced Blog Prose Styles */
+.prose-enhanced {
+  @apply max-w-none text-gray-800 dark:text-gray-200 leading-relaxed;
+  
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-gray-900 dark:text-gray-100 font-persian;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 100px; /* For table of contents navigation */
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+    margin-top: 0;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl border-b-2 border-blue-100 dark:border-blue-800 pb-2;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  h4 {
+    @apply text-lg md:text-xl;
+  }
+  
+  h5, h6 {
+    @apply text-base md:text-lg;
+  }
+  
+  /* Paragraphs */
+  p {
+    @apply text-base md:text-lg leading-relaxed text-gray-700 dark:text-gray-300 font-persian;
+    margin-bottom: 1.5rem;
+    hyphens: auto;
+  }
+  
+  /* Links */
+  a {
+    @apply text-blue-600 dark:text-blue-400 no-underline font-medium;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 1px solid transparent;
+  }
+  
+  a:hover {
+    @apply text-blue-700 dark:text-blue-300;
+    border-bottom-color: currentColor;
+  }
+  
+  /* Lists */
+  ul, ol {
+    @apply space-y-2 text-gray-700 dark:text-gray-300 font-persian;
+    margin-bottom: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  li {
+    @apply leading-relaxed text-base md:text-lg;
+  }
+  
+  ul li {
+    @apply relative;
+    list-style: none;
+  }
+  
+  ul li::before {
+    content: '•';
+    @apply text-blue-500 font-bold;
+    position: absolute;
+    right: -1rem;
+  }
+  
+  ol li {
+    @apply list-decimal;
+  }
+  
+  /* Blockquotes */
+  blockquote {
+    @apply border-r-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 pr-6 py-4 my-6 rounded-r-lg font-persian;
+    position: relative;
+  }
+  
+  blockquote::before {
+    content: '"';
+    @apply text-6xl text-blue-500 opacity-25 absolute -top-2 -right-2;
+    font-family: Georgia, serif;
+  }
+  
+  blockquote p {
+    @apply text-gray-700 dark:text-gray-300 italic text-lg font-medium;
+    margin-bottom: 0;
+  }
+  
+  /* Code */
+  code {
+    @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded font-mono text-sm;
+    font-size: 0.875em;
+  }
+  
+  pre {
+    @apply bg-gray-900 dark:bg-gray-950 text-gray-100 p-6 rounded-xl overflow-x-auto my-6;
+    direction: ltr;
+  }
+  
+  pre code {
+    @apply bg-transparent p-0 text-gray-100;
+  }
+  
+  /* Images */
+  img {
+    @apply rounded-lg shadow-lg mx-auto max-w-full h-auto my-8;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  img:hover {
+    @apply scale-105;
+  }
+  
+  figure {
+    @apply my-8 text-center;
+  }
+  
+  figcaption {
+    @apply text-sm text-gray-600 dark:text-gray-400 italic mt-3 font-persian;
+  }
+  
+  /* Tables */
+  table {
+    @apply w-full border-collapse border border-gray-300 dark:border-gray-700 my-6 rounded-lg overflow-hidden;
+  }
+  
+  th {
+    @apply bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-3 font-semibold text-right font-persian;
+  }
+  
+  td {
+    @apply border border-gray-300 dark:border-gray-700 p-3 text-right font-persian;
+  }
+  
+  /* Horizontal Rule */
+  hr {
+    @apply border-t-2 border-gray-200 dark:border-gray-700 my-8;
+  }
+  
+  /* Strong and Emphasis */
+  strong, b {
+    @apply font-bold text-gray-900 dark:text-gray-100;
+  }
+  
+  em, i {
+    @apply italic text-gray-800 dark:text-gray-200;
+  }
+  
+  /* Mark */
+  mark {
+    @apply bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 px-1 rounded;
+  }
+  
+  /* Keyboard */
+  kbd {
+    @apply bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono border border-gray-300 dark:border-gray-600;
+  }
+  
+  /* Subscript and Superscript */
+  sub, sup {
+    @apply text-xs;
+  }
+}
+
+/* Table of Contents Specific Styles */
+.toc-container {
+  @apply transition-all duration-300;
+}
+
+.toc-container .sticky {
+  top: 6rem;
+}
+
+/* Popular Content Sidebar Styles */
+.popular-content {
+  @apply space-y-6;
+}
+
+.popular-content .card:hover {
+  @apply transform scale-105 shadow-lg;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Responsive Typography Adjustments */
+@media (max-width: 768px) {
+  .prose-enhanced {
+    h1 { @apply text-2xl; }
+    h2 { @apply text-xl; }
+    h3 { @apply text-lg; }
+    h4, h5, h6 { @apply text-base; }
+    p, li { @apply text-base; }
+  }
+}
+
+/* 3-Column Layout Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .blog-3-column-layout {
+    @apply block space-y-6;
+  }
+  
+  .blog-sidebar {
+    @apply w-full;
+  }
+  
+  .blog-main-content {
+    @apply w-full;
+  }
+}
+
+/* Enhanced Reading Experience */
+.reading-experience {
+  /* Better line spacing for readability */
+  line-height: 1.75;
+  
+  /* Optimal content width for reading */
+  max-width: 75ch;
+  
+  /* Better paragraph spacing */
+  p + p {
+    margin-top: 1.5rem;
+  }
+  
+  /* Enhanced focus states */
+  *:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 rounded;
+  }
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+/* Print Styles */
+@media print {
+  .blog-sidebar,
+  .popular-content,
+  .toc-container {
+    @apply hidden;
+  }
+  
+  .blog-main-content {
+    @apply w-full max-w-none;
+  }
+  
+  .prose-enhanced {
+    @apply text-black;
+  }
+  
+  .prose-enhanced a {
+    @apply text-black underline;
+  }
+}

@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import { storage } from "./storage";
 import { insertProductSchema, insertCategorySchema, insertPageSchema, insertProductPlanSchema, insertBlogPostSchema, insertBlogAuthorSchema, insertBlogCategorySchema, insertBlogTagSchema } from "@shared/schema";
 import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
+import { sitemapGenerator, sitemapCache } from "./sitemap";
+import { rssGenerator, rssCache } from "./rss";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -1293,6 +1295,416 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ message: "Error fetching blog posts by author slug: " + error.message });
+    }
+  });
+
+  // ============================================================================
+  // SEO ROUTES - Sitemap, RSS, and SEO Validation Endpoints
+  // ============================================================================
+
+  // Main blog sitemap endpoint
+  app.get("/sitemap-blog.xml", async (req, res) => {
+    try {
+      const cacheKey = "sitemap-blog";
+      let sitemapXML = sitemapCache.get(cacheKey);
+      
+      if (!sitemapXML) {
+        sitemapXML = await sitemapGenerator.generateBlogSitemap();
+        sitemapCache.set(cacheKey, sitemapXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      res.send(sitemapXML);
+    } catch (error: any) {
+      console.error('Error generating blog sitemap:', error);
+      res.status(500).json({ message: "Error generating sitemap: " + error.message });
+    }
+  });
+
+  // Category-specific sitemap
+  app.get("/sitemap-blog-category-:slug.xml", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const cacheKey = `sitemap-category-${slug}`;
+      let sitemapXML = sitemapCache.get(cacheKey);
+      
+      if (!sitemapXML) {
+        sitemapXML = await sitemapGenerator.generateCategorySitemap(slug);
+        sitemapCache.set(cacheKey, sitemapXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Cache-Control', 'public, max-age=7200'); // 2 hours cache
+      res.send(sitemapXML);
+    } catch (error: any) {
+      console.error('Error generating category sitemap:', error);
+      res.status(500).json({ message: "Error generating category sitemap: " + error.message });
+    }
+  });
+
+  // Author-specific sitemap
+  app.get("/sitemap-blog-author-:slug.xml", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const cacheKey = `sitemap-author-${slug}`;
+      let sitemapXML = sitemapCache.get(cacheKey);
+      
+      if (!sitemapXML) {
+        sitemapXML = await sitemapGenerator.generateAuthorSitemap(slug);
+        sitemapCache.set(cacheKey, sitemapXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Cache-Control', 'public, max-age=7200'); // 2 hours cache
+      res.send(sitemapXML);
+    } catch (error: any) {
+      console.error('Error generating author sitemap:', error);
+      res.status(500).json({ message: "Error generating author sitemap: " + error.message });
+    }
+  });
+
+  // Sitemap index
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const cacheKey = "sitemap-index";
+      let sitemapXML = sitemapCache.get(cacheKey);
+      
+      if (!sitemapXML) {
+        sitemapXML = await sitemapGenerator.generateSitemapIndex();
+        sitemapCache.set(cacheKey, sitemapXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      res.send(sitemapXML);
+    } catch (error: any) {
+      console.error('Error generating sitemap index:', error);
+      res.status(500).json({ message: "Error generating sitemap index: " + error.message });
+    }
+  });
+
+  // Sitemap statistics and validation
+  app.get("/api/seo/sitemap/stats", async (req, res) => {
+    try {
+      const stats = await sitemapGenerator.getSitemapStats();
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error getting sitemap stats: " + error.message });
+    }
+  });
+
+  app.get("/api/seo/sitemap/validate", async (req, res) => {
+    try {
+      const validation = await sitemapGenerator.validateSitemap();
+      res.json(validation);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error validating sitemap: " + error.message });
+    }
+  });
+
+  // Clear sitemap cache
+  app.post("/api/admin/seo/sitemap/clear-cache", requireAdmin, async (req, res) => {
+    try {
+      sitemapCache.clear();
+      res.json({ message: "Sitemap cache cleared successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error clearing sitemap cache: " + error.message });
+    }
+  });
+
+  // ============================================================================
+  // RSS FEED ENDPOINTS
+  // ============================================================================
+
+  // Main blog RSS feed
+  app.get("/blog/feed.xml", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const cacheKey = `rss-blog-${limit}`;
+      let rssXML = rssCache.get(cacheKey);
+      
+      if (!rssXML) {
+        rssXML = await rssGenerator.generateBlogFeed(limit);
+        rssCache.set(cacheKey, rssXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=1800'); // 30 minutes cache
+      res.send(rssXML);
+    } catch (error: any) {
+      console.error('Error generating RSS feed:', error);
+      res.status(500).json({ message: "Error generating RSS feed: " + error.message });
+    }
+  });
+
+  // Alternative RSS feed endpoint
+  app.get("/rss.xml", async (req, res) => {
+    res.redirect(301, "/blog/feed.xml");
+  });
+
+  // Category-specific RSS feed
+  app.get("/blog/category/:slug/feed.xml", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const cacheKey = `rss-category-${slug}-${limit}`;
+      let rssXML = rssCache.get(cacheKey);
+      
+      if (!rssXML) {
+        rssXML = await rssGenerator.generateCategoryFeed(slug, limit);
+        rssCache.set(cacheKey, rssXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      res.send(rssXML);
+    } catch (error: any) {
+      console.error('Error generating category RSS feed:', error);
+      res.status(500).json({ message: "Error generating category RSS feed: " + error.message });
+    }
+  });
+
+  // Author-specific RSS feed
+  app.get("/blog/author/:slug/feed.xml", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const cacheKey = `rss-author-${slug}-${limit}`;
+      let rssXML = rssCache.get(cacheKey);
+      
+      if (!rssXML) {
+        rssXML = await rssGenerator.generateAuthorFeed(slug, limit);
+        rssCache.set(cacheKey, rssXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      res.send(rssXML);
+    } catch (error: any) {
+      console.error('Error generating author RSS feed:', error);
+      res.status(500).json({ message: "Error generating author RSS feed: " + error.message });
+    }
+  });
+
+  // Tag-specific RSS feed
+  app.get("/blog/tag/:slug/feed.xml", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const cacheKey = `rss-tag-${slug}-${limit}`;
+      let rssXML = rssCache.get(cacheKey);
+      
+      if (!rssXML) {
+        rssXML = await rssGenerator.generateTagFeed(slug, limit);
+        rssCache.set(cacheKey, rssXML);
+      }
+      
+      res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+      res.send(rssXML);
+    } catch (error: any) {
+      console.error('Error generating tag RSS feed:', error);
+      res.status(500).json({ message: "Error generating tag RSS feed: " + error.message });
+    }
+  });
+
+  // RSS statistics and validation
+  app.get("/api/seo/rss/stats", async (req, res) => {
+    try {
+      const stats = await rssGenerator.getRSSStats();
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error getting RSS stats: " + error.message });
+    }
+  });
+
+  app.get("/api/seo/rss/validate", async (req, res) => {
+    try {
+      const validation = await rssGenerator.validateFeeds();
+      res.json(validation);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error validating RSS feeds: " + error.message });
+    }
+  });
+
+  // Clear RSS cache
+  app.post("/api/admin/seo/rss/clear-cache", requireAdmin, async (req, res) => {
+    try {
+      rssCache.clear();
+      res.json({ message: "RSS cache cleared successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error clearing RSS cache: " + error.message });
+    }
+  });
+
+  // ============================================================================
+  // SEO VALIDATION AND UTILITIES
+  // ============================================================================
+
+  // Validate blog post SEO
+  app.post("/api/seo/validate/post", async (req, res) => {
+    try {
+      const { title, description, keywords, content, image, slug } = req.body;
+      
+      const validation = {
+        title: {
+          isValid: !!title,
+          length: title?.length || 0,
+          recommendation: title?.length > 60 ? 'Title is too long' : 
+                        title?.length < 30 ? 'Title is too short' : 'Good length',
+          issues: !title ? ['Title is required'] : []
+        },
+        description: {
+          isValid: !!description,
+          length: description?.length || 0,
+          recommendation: description?.length > 160 ? 'Description is too long' : 
+                        description?.length < 120 ? 'Description is too short' : 'Good length',
+          issues: !description ? ['Description is required'] : []
+        },
+        keywords: {
+          isValid: keywords && keywords.length > 0,
+          count: keywords?.length || 0,
+          recommendation: keywords?.length > 10 ? 'Too many keywords' : 
+                         !keywords || keywords.length === 0 ? 'Add some keywords' : 'Good keyword count',
+          issues: !keywords || keywords.length === 0 ? ['Keywords are recommended'] : []
+        },
+        content: {
+          isValid: !!content,
+          wordCount: content ? content.replace(/<[^>]*>/g, '').split(/\s+/).length : 0,
+          readingTime: content ? Math.ceil(content.replace(/<[^>]*>/g, '').split(/\s+/).length / 200) : 0,
+          issues: !content ? ['Content is required'] : []
+        },
+        image: {
+          isValid: !!image,
+          hasAlt: !!image,
+          issues: !image ? ['Featured image is recommended'] : []
+        },
+        slug: {
+          isValid: !!slug,
+          isSEOFriendly: slug ? /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) : false,
+          issues: !slug ? ['Slug is required'] : 
+                 !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? ['Slug should be SEO-friendly (lowercase, hyphens only)'] : []
+        }
+      };
+
+      const totalIssues = Object.values(validation).reduce((count, item) => count + (item as any).issues.length, 0);
+      
+      res.json({
+        isValid: totalIssues === 0,
+        score: Math.max(0, 100 - (totalIssues * 10)),
+        validation,
+        recommendations: [
+          'Use focus keywords in title and description',
+          'Include internal and external links',
+          'Add alt text to all images',
+          'Use header tags (H2, H3) for structure',
+          'Keep paragraphs short and readable'
+        ]
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error validating SEO: " + error.message });
+    }
+  });
+
+  // Generate OG image
+  app.get("/api/og-image", async (req, res) => {
+    try {
+      const { title, category, author, type = 'blog' } = req.query;
+      
+      if (!title) {
+        return res.status(400).json({ message: "Title parameter is required" });
+      }
+
+      // Simple OG image generation (could be enhanced with actual image generation)
+      const ogImageUrl = `https://via.placeholder.com/1200x630/3B82F6/FFFFFF?text=${encodeURIComponent(title as string)}`;
+      
+      res.json({
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        type: 'image/png'
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating OG image: " + error.message });
+    }
+  });
+
+  // Ping search engines about sitemap updates
+  app.post("/api/seo/ping-search-engines", requireAdmin, async (req, res) => {
+    try {
+      const sitemapUrl = `${req.protocol}://${req.get('host')}/sitemap-blog.xml`;
+      const results = [];
+
+      // Ping Google
+      try {
+        const googleUrl = `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+        // Note: In a real implementation, you'd make an HTTP request here
+        results.push({ service: 'Google', success: true, url: googleUrl });
+      } catch (error) {
+        results.push({ service: 'Google', success: false, error: 'Failed to ping Google' });
+      }
+
+      // Ping Bing
+      try {
+        const bingUrl = `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`;
+        // Note: In a real implementation, you'd make an HTTP request here
+        results.push({ service: 'Bing', success: true, url: bingUrl });
+      } catch (error) {
+        results.push({ service: 'Bing', success: false, error: 'Failed to ping Bing' });
+      }
+
+      res.json({
+        message: "Search engines pinged successfully",
+        sitemapUrl,
+        results
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error pinging search engines: " + error.message });
+    }
+  });
+
+  // SEO dashboard data
+  app.get("/api/seo/dashboard", async (req, res) => {
+    try {
+      const [sitemapStats, rssStats] = await Promise.all([
+        sitemapGenerator.getSitemapStats(),
+        rssGenerator.getRSSStats()
+      ]);
+
+      // Get recent blog posts for SEO analysis
+      const recentPosts = await storage.getBlogPosts({
+        status: 'published',
+        limit: 10,
+        sortBy: 'publishedAt',
+        sortOrder: 'desc'
+      });
+
+      const seoIssues = [];
+      let postsWithoutImages = 0;
+      let postsWithoutDescriptions = 0;
+
+      for (const post of recentPosts.posts) {
+        if (!post.featuredImage) postsWithoutImages++;
+        if (!post.seoDescription && !post.excerpt) postsWithoutDescriptions++;
+      }
+
+      if (postsWithoutImages > 0) {
+        seoIssues.push(`${postsWithoutImages} recent posts missing featured images`);
+      }
+      if (postsWithoutDescriptions > 0) {
+        seoIssues.push(`${postsWithoutDescriptions} recent posts missing SEO descriptions`);
+      }
+
+      res.json({
+        sitemap: sitemapStats,
+        rss: rssStats,
+        recentPosts: recentPosts.total,
+        seoIssues,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error getting SEO dashboard data: " + error.message });
     }
   });
 

@@ -27,8 +27,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import BlogCard from "@/components/blog/BlogCard";
-import { updatePageSEO, type BlogPostSchema, type BreadcrumbSchema } from "@/lib/seo";
+import { SEOService } from "@/lib/seo-service";
 import { useEffect } from "react";
+import EnhancedSocialShare from "@/components/blog/EnhancedSocialShare";
 
 interface BlogContentRendererProps {
   content: any;
@@ -137,68 +138,6 @@ const BlogContentRenderer: React.FC<BlogContentRendererProps> = ({ content, clas
   );
 };
 
-// Social sharing component
-interface SocialSharingProps {
-  post: BlogPost;
-  currentUrl: string;
-}
-
-const SocialSharing: React.FC<SocialSharingProps> = ({ post, currentUrl }) => {
-  const shareText = `${post.title} - ${post.excerpt || ''}`;
-  const encodedUrl = encodeURIComponent(currentUrl);
-  const encodedText = encodeURIComponent(shareText);
-
-  const shareLinks = [
-    {
-      name: 'Twitter',
-      url: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`,
-      icon: '🐦',
-      className: 'hover:bg-blue-50 hover:text-blue-600'
-    },
-    {
-      name: 'LinkedIn',
-      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-      icon: '💼',
-      className: 'hover:bg-blue-50 hover:text-blue-700'
-    },
-    {
-      name: 'Facebook',
-      url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      icon: '📘',
-      className: 'hover:bg-blue-50 hover:text-blue-800'
-    },
-    {
-      name: 'Telegram',
-      url: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
-      icon: '✈️',
-      className: 'hover:bg-blue-50 hover:text-blue-500'
-    }
-  ];
-
-  const handleShare = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer,width=600,height=400');
-  };
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      <span className="text-sm font-medium text-gray-600 ml-3">اشتراک‌گذاری:</span>
-      {shareLinks.map((link) => (
-        <Button
-          key={link.name}
-          variant="outline"
-          size="sm"
-          onClick={() => handleShare(link.url)}
-          className={`text-xs ${link.className}`}
-          data-testid={`share-${link.name.toLowerCase()}`}
-        >
-          <span className="ml-1">{link.icon}</span>
-          {link.name}
-        </Button>
-      ))}
-    </div>
-  );
-};
-
 export default function BlogPostPage() {
   const { slug } = useParams();
   
@@ -210,89 +149,154 @@ export default function BlogPostPage() {
   // Current URL for sharing
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
+  // Track social sharing analytics
+  const handleSocialShare = (platform: string, url: string) => {
+    // Analytics tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'share', {
+        method: platform,
+        content_type: 'article', 
+        item_id: post?.slug,
+        content_title: post?.title
+      });
+    }
+    
+    console.log(`Shared article "${post?.title}" on ${platform}: ${url}`);
+  };
+
   // Update SEO when post loads
   useEffect(() => {
     if (post) {
-      // Generate structured data for the blog post
-      const blogPostSchema: BlogPostSchema = {
-        "@context": "https://schema.org",
-        "@type": "BlogPosting",
+      // Initialize SEO service
+      const seoService = new SEOService();
+
+      // Calculate reading time and word count from content
+      const contentText = seoService.extractTextFromContent(post.content);
+      const wordCount = seoService.calculateWordCount(contentText);
+      const readingTime = seoService.calculateReadingTime(wordCount);
+
+      // Generate comprehensive schema markup
+      const organizationSchema = seoService.generateOrganizationSchema({
+        name: "لیمیت پس",
+        url: "https://limitplus.ir",
+        logo: "https://limitplus.ir/logo.png",
+        description: "پلتفرم جامع ارائه محصولات و خدمات دیجیتال",
+        contactInfo: {
+          email: "info@limitplus.ir",
+          phone: "+98-21-12345678",
+          address: {
+            streetAddress: "تهران، ایران",
+            addressLocality: "تهران", 
+            addressRegion: "تهران",
+            postalCode: "12345",
+            addressCountry: "IR"
+          }
+        },
+        socialProfiles: [
+          "https://t.me/limitplus",
+          "https://instagram.com/limitplus.ir"
+        ]
+      });
+
+      const authorSchema = post.author ? seoService.generatePersonSchema({
+        name: post.author.name,
+        description: post.author.bio || undefined,
+        url: post.author.website || undefined,
+        image: post.author.avatar || undefined,
+        jobTitle: post.author.jobTitle || undefined,
+        worksFor: post.author.company || undefined,
+        socialProfiles: [
+          post.author.twitter,
+          post.author.linkedin,
+          post.author.github,
+          post.author.telegram
+        ].filter(Boolean)
+      }) : undefined;
+
+      const blogPostSchema = seoService.generateArticleSchema({
         headline: post.seoTitle || post.title,
         description: post.seoDescription || post.excerpt || "",
+        content: contentText,
+        author: post.author ? {
+          name: post.author.name,
+          url: post.author.website || undefined,
+          image: post.author.avatar || undefined
+        } : undefined,
+        datePublished: post.publishedAt || post.createdAt || new Date(),
+        dateModified: post.updatedAt || undefined,
         image: post.ogImage || post.featuredImage || undefined,
-        author: {
-          "@type": "Person",
-          name: post.author?.name || "نویسنده",
-          url: post.author?.website || undefined,
-          image: post.author?.avatar || undefined
-        },
-        publisher: {
-          "@type": "Organization",
-          name: "لیمیت پس",
-          url: "https://limitplus.ir",
-          logo: "https://limitplus.ir/logo.png"
-        },
-        datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString(),
-        dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
-        wordCount: post.content ? (typeof post.content === 'string' ? post.content.length / 5 : undefined) : undefined,
-        timeRequired: post.readingTime ? `PT${post.readingTime}M` : undefined,
-        articleSection: post.category?.name || undefined,
-        keywords: post.seoKeywords || post.tags || undefined,
+        category: post.category?.name,
+        tags: post.tags || undefined,
+        keywords: post.seoKeywords || undefined,
         url: currentUrl,
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": currentUrl
-        },
+        wordCount,
+        readingTime,
+        language: "fa-IR",
         inLanguage: "fa-IR"
-      };
+      });
 
-      // Generate breadcrumb structured data
-      const breadcrumbSchema: BreadcrumbSchema = {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "خانه",
-            item: "https://limitplus.ir"
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "وبلاگ",
-            item: "https://limitplus.ir/blog"
-          },
-          ...(post.category ? [{
-            "@type": "ListItem" as const,
-            position: 3,
-            name: post.category.name,
-            item: `https://limitplus.ir/blog/category/${post.category.slug}`
-          }] : []),
-          {
-            "@type": "ListItem",
-            position: post.category ? 4 : 3,
-            name: post.title,
-            item: currentUrl
-          }
-        ]
-      };
+      const breadcrumbSchema = seoService.generateBreadcrumbSchema([
+        { name: "خانه", url: "https://limitplus.ir" },
+        { name: "وبلاگ", url: "https://limitplus.ir/blog" },
+        ...(post.category ? [{ 
+          name: post.category.name, 
+          url: `https://limitplus.ir/blog/category/${post.category.slug}` 
+        }] : []),
+        { name: post.title, url: currentUrl }
+      ]);
 
-      // Update page SEO
-      updatePageSEO({
-        title: `${post.seoTitle || post.title} - وبلاگ لیمیت پس`,
-        description: post.seoDescription || post.excerpt || `مطالعه مطلب ${post.title} در وبلاگ لیمیت پس`,
-        keywords: post.seoKeywords?.join(', ') || post.tags?.join(', ') || '',
-        ogTitle: post.ogTitle || post.title,
-        ogDescription: post.ogDescription || post.excerpt || "",
-        ogImage: post.ogImage || post.featuredImage || undefined,
-        ogUrl: currentUrl,
-        ogType: 'article',
+      // Generate enhanced meta tags
+      const metaTags = seoService.generateMetaTags({
+        title: post.seoTitle || post.title,
+        description: post.seoDescription || post.excerpt || "",
+        keywords: post.seoKeywords || post.tags || [],
         canonical: currentUrl,
-        robots: 'index,follow',
-        structuredData: [blogPostSchema, breadcrumbSchema],
-        hreflang: 'fa-IR',
-        ogLocale: 'fa_IR'
+        language: "fa-IR",
+        textDirection: "rtl",
+        robots: "index,follow"
+      });
+
+      // Generate Open Graph tags
+      const ogTags = seoService.generateOpenGraphTags({
+        title: post.ogTitle || post.title,
+        description: post.ogDescription || post.excerpt || "",
+        url: currentUrl,
+        type: "article",
+        image: post.ogImage || post.featuredImage || undefined,
+        siteName: "لیمیت پس",
+        locale: "fa_IR",
+        article: {
+          author: post.author?.name,
+          publishedTime: post.publishedAt || post.createdAt || new Date(),
+          modifiedTime: post.updatedAt || undefined,
+          section: post.category?.name,
+          tags: post.tags || undefined
+        }
+      });
+
+      // Generate Twitter Card tags
+      const twitterTags = seoService.generateTwitterCardTags({
+        card: "summary_large_image",
+        title: post.title,
+        description: post.excerpt || "",
+        image: post.ogImage || post.featuredImage || undefined,
+        site: "@limitplus_ir",
+        creator: post.author?.twitter || undefined
+      });
+
+      // Apply all SEO enhancements
+      seoService.updatePageSEO({
+        title: `${post.seoTitle || post.title} - وبلاگ لیمیت پس`,
+        metaTags,
+        openGraphTags: ogTags,
+        twitterCardTags: twitterTags,
+        structuredData: [
+          organizationSchema,
+          ...(authorSchema ? [authorSchema] : []),
+          blogPostSchema,
+          breadcrumbSchema
+        ],
+        jsonLd: true
       });
     }
   }, [post, currentUrl]);
@@ -535,8 +539,16 @@ export default function BlogPostPage() {
                     </p>
                   )}
 
-                  {/* Social Sharing */}
-                  <SocialSharing post={post} currentUrl={currentUrl} />
+                  {/* Enhanced Social Sharing */}
+                  <EnhancedSocialShare 
+                    post={post} 
+                    author={post.author}
+                    currentUrl={currentUrl}
+                    variant="default"
+                    showLabels={true}
+                    onShare={handleSocialShare}
+                    className="mt-4"
+                  />
                 </CardHeader>
 
                 <CardContent className="prose-container">
@@ -729,7 +741,15 @@ export default function BlogPostPage() {
                     </Button>
                   </Link>
                   <Separator />
-                  <SocialSharing post={post} currentUrl={currentUrl} />
+                  <EnhancedSocialShare 
+                    post={post} 
+                    author={post.author}
+                    currentUrl={currentUrl}
+                    variant="compact"
+                    showLabels={false}
+                    onShare={handleSocialShare}
+                    className="mt-4"
+                  />
                 </CardContent>
               </Card>
             </aside>

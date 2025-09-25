@@ -51,7 +51,7 @@ export default function PersianFooter() {
               <ul className="space-y-3 text-sm">
                 <li><Link href="#" className="text-gray-300 hover:text-white transition-colors leading-relaxed" data-testid="footer-contact">تماس با ما</Link></li>
                 <li><Link href="#" className="text-gray-300 hover:text-white transition-colors leading-relaxed" data-testid="footer-faq">سوالات متداول</Link></li>
-                <li><Link href="#" className="text-gray-300 hover:text-white transition-colors leading-relaxed" data-testid="footer-blog">وبلاگ</Link></li>
+                <li><Link href="/blog" className="text-gray-300 hover:text-white transition-colors leading-relaxed" data-testid="footer-blog">وبلاگ</Link></li>
               </ul>
             </div>
 

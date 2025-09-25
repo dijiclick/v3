@@ -25,6 +25,9 @@ export interface IStorage {
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category>;
   deleteCategory(id: string): Promise<boolean>;
   
+  // Product search methods
+  searchProducts(options: { query: string; limit?: number; categoryIds?: string[]; featured?: boolean; inStock?: boolean }): Promise<{ products: Product[]; total: number }>;
+  
   getPages(): Promise<Page[]>;
   getPage(id: string): Promise<Page | undefined>;
   getPageBySlug(slug: string): Promise<Page | undefined>;
@@ -385,6 +388,101 @@ export class DatabaseStorage implements IStorage {
       blogContent: products.blogContent,
       createdAt: products.createdAt
     }).from(products).where(eq(products.categoryId, categoryId));
+  }
+
+  async searchProducts(options: { query: string; limit?: number; categoryIds?: string[]; featured?: boolean; inStock?: boolean }): Promise<{ products: Product[]; total: number }> {
+    const { query, limit = 10, categoryIds = [], featured, inStock } = options;
+    
+    // Build WHERE conditions
+    const conditions = [];
+    
+    // Add search condition
+    if (query.trim()) {
+      const searchCondition = or(
+        ilike(products.title, `%${query}%`),
+        ilike(products.description, `%${query}%`),
+        ilike(products.featuredTitle, `%${query}%`),
+        sql`EXISTS (
+          SELECT 1 
+          FROM unnest(${products.featuredFeatures}) AS feature 
+          WHERE feature ILIKE ${`%${query}%`}
+        )`,
+        sql`EXISTS (
+          SELECT 1 
+          FROM unnest(${products.tags}) AS tag 
+          WHERE tag ILIKE ${`%${query}%`}
+        )`
+      );
+      conditions.push(searchCondition);
+    }
+    
+    // Add filters
+    if (categoryIds.length > 0) {
+      conditions.push(sql`${products.categoryId} = ANY(${categoryIds})`);
+    }
+    
+    if (featured !== undefined) {
+      conditions.push(eq(products.featured, featured));
+    }
+    
+    if (inStock !== undefined) {
+      conditions.push(eq(products.inStock, inStock));
+    }
+    
+    // Build the main query
+    const baseQuery = db
+      .select({
+        id: products.id,
+        title: products.title,
+        slug: products.slug,
+        description: products.description,
+        buyLink: products.buyLink,
+        mainDescription: products.mainDescription,
+        featuredTitle: products.featuredTitle,
+        featuredFeatures: products.featuredFeatures,
+        price: products.price,
+        originalPrice: products.originalPrice,
+        categoryId: products.categoryId,
+        image: products.image,
+        rating: products.rating,
+        reviewCount: products.reviewCount,
+        inStock: products.inStock,
+        featured: products.featured,
+        layoutStyle: products.layoutStyle,
+        tags: products.tags,
+        heroSection: products.heroSection,
+        pricingPlans: products.pricingPlans,
+        screenshots: products.screenshots,
+        statisticsSection: products.statisticsSection,
+        benefitsSection: products.benefitsSection,
+        sidebarContent: products.sidebarContent,
+        footerCTA: products.footerCTA,
+        blogContent: products.blogContent,
+        createdAt: products.createdAt
+      })
+      .from(products);
+    
+    // Apply WHERE conditions
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Get results with limit
+    const searchResults = await baseQuery
+      .where(whereClause)
+      .orderBy(desc(products.featured), desc(products.createdAt))
+      .limit(limit);
+    
+    // Get total count
+    const countQuery = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(whereClause);
+    
+    const total = countQuery[0]?.count || 0;
+    
+    return {
+      products: searchResults,
+      total
+    };
   }
 
   async getCategories(): Promise<Category[]> {

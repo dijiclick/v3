@@ -1929,6 +1929,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comprehensive search endpoint (products + blog posts)
+  app.get("/api/search/comprehensive", async (req, res) => {
+    try {
+      const { 
+        q: query = "", 
+        limit = "5" 
+      } = req.query;
+      
+      if (!query || (query as string).trim().length < 2) {
+        return res.json({
+          products: [],
+          blogArticles: [],
+          total: 0
+        });
+      }
+      
+      const searchLimit = parseInt(limit as string);
+      const searchQuery = (query as string).trim();
+      
+      // Search products
+      const productResults = await storage.searchProducts({
+        query: searchQuery,
+        limit: searchLimit,
+        inStock: true // Only show in-stock products
+      });
+      
+      // Search blog posts
+      const blogResults = await blogSearchService.search({
+        query: searchQuery,
+        limit: searchLimit,
+        status: 'published' // Only show published posts
+      }, false); // Don't track analytics for autocomplete
+      
+      // Format product results for frontend
+      const formattedProducts = productResults.products.map(product => ({
+        id: product.id,
+        title: product.title,
+        slug: product.slug,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        categoryId: product.categoryId,
+        featured: product.featured,
+        type: 'product' as const
+      }));
+      
+      // Format blog article results for frontend
+      const formattedBlogArticles = blogResults.results.map(result => ({
+        id: result.post.id,
+        title: result.post.title,
+        slug: result.post.slug,
+        excerpt: result.post.excerpt,
+        featuredImage: result.post.featuredImage,
+        publishedAt: result.post.publishedAt,
+        readingTime: result.post.readingTime,
+        author: result.post.author,
+        category: result.post.category,
+        snippet: result.snippet,
+        highlightedTitle: result.highlightedTitle,
+        type: 'blog' as const
+      }));
+      
+      res.json({
+        products: formattedProducts,
+        blogArticles: formattedBlogArticles,
+        total: productResults.total + blogResults.total
+      });
+      
+    } catch (error: any) {
+      console.error("Error in comprehensive search:", error);
+      res.status(500).json({ 
+        message: "Error performing comprehensive search: " + error.message,
+        products: [],
+        blogArticles: [],
+        total: 0
+      });
+    }
+  });
+
   // ============================================================================
   // SEO AND CONTENT DISCOVERY ENDPOINTS
   // ============================================================================

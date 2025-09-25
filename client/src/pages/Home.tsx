@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
 import { useFeaturedProducts, useCategories } from "@/lib/content-service";
 import { Product, Category } from "@/types";
+import ComprehensiveSearch from "@/components/ComprehensiveSearch";
 
 // Hook to detect responsive grid columns
 function useResponsiveColumns() {
@@ -362,40 +363,12 @@ export default function Home() {
           دسترسی به همه اشتراک ها در یک جا
         </div>
         
-        {/* Search Bar */}
+        {/* Comprehensive Search Bar */}
         <div className="max-w-2xl mx-auto mb-10 px-5">
-          <div className="flex items-center bg-white rounded-full p-2 shadow-lg border-2 border-transparent focus-within:border-red-500 focus-within:shadow-red-500/20 hover:-translate-y-1 transition-all">
-            <input
-              type="text"
-              placeholder="جستجو در تمام اشتراک‌ها..."
-              className={`flex-1 border-none outline-none px-4 py-4 text-base text-gray-700 placeholder-gray-500 transition-all ${
-                searchTerm ? (detectTextDirection(searchTerm) === 'ltr' ? 'text-left' : 'text-right') : 'text-right'
-              }`}
-              style={{
-                direction: searchTerm ? detectTextDirection(searchTerm) : 'rtl'
-              }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              data-testid="input-search"
-            />
-            <button 
-              className="bg-gradient-to-r from-red-400 to-red-500 text-white px-6 py-3 rounded-full text-sm font-semibold hover:from-red-500 hover:to-red-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-500/30 transition-all"
-              data-testid="button-search"
-              onClick={() => {
-                // If there's a search term, clear it, otherwise focus the input
-                if (searchTerm) {
-                  setSearchTerm('');
-                } else {
-                  const searchInput = document.querySelector('[data-testid="input-search"]') as HTMLInputElement;
-                  if (searchInput) {
-                    searchInput.focus();
-                  }
-                }
-              }}
-            >
-              {searchTerm ? 'پاک کردن' : 'جستجو'}
-            </button>
-          </div>
+          <ComprehensiveSearch 
+            placeholder="جستجو در محصولات و مقالات..."
+            className="max-w-full"
+          />
         </div>
 
         {/* Category Tabs */}

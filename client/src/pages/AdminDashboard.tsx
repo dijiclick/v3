@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useProducts, useCategories } from "@/lib/content-service";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 // Utility function to format prices in Persian Toman
 const formatPersianPrice = (price: string | null): string => {
@@ -12,41 +13,42 @@ const formatPersianPrice = (price: string | null): string => {
 };
 
 export default function AdminDashboard() {
+  const { t, isRTL } = useAdminLanguage();
   const { data: products = [] } = useProducts();
   const { data: categories = [] } = useCategories();
 
   const stats = [
     {
-      title: "Total Products",
+      title: t('dashboard.stats.total_products'),
       value: products.length,
-      description: "Active products in catalog",
+      description: t('dashboard.stats.total_products_desc'),
       icon: Package,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
       href: "/admin/products"
     },
     {
-      title: "Categories",
+      title: t('dashboard.stats.categories'),
       value: categories.length,
-      description: "Product categories",
+      description: t('dashboard.stats.categories_desc'),
       icon: FolderTree,
       color: "text-green-600",
       bgColor: "bg-green-100",
       href: "/admin/categories"
     },
     {
-      title: "In Stock",
+      title: t('dashboard.stats.in_stock'),
       value: products.filter(p => p.inStock).length,
-      description: "Available products",
+      description: t('dashboard.stats.in_stock_desc'),
       icon: TrendingUp,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
       href: "/admin/products"
     },
     {
-      title: "Featured Items",
+      title: t('dashboard.stats.featured_items'),
       value: products.filter(p => p.featured).length,
-      description: "Featured products",
+      description: t('dashboard.stats.featured_items_desc'),
       icon: Package,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -70,14 +72,14 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6" dir="ltr">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="admin-dashboard-title">
-          Dashboard
+          {t('dashboard.title')}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
-          Welcome to your TechShop admin panel
+          {t('dashboard.welcome')}
         </p>
       </div>
 
@@ -114,16 +116,16 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900 dark:text-white">
               <Package className="mr-2 h-5 w-5" />
-              Recent Products
+              {t('dashboard.recent_products')}
             </CardTitle>
             <CardDescription>
-              Latest products added to your catalog
+              {t('dashboard.recent_products_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {recentProducts.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                No products yet. <Link href="/admin/products"><Button variant="link" className="p-0 h-auto">Add your first product</Button></Link>
+                {t('dashboard.no_products')}<Link href="/admin/products"><Button variant="link" className="p-0 h-auto">{t('dashboard.add_first_product')}</Button></Link>
               </p>
             ) : (
               <div className="space-y-3">
@@ -147,7 +149,7 @@ export default function AdminDashboard() {
                           {product.title}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatPersianPrice(product.price)} تومان • {product.inStock ? 'In Stock' : 'Out of Stock'}
+                          {formatPersianPrice(product.price)} تومان • {product.inStock ? t('dashboard.in_stock') : t('dashboard.out_of_stock')}
                         </p>
                       </div>
                     </div>
@@ -171,34 +173,34 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">Quick Actions</CardTitle>
+            <CardTitle className="text-gray-900 dark:text-white">{t('dashboard.quick_actions')}</CardTitle>
             <CardDescription>
-              Common admin tasks
+              {t('dashboard.quick_actions_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Link href="/admin/products">
               <Button className="w-full justify-start" variant="outline" data-testid="quick-add-product">
                 <Package className="mr-2 h-4 w-4" />
-                Add New Product
+                {t('dashboard.add_new_product')}
               </Button>
             </Link>
             <Link href="/admin/categories">
               <Button className="w-full justify-start" variant="outline" data-testid="quick-manage-categories">
                 <FolderTree className="mr-2 h-4 w-4" />
-                Manage Categories
+                {t('dashboard.manage_categories')}
               </Button>
             </Link>
             <Link href="/admin/pages">
               <Button className="w-full justify-start" variant="outline" data-testid="quick-manage-pages">
                 <FileText className="mr-2 h-4 w-4" />
-                Manage Pages
+                {t('dashboard.manage_pages')}
               </Button>
             </Link>
             <Link href="/">
               <Button className="w-full justify-start" variant="outline" data-testid="quick-view-website">
                 <TrendingUp className="mr-2 h-4 w-4" />
-                View Website
+                {t('dashboard.view_website')}
               </Button>
             </Link>
           </CardContent>

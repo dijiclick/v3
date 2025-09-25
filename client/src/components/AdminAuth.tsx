@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,18 @@ interface AdminAuthProps {
 }
 
 export default function AdminAuth({ children }: AdminAuthProps) {
+  // Try to get translation context, but handle case when it's not available
+  let t = (key: string) => key; // fallback function
+  let isRTL = false;
+  
+  try {
+    const context = useAdminLanguage();
+    t = context.t;
+    isRTL = context.isRTL;
+  } catch (error) {
+    // AdminLanguageContext not available, use fallback values
+    console.warn('AdminLanguageContext not available in AdminAuth, using fallback');
+  }
   // ===== TEMPORARY BYPASS FOR DEVELOPMENT =====
   // This bypass allows admin access without password when VITE_DISABLE_ADMIN_AUTH=true
   // TODO: Remove this bypass section before production deployment
@@ -70,13 +83,13 @@ export default function AdminAuth({ children }: AdminAuthProps) {
         }, 1500);
       } else {
         setAttemptCount(prev => prev + 1);
-        setError(result.error || "Invalid password. Please try again.");
+        setError(result.error || t('auth.invalid_password'));
         // Shake animation for failed attempts
         setTimeout(() => setError(""), 5000);
       }
     } catch (error) {
       setAttemptCount(prev => prev + 1);
-      setError("Network error. Please check your connection and try again.");
+      setError(t('auth.network_error'));
       setTimeout(() => setError(""), 5000);
     } finally {
       setIsSubmitting(false);
@@ -89,7 +102,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
 
   if (isLoading) {
     return (
-      <div dir="ltr" className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30 flex items-center justify-center">
+      <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 dark:border-blue-800"></div>
@@ -97,7 +110,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
           </div>
           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
             <Shield className="h-4 w-4" />
-            <span className="text-sm font-medium">Verifying Authentication...</span>
+            <span className="text-sm font-medium">{t('auth.verifying')}</span>
           </div>
         </div>
       </div>
@@ -106,7 +119,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
 
   if (!isAuthenticated) {
     return (
-      <div dir="ltr" className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30 flex items-center justify-center p-4 relative overflow-hidden">
+      <div dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30 flex items-center justify-center p-4 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
@@ -138,12 +151,12 @@ export default function AdminAuth({ children }: AdminAuthProps) {
               {showSuccess ? (
                 <span className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
                   <CheckCircle2 className="h-4 w-4" />
-                  Access Granted Successfully!
+                  {t('auth.access_granted')}
                 </span>
               ) : (
                 <>
                   <User className="inline h-4 w-4 mr-2" />
-                  Secure Admin Portal Access
+                  {t('auth.secure_portal')}
                 </>
               )}
             </CardDescription>
@@ -156,7 +169,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                 <div className="space-y-3">
                   <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
                     <KeyRound className="h-4 w-4" />
-                    Admin Password
+                    {t('auth.admin_password')}
                   </Label>
                   <div className="relative">
                     <Input
@@ -164,7 +177,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your secure password"
+                      placeholder={t('auth.password_placeholder')}
                       disabled={isSubmitting}
                       className="pr-12 h-12 text-base border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                       data-testid="admin-password-input"
@@ -197,7 +210,7 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                     data-testid="remember-me-checkbox"
                   />
                   <Label htmlFor="remember" className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer">
-                    Remember my login preference
+                    {t('auth.remember_me')}
                   </Label>
                 </div>
                 
@@ -219,12 +232,12 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      Authenticating...
+                      {t('auth.authenticating')}
                     </>
                   ) : (
                     <>
                       <Shield className="h-5 w-5 mr-2" />
-                      Access Admin Panel
+                      {t('auth.access_panel')}
                     </>
                   )}
                 </Button>
@@ -235,10 +248,10 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                   <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
                 </div>
                 <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">
-                  Welcome Back!
+                  {t('auth.welcome_back')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Redirecting to admin dashboard...
+                  {t('auth.redirecting')}
                 </p>
               </div>
             )}
@@ -250,11 +263,11 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                   <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span>Secure Connection</span>
+                      <span>{t('auth.secure_connection')}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Globe className="h-3 w-3" />
-                      <span>Protected Portal</span>
+                      <span>{t('auth.protected_portal')}</span>
                     </div>
                   </div>
                 </div>
@@ -267,10 +280,10 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
-                        Demo Access
+                        {t('auth.demo_access')}
                       </p>
                       <p className="text-sm text-blue-600 dark:text-blue-300">
-                        Password: <code className="bg-blue-200 dark:bg-blue-700 px-2 py-1 rounded font-mono">admin123</code>
+                        {t('auth.password_label')} <code className="bg-blue-200 dark:bg-blue-700 px-2 py-1 rounded font-mono">admin123</code>
                       </p>
                     </div>
                   </div>
@@ -280,10 +293,10 @@ export default function AdminAuth({ children }: AdminAuthProps) {
                 {attemptCount > 0 && (
                   <div className="text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Login attempts: {attemptCount}
+                      {t('auth.login_attempts')} {attemptCount}
                       {attemptCount >= 3 && (
                         <span className="text-yellow-600 dark:text-yellow-400 ml-2">
-                          Please verify your password
+                          {t('auth.verify_password')}
                         </span>
                       )}
                     </p>

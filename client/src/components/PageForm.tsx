@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertPageSchema, type Page } from "@shared/schema";
 import { Loader } from "lucide-react";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 // Create form schema based on insertPageSchema
 const pageFormSchema = insertPageSchema.extend({
@@ -32,6 +33,7 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!page;
+  const { t } = useAdminLanguage();
   
   const form = useForm<PageFormData>({
     resolver: zodResolver(pageFormSchema),
@@ -118,20 +120,20 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle>{isEditing ? 'Edit Page' : 'Add New Page'}</CardTitle>
+        <CardTitle>{isEditing ? t('page.edit') : t('page.add')}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
+            <h3 className="text-lg font-medium">{t('page.basic_info')}</h3>
             
             <div>
-              <Label htmlFor="title">Page Title *</Label>
+              <Label htmlFor="title">{t('page.title')} *</Label>
               <Input
                 id="title"
                 {...form.register("title", { onChange: handleTitleChange })}
-                placeholder="Enter page title"
+                placeholder={t('page.title_placeholder')}
                 data-testid="page-title-input"
               />
               {form.formState.errors.title && (
@@ -142,15 +144,15 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="slug">URL Slug</Label>
+              <Label htmlFor="slug">{t('page.slug')}</Label>
               <Input
                 id="slug"
                 {...form.register("slug")}
-                placeholder="page-url-slug"
+                placeholder={t('page.slug_placeholder')}
                 data-testid="page-slug-input"
               />
               <p className="text-sm text-gray-500 mt-1">
-                URL: /{form.watch("slug") || "page-url"}
+                {t('page.url_preview', { slug: form.watch("slug") || "page-url" })}
               </p>
               {form.formState.errors.slug && (
                 <p className="text-sm text-red-600 mt-1">
@@ -160,47 +162,47 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="excerpt">Description</Label>
+              <Label htmlFor="excerpt">{t('page.description')}</Label>
               <Textarea
                 id="excerpt"
                 {...form.register("excerpt")}
-                placeholder="Brief description of the page"
+                placeholder={t('page.description_placeholder')}
                 rows={3}
                 data-testid="page-excerpt-input"
               />
             </div>
 
             <div>
-              <Label htmlFor="content">Content</Label>
+              <Label htmlFor="content">{t('page.content')}</Label>
               <Textarea
                 id="content"
                 {...form.register("content")}
-                placeholder="Page content..."
+                placeholder={t('page.content_placeholder')}
                 rows={8}
                 data-testid="page-content-input"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Basic text content. Rich formatting coming soon.
+                {t('page.content_note')}
               </p>
             </div>
           </div>
 
           {/* Status and Navigation */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Status & Navigation</h3>
+            <h3 className="text-lg font-medium">{t('page.status_nav')}</h3>
             
             <div>
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{t('page.status')}</Label>
               <Select
                 value={form.watch("status") || "draft"}
                 onValueChange={(value) => form.setValue("status", value)}
               >
                 <SelectTrigger data-testid="page-status-select">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder={t('page.status_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="draft">{t('page.status_draft')}</SelectItem>
+                  <SelectItem value="published">{t('page.status_published')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -212,12 +214,12 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
                 onCheckedChange={(checked) => form.setValue("showInNavigation", !!checked)}
                 data-testid="page-navigation-checkbox"
               />
-              <Label htmlFor="showInNavigation">Show in main navigation</Label>
+              <Label htmlFor="showInNavigation">{t('page.show_in_nav')}</Label>
             </div>
 
             {form.watch("showInNavigation") && (
               <div>
-                <Label htmlFor="navigationOrder">Navigation Order</Label>
+                <Label htmlFor="navigationOrder">{t('page.nav_order')}</Label>
                 <Input
                   id="navigationOrder"
                   type="number"
@@ -226,7 +228,7 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
                   data-testid="page-nav-order-input"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Lower numbers appear first in navigation
+                  {t('page.nav_order_note')}
                 </p>
               </div>
             )}
@@ -234,39 +236,39 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
 
           {/* SEO Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">SEO (Optional)</h3>
+            <h3 className="text-lg font-medium">{t('page.seo_optional')}</h3>
             
             <div>
-              <Label htmlFor="seoTitle">SEO Title</Label>
+              <Label htmlFor="seoTitle">{t('page.seo_title')}</Label>
               <Input
                 id="seoTitle"
                 {...form.register("seoTitle")}
-                placeholder="Custom title for search engines"
+                placeholder={t('page.seo_title_placeholder')}
                 data-testid="page-seo-title-input"
               />
             </div>
 
             <div>
-              <Label htmlFor="seoDescription">SEO Description</Label>
+              <Label htmlFor="seoDescription">{t('page.seo_description')}</Label>
               <Textarea
                 id="seoDescription"
                 {...form.register("seoDescription")}
-                placeholder="Meta description for search engines"
+                placeholder={t('page.seo_description_placeholder')}
                 rows={3}
                 data-testid="page-seo-description-input"
               />
             </div>
 
             <div>
-              <Label htmlFor="seoKeywords">SEO Keywords</Label>
+              <Label htmlFor="seoKeywords">{t('page.seo_keywords')}</Label>
               <Input
                 id="seoKeywords"
                 {...form.register("seoKeywords")}
-                placeholder="keyword1, keyword2, keyword3"
+                placeholder={t('page.seo_keywords_placeholder')}
                 data-testid="page-seo-keywords-input"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Separate keywords with commas
+                {t('page.seo_keywords_note')}
               </p>
             </div>
           </div>
@@ -280,7 +282,7 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
                 onClick={onCancel}
                 data-testid="page-cancel-button"
               >
-                Cancel
+                {t('action.cancel')}
               </Button>
             )}
             <Button
@@ -291,10 +293,10 @@ export default function PageForm({ page, onSuccess, onCancel }: PageFormProps) {
               {mutation.isPending ? (
                 <>
                   <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  {isEditing ? 'Updating...' : 'Creating...'}
+                  {isEditing ? t('page.updating') : t('page.creating')}
                 </>
               ) : (
-                isEditing ? 'Update Page' : 'Create Page'
+                isEditing ? t('page.update') : t('page.create')
               )}
             </Button>
           </div>

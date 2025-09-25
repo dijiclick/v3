@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { Product } from "@/types";
 import { generateProductTitle, generateMetaDescription } from "@/lib/seo";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 interface SEOPreviewProps {
   product: Partial<Product>;
@@ -11,6 +12,7 @@ interface SEOPreviewProps {
 }
 
 export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
+  const { t } = useAdminLanguage();
   // Generate SEO data based on current form values
   const seoTitle = product.title ? generateProductTitle(product as Product) : "Product Title - Online Purchase | Limitpass";
   const seoDescription = product.title ? generateMetaDescription(product as Product) : "Product description from Limitpass";
@@ -29,14 +31,14 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-bold flex items-center gap-2" dir="ltr">
           <Info className="h-5 w-5" />
-          SEO Preview
+          {t('seo.preview')}
         </CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-6">
         {/* Google Search Result Preview */}
         <div className="border rounded-lg p-4 bg-white" dir="ltr">
-          <h3 className="text-sm font-medium mb-3 text-gray-700">Google Search Results Preview:</h3>
+          <h3 className="text-sm font-medium mb-3 text-gray-700">{t('seo.google_preview')}</h3>
           <div className="bg-gray-50 p-4 rounded-lg" dir="ltr">
             {/* URL */}
             <div className="text-green-600 text-sm mb-1" data-testid="seo-url-preview">
@@ -73,13 +75,13 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
               )}
               <AlertDescription>
                 <div className="flex items-center justify-between w-full">
-                  <span>Title length: {titleLength} characters</span>
+                  <span>{t('seo.title_length', { count: titleLength.toString() })}</span>
                   <Badge variant={isOptimalTitle ? "default" : "destructive"} className="text-xs">
-                    {isOptimalTitle ? "Optimal" : titleLength < 30 ? "Too Short" : "Too Long"}
+                    {isOptimalTitle ? t('seo.optimal') : titleLength < 30 ? t('seo.too_short') : t('seo.too_long')}
                   </Badge>
                 </div>
                 <div className="text-xs mt-1 opacity-75">
-                  Optimal title length is between 30 and 60 characters
+                  {t('seo.title_length_desc')}
                 </div>
               </AlertDescription>
             </div>
@@ -95,13 +97,13 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
               )}
               <AlertDescription>
                 <div className="flex items-center justify-between w-full">
-                  <span>Description length: {descriptionLength} characters</span>
+                  <span>{t('seo.description_length', { count: descriptionLength.toString() })}</span>
                   <Badge variant={isOptimalDescription ? "default" : "destructive"} className="text-xs">
-                    {isOptimalDescription ? "Optimal" : descriptionLength < 120 ? "Too Short" : "Too Long"}
+                    {isOptimalDescription ? t('seo.optimal') : descriptionLength < 120 ? t('seo.too_short') : t('seo.too_long')}
                   </Badge>
                 </div>
                 <div className="text-xs mt-1 opacity-75">
-                  Optimal description length is between 120 and 160 characters
+                  {t('seo.description_length_desc')}
                 </div>
               </AlertDescription>
             </div>
@@ -110,7 +112,7 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
 
         {/* Social Media Preview */}
         <div className="border rounded-lg p-4" dir="ltr">
-          <h3 className="text-sm font-medium mb-3 text-gray-700">Social Media Preview:</h3>
+          <h3 className="text-sm font-medium mb-3 text-gray-700">{t('seo.social_preview')}</h3>
           <div className="bg-gray-50 p-4 rounded-lg border max-w-md">
             {/* Product Image Preview */}
             <div className="aspect-video bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
@@ -122,7 +124,7 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
                   data-testid="seo-social-image"
                 />
               ) : (
-                <span className="text-gray-400 text-sm">Product Image</span>
+                <span className="text-gray-400 text-sm">{t('seo.product_image')}</span>
               )}
             </div>
             
@@ -148,12 +150,12 @@ export default function SEOPreview({ product, categoryName }: SEOPreviewProps) {
           <Info className="h-4 w-4" />
           <AlertDescription dir="ltr">
             <div className="space-y-1">
-              <div className="font-medium">SEO Tips:</div>
+              <div className="font-medium">{t('seo.tips_title')}</div>
               <ul className="text-sm space-y-1 list-disc list-inside opacity-75">
-                <li>Use relevant keywords in the title</li>
-                <li>Fill in the short description - it will be shown in search results</li>
-                <li>Add high-quality images for social media display</li>
-                <li>Keep the slug URL-friendly</li>
+                <li>{t('seo.tip_keywords')}</li>
+                <li>{t('seo.tip_description')}</li>
+                <li>{t('seo.tip_images')}</li>
+                <li>{t('seo.tip_url')}</li>
               </ul>
             </div>
           </AlertDescription>

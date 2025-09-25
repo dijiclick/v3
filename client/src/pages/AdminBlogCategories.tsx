@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import BlogCategoryForm from "@/components/BlogCategoryForm";
 import type { BlogCategory } from "@shared/schema";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 type BlogCategoryWithStats = BlogCategory & { postCount: number };
 
@@ -26,6 +27,7 @@ export default function AdminBlogCategories() {
   const [filterFeatured, setFilterFeatured] = useState<string>("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useAdminLanguage();
   
   const { data: categoriesWithStats = [], isLoading: categoriesLoading } = useQuery<BlogCategoryWithStats[]>({
     queryKey: ['/api/blog/categories/with-stats'],
@@ -56,12 +58,12 @@ export default function AdminBlogCategories() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/categories'] });
       queryClient.invalidateQueries({ queryKey: ['/api/blog/categories/with-stats'] });
-      toast({ title: "Blog category deleted successfully" });
+      toast({ title: t('blog.category_deleted') });
     },
     onError: (error: any) => {
       toast({ 
-        title: "Error deleting blog category", 
-        description: error.message || "Something went wrong",
+        title: t('blog.category_delete_error'), 
+        description: error.message || t('blog.something_wrong'),
         variant: "destructive" 
       });
     },
@@ -74,16 +76,16 @@ export default function AdminBlogCategories() {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/categories'] });
       queryClient.invalidateQueries({ queryKey: ['/api/blog/categories/with-stats'] });
       toast({ 
-        title: "Bulk delete completed", 
-        description: `${data.deletedCount} blog categories deleted successfully`
+        title: t('blog.bulk_delete_completed'), 
+        description: t('blog.bulk_categories_deleted', { count: data.deletedCount.toString() })
       });
       setSelectedCategories([]);
       setShowBulkDelete(false);
     },
     onError: (error: any) => {
       toast({ 
-        title: "Error bulk deleting blog categories", 
-        description: error.message || "Something went wrong",
+        title: t('blog.bulk_delete_error'), 
+        description: error.message || t('blog.something_wrong'),
         variant: "destructive" 
       });
     },
@@ -94,7 +96,7 @@ export default function AdminBlogCategories() {
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    if (confirm("Are you sure you want to delete this blog category?")) {
+    if (confirm(t('blog.confirm_delete_category'))) {
       deleteMutation.mutate(categoryId);
     }
   };

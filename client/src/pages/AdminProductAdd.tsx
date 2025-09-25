@@ -2,9 +2,11 @@ import { useLocation } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProductForm from "@/components/ProductForm";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 export default function AdminProductAdd() {
   const [, setLocation] = useLocation();
+  const { t } = useAdminLanguage();
 
   const handleSuccess = () => {
     setLocation("/admin/products");
@@ -25,11 +27,11 @@ export default function AdminProductAdd() {
           data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Products List
+          {t('product.back_to_list')}
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Product</h1>
-          <p className="text-muted-foreground">Add your new product to the store</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('product.add')}</h1>
+          <p className="text-muted-foreground">{t('product.add_new')}</p>
         </div>
       </div>
 

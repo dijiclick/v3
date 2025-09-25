@@ -211,8 +211,6 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <AdminLanguageProvider>
-      <BilingualAdminLayout>{children}</BilingualAdminLayout>
-    </AdminLanguageProvider>
+    <BilingualAdminLayout>{children}</BilingualAdminLayout>
   );
 }

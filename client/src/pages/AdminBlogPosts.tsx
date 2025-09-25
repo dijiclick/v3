@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import type { BlogPost } from "@shared/schema";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 export default function AdminBlogPosts() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +27,7 @@ export default function AdminBlogPosts() {
   const [deletingPost, setDeletingPost] = useState<BlogPost | null>(null);
   const [bulkAction, setBulkAction] = useState("");
   const [, setLocation] = useLocation();
+  const { t } = useAdminLanguage();
   
   const postsPerPage = 10;
   const offset = (currentPage - 1) * postsPerPage;
@@ -55,15 +57,15 @@ export default function AdminBlogPosts() {
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   const getAuthorName = (authorId: string | null) => {
-    if (!authorId) return "Unknown Author";
+    if (!authorId) return t('blog.unknown_author');
     const author = authors.find(a => a.id === authorId);
-    return author?.name || "Unknown Author";
+    return author?.name || t('blog.unknown_author');
   };
 
   const getCategoryName = (categoryId: string | null) => {
-    if (!categoryId) return "Uncategorized";
+    if (!categoryId) return t('blog.uncategorized');
     const category = categories.find(c => c.id === categoryId);
-    return category?.name || "Uncategorized";
+    return category?.name || t('blog.uncategorized');
   };
 
   const getStatusColor = (status: string) => {
@@ -80,12 +82,12 @@ export default function AdminBlogPosts() {
   };
 
   const formatDate = (date: string | Date | null) => {
-    if (!date) return "Never";
+    if (!date) return t('blog.never');
     try {
       const dateObj = typeof date === 'string' ? new Date(date) : date;
       return formatDistanceToNow(dateObj, { addSuffix: true });
     } catch {
-      return "Invalid date";
+      return t('blog.invalid_date');
     }
   };
 
@@ -97,15 +99,15 @@ export default function AdminBlogPosts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/posts'] });
       toast({
-        title: "Success",
-        description: "Blog post deleted successfully!",
+        title: t('message.success.deleted', { item: 'Blog post' }),
+        description: t('blog.post_deleted'),
       });
       setDeletingPost(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: `Failed to delete blog post: ${error.message}`,
+        title: t('message.error.delete', { item: 'Blog post' }),
+        description: t('blog.delete_error', { error: error.message }),
         variant: "destructive",
       });
     },

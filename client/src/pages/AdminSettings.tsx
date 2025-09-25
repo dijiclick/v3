@@ -4,110 +4,112 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { isSanityConfigured } from "@/hooks/use-sanity";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 export default function AdminSettings() {
+  const { t, isRTL } = useAdminLanguage();
   const sanityEnabled = isSanityConfigured();
   const { toast } = useToast();
 
   const handleConfigure = (cardTitle: string) => {
     switch (cardTitle) {
-      case "Content Management":
+      case t('settings.card.content_management.title'):
         toast({
-          title: "Content Management",
+          title: t('settings.toast.content_management.title'),
           description: sanityEnabled 
-            ? "Sanity CMS configuration is handled through your Sanity Studio dashboard."
-            : "Database content is managed through the Products, Categories, and Pages sections of this admin panel.",
+            ? t('settings.toast.content_management.desc_sanity')
+            : t('settings.toast.content_management.desc_database'),
         });
         break;
-      case "Website Settings":
+      case t('settings.card.website.title'):
         toast({
-          title: "Website Settings",
-          description: "SEO, Open Graph, and structured data settings are automatically optimized. Theme customization is available in the next section.",
+          title: t('settings.toast.website.title'),
+          description: t('settings.toast.website.desc'),
         });
         break;
-      case "Theme & Appearance":
+      case t('settings.card.theme.title'):
         toast({
-          title: "Theme & Appearance", 
-          description: "Your website uses a modern responsive design with dark mode support. Advanced theme customization is coming soon.",
+          title: t('settings.toast.theme.title'), 
+          description: t('settings.toast.theme.desc'),
         });
         break;
-      case "Security":
+      case t('settings.card.security.title'):
         toast({
-          title: "Security Settings",
-          description: "Your admin panel is password-protected with session management. Use HTTPS in production for secure connections.",
+          title: t('settings.toast.security.title'),
+          description: t('settings.toast.security.desc'),
         });
         break;
       default:
         toast({
           title: cardTitle,
-          description: "Configuration options for this section are coming soon.",
+          description: t('settings.toast.coming_soon'),
         });
     }
   };
 
   const settingsCards = [
     {
-      title: "Content Management",
-      description: "Configure your content source and CMS settings",
+      title: t('settings.card.content_management.title'),
+      description: t('settings.card.content_management.desc'),
       icon: Database,
-      status: sanityEnabled ? "Sanity CMS" : "Database",
+      status: sanityEnabled ? t('settings.card.content_management.status.sanity') : t('settings.card.content_management.status.database'),
       statusVariant: sanityEnabled ? "success" : "info" as const,
       items: [
-        `Content Source: ${sanityEnabled ? "Sanity CMS" : "PostgreSQL Database"}`,
-        `Auto-sync: ${sanityEnabled ? "Enabled" : "Manual"}`,
-        "Content Types: Products, Categories, Pages"
+        sanityEnabled ? t('settings.card.content_management.item.content_source_sanity') : t('settings.card.content_management.item.content_source_db'),
+        sanityEnabled ? t('settings.card.content_management.item.auto_sync_enabled') : t('settings.card.content_management.item.auto_sync_manual'),
+        t('settings.card.content_management.item.content_types')
       ]
     },
     {
-      title: "Website Settings",
-      description: "General website configuration and preferences", 
+      title: t('settings.card.website.title'),
+      description: t('settings.card.website.desc'), 
       icon: Globe,
-      status: "Active",
+      status: t('settings.card.website.status'),
       statusVariant: "success" as const,
       items: [
-        "SEO Optimization: Enabled",
-        "Open Graph Tags: Configured",
-        "Structured Data: Active",
-        "Mobile Responsive: Yes"
+        t('settings.card.website.item.seo'),
+        t('settings.card.website.item.opengraph'),
+        t('settings.card.website.item.structured_data'),
+        t('settings.card.website.item.mobile_responsive')
       ]
     },
     {
-      title: "Theme & Appearance",
-      description: "Customize the look and feel of your website",
+      title: t('settings.card.theme.title'),
+      description: t('settings.card.theme.desc'),
       icon: Palette,
-      status: "Default Theme",
+      status: t('settings.card.theme.status'),
       statusVariant: "secondary" as const,
       items: [
-        "Color Scheme: Professional Blue",
-        "Dark Mode: Supported",
-        "Typography: Inter Font Family",
-        "Layout: Modern Grid"
+        t('settings.card.theme.item.color_scheme'),
+        t('settings.card.theme.item.dark_mode'),
+        t('settings.card.theme.item.typography'),
+        t('settings.card.theme.item.layout')
       ]
     },
     {
-      title: "Security",
-      description: "Admin access and security settings",
+      title: t('settings.card.security.title'),
+      description: t('settings.card.security.desc'),
       icon: Shield,
-      status: "Protected",
+      status: t('settings.card.security.status'),
       statusVariant: "warning" as const,
       items: [
-        "Admin Authentication: Password Protected",
-        "Session Management: Browser Storage",
-        "HTTPS: Enforced",
-        "CORS: Configured"
+        t('settings.card.security.item.admin_auth'),
+        t('settings.card.security.item.session_mgmt'),
+        t('settings.card.security.item.https'),
+        t('settings.card.security.item.cors')
       ]
     }
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white" data-testid="admin-settings-title">
-          Settings
+          {t('settings.title')}
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
-          Manage your website configuration and preferences
+          {t('settings.desc')}
         </p>
       </div>
 
@@ -116,10 +118,10 @@ export default function AdminSettings() {
         <CardHeader>
           <CardTitle className="flex items-center text-gray-900 dark:text-white">
             <Settings className="mr-2 h-5 w-5" />
-            System Status
+            {t('settings.system_status')}
           </CardTitle>
           <CardDescription>
-            Current status of your TechShop application
+            {t('settings.system_status_desc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,26 +130,26 @@ export default function AdminSettings() {
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 ✓
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Website Online</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('settings.status.website_online')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 ✓
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Database Connected</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('settings.status.database_connected')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 ✓
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Admin Panel Active</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('settings.status.admin_panel_active')}</div>
             </div>
             <div className="text-center">
               <div className={`text-2xl font-bold ${sanityEnabled ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
                 {sanityEnabled ? '✓' : '○'}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {sanityEnabled ? 'Sanity CMS Active' : 'Database Mode'}
+                {sanityEnabled ? t('settings.status.sanity_cms_active') : t('settings.status.database_mode')}
               </div>
             </div>
           </div>
@@ -194,7 +196,7 @@ export default function AdminSettings() {
                   onClick={() => handleConfigure(card.title)}
                   data-testid={`configure-${index}`}
                 >
-                  Configure
+                  {t('settings.configure')}
                 </Button>
               </div>
             </CardContent>
@@ -205,9 +207,9 @@ export default function AdminSettings() {
       {/* CMS Integration Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">Content Management Integration</CardTitle>
+          <CardTitle className="text-gray-900 dark:text-white">{t('settings.cms_integration')}</CardTitle>
           <CardDescription>
-            Current content management setup and options
+            {t('settings.cms_integration_desc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -215,26 +217,26 @@ export default function AdminSettings() {
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">
-                  {sanityEnabled ? "Sanity CMS Integration" : "Database Content Management"}
+                  {sanityEnabled ? t('settings.cms.sanity_integration') : t('settings.cms.database_management')}
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {sanityEnabled 
-                    ? "Your content is managed through Sanity CMS with real-time updates"
-                    : "Your content is stored in PostgreSQL database with API access"
+                    ? t('settings.cms.sanity_desc')
+                    : t('settings.cms.database_desc')
                   }
                 </p>
               </div>
               <Badge variant={sanityEnabled ? "success" : "info"}>
-                {sanityEnabled ? "CMS Active" : "Database Mode"}
+                {sanityEnabled ? t('settings.cms.status.cms_active') : t('settings.cms.status.database_mode')}
               </Badge>
             </div>
             
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p>
-                <strong>Features available:</strong>{" "}
+                <strong>{t('settings.cms.features_available')}</strong>{" "}
                 {sanityEnabled 
-                  ? "Rich content editor, Image optimization, Real-time preview, Version control"
-                  : "Direct database access, API endpoints, Fast queries, Simple management"
+                  ? t('settings.cms.features_sanity')
+                  : t('settings.cms.features_database')
                 }
               </p>
             </div>

@@ -8,6 +8,7 @@ import Layout from "@/components/Layout";
 import PersianLayout from "@/components/PersianLayout";
 import AdminLayout from "@/components/AdminLayout";
 import AdminAuth from "@/components/AdminAuth";
+import { AdminLanguageProvider } from "@/contexts/AdminLanguageContext";
 import Home from "@/pages/Home";
 import Support from "@/pages/Support";
 import UserGuide from "@/pages/UserGuide";
@@ -40,28 +41,30 @@ import AuthorProfilePage from "@/pages/AuthorProfilePage";
 
 function AdminRouter() {
   return (
-    <AdminAuth>
-      <AdminLayout>
-        <Switch>
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/products" component={AdminProducts} />
-          <Route path="/admin/products/add" component={AdminProductAdd} />
-          <Route path="/admin/products/edit/:id" component={AdminProductEdit} />
-          <Route path="/admin/categories" component={AdminCategories} />
-          <Route path="/admin/pages" component={AdminPages} />
-          <Route path="/admin/blog" component={AdminBlogDashboard} />
-          <Route path="/admin/blog/posts" component={AdminBlogPosts} />
-          <Route path="/admin/blog/authors" component={AdminBlogAuthors} />
-          <Route path="/admin/blog/authors/new" component={AdminBlogAuthorNew} />
-          <Route path="/admin/blog/authors/edit/:id" component={AdminBlogAuthorEdit} />
-          <Route path="/admin/blog/categories" component={AdminBlogCategories} />
-          <Route path="/admin/blog/tags" component={AdminBlogTags} />
-          <Route path="/admin/blog/new" component={AdminBlogEditor} />
-          <Route path="/admin/blog/edit/:id" component={AdminBlogEditor} />
-          <Route path="/admin/settings" component={AdminSettings} />
-        </Switch>
-      </AdminLayout>
-    </AdminAuth>
+    <AdminLanguageProvider>
+      <AdminAuth>
+        <AdminLayout>
+          <Switch>
+            <Route path="/admin" component={AdminDashboard} />
+            <Route path="/admin/products" component={AdminProducts} />
+            <Route path="/admin/products/add" component={AdminProductAdd} />
+            <Route path="/admin/products/edit/:id" component={AdminProductEdit} />
+            <Route path="/admin/categories" component={AdminCategories} />
+            <Route path="/admin/pages" component={AdminPages} />
+            <Route path="/admin/blog" component={AdminBlogDashboard} />
+            <Route path="/admin/blog/posts" component={AdminBlogPosts} />
+            <Route path="/admin/blog/authors" component={AdminBlogAuthors} />
+            <Route path="/admin/blog/authors/new" component={AdminBlogAuthorNew} />
+            <Route path="/admin/blog/authors/edit/:id" component={AdminBlogAuthorEdit} />
+            <Route path="/admin/blog/categories" component={AdminBlogCategories} />
+            <Route path="/admin/blog/tags" component={AdminBlogTags} />
+            <Route path="/admin/blog/new" component={AdminBlogEditor} />
+            <Route path="/admin/blog/edit/:id" component={AdminBlogEditor} />
+            <Route path="/admin/settings" component={AdminSettings} />
+          </Switch>
+        </AdminLayout>
+      </AdminAuth>
+    </AdminLanguageProvider>
   );
 }
 

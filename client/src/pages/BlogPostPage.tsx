@@ -712,7 +712,7 @@ export default function BlogPostPage() {
 
             {/* Right Sidebar - Table of Contents */}
             <aside className="lg:col-span-3 order-3 hidden lg:block">
-              <div className="sticky top-24 space-y-6">
+              <div className="sticky top-20 space-y-6">
                 <TableOfContents
                   content={post.content}
                   sticky={true}

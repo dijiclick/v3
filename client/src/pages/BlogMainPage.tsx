@@ -164,7 +164,7 @@ export default function BlogMainPage() {
         return [];
       }
       const data = await response.json();
-      return data.products || [];
+      return Array.isArray(data) ? data : [];
     },
   });
 

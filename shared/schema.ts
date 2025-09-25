@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, integer, boolean, jsonb, timestamp, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -88,6 +88,87 @@ export const productPlans = pgTable("product_plans", {
   sortOrder: integer("sort_order").default(0), // For ordering plans
   isActive: boolean("is_active").default(true), // Enable/disable plans
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const blogAuthors = pgTable("blog_authors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  bio: text("bio"),
+  email: text("email"),
+  avatar: text("avatar"),
+  website: text("website"),
+  twitter: text("twitter"),
+  linkedin: text("linkedin"),
+  github: text("github"),
+  telegram: text("telegram"),
+  jobTitle: text("job_title"),
+  company: text("company"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords").array(),
+  featured: boolean("featured").default(false),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const blogCategories = pgTable("blog_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  parentId: varchar("parent_id"), // Self-reference for hierarchy - constraint defined separately
+  color: text("color"), // hex code for UI
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords").array(),
+  featured: boolean("featured").default(false),
+  active: boolean("active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Define the self-referencing foreign key constraint here to avoid circular reference
+  parentReference: foreignKey({
+    columns: [table.parentId],
+    foreignColumns: [table.id],
+  }).onDelete("set null"),
+}));
+
+export const blogTags = pgTable("blog_tags", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  color: text("color"), // hex code for UI
+  featured: boolean("featured").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const blogPosts = pgTable("blog_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  excerpt: text("excerpt"),
+  content: jsonb("content"), // JSONB for rich content blocks
+  authorId: varchar("author_id").references(() => blogAuthors.id),
+  categoryId: varchar("category_id").references(() => blogCategories.id),
+  tags: text("tags").array(), // text array for tag slugs
+  featuredImage: text("featured_image"),
+  featuredImageAlt: text("featured_image_alt"),
+  status: text("status").default("draft"), // draft, published, archived
+  readingTime: integer("reading_time"), // integer minutes
+  viewCount: integer("view_count").default(0),
+  shareCount: integer("share_count").default(0),
+  featured: boolean("featured").default(false),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords").array(),
+  ogTitle: text("og_title"),
+  ogDescription: text("og_description"),
+  ogImage: text("og_image"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -242,6 +323,85 @@ export const insertProductPlanSchema = createInsertSchema(productPlans).omit({
   sortOrder: z.number().int().min(0).optional(),
 });
 
+export const insertBlogAuthorSchema = createInsertSchema(blogAuthors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Author name is required"),
+  email: z.string().email().optional().or(z.literal("")),
+  website: z.string().url().optional().or(z.literal("")),
+  twitter: z.string().optional(),
+  linkedin: z.string().optional(),
+  github: z.string().optional(),
+  telegram: z.string().optional(),
+  bio: z.string().optional(),
+  avatar: z.string().optional(),
+  jobTitle: z.string().optional(),
+  company: z.string().optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
+  active: z.boolean().optional(),
+});
+
+export const insertBlogCategorySchema = createInsertSchema(blogCategories).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  name: z.string().min(1, "Category name is required"),
+  slug: z.string().min(1, "Category slug is required"),
+  description: z.string().optional(),
+  parentId: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color format").optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).optional(),
+  featured: z.boolean().optional(),
+  active: z.boolean().optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
+export const insertBlogTagSchema = createInsertSchema(blogTags).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  name: z.string().min(1, "Tag name is required"),
+  slug: z.string().min(1, "Tag slug is required"),
+  description: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color format").optional(),
+  featured: z.boolean().optional(),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+}).extend({
+  title: z.string().min(1, "Post title is required"),
+  slug: z.string().min(1, "Post slug is required"),
+  excerpt: z.string().optional(),
+  content: z.any().optional(), // Rich text JSON format
+  authorId: z.string().min(1, "Author is required"),
+  categoryId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  featuredImage: z.string().optional(),
+  featuredImageAlt: z.string().optional(),
+  status: z.enum(["draft", "published", "archived"]).optional(),
+  readingTime: z.number().int().min(0).optional(),
+  viewCount: z.number().int().min(0).optional(),
+  shareCount: z.number().int().min(0).optional(),
+  featured: z.boolean().optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).optional(),
+  ogTitle: z.string().optional(),
+  ogDescription: z.string().optional(),
+  ogImage: z.string().optional(),
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -254,6 +414,14 @@ export type InsertImage = z.infer<typeof insertImageSchema>;
 export type Image = typeof images.$inferSelect;
 export type InsertProductPlan = z.infer<typeof insertProductPlanSchema>;
 export type ProductPlan = typeof productPlans.$inferSelect;
+export type InsertBlogAuthor = z.infer<typeof insertBlogAuthorSchema>;
+export type BlogAuthor = typeof blogAuthors.$inferSelect;
+export type InsertBlogCategory = z.infer<typeof insertBlogCategorySchema>;
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type InsertBlogTag = z.infer<typeof insertBlogTagSchema>;
+export type BlogTag = typeof blogTags.$inferSelect;
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
 
 // Cart types for frontend
 export const cartItemSchema = z.object({

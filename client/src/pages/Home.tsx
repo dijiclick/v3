@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
 import { useSEO } from "@/hooks/use-seo";
 import { useToast } from "@/hooks/use-toast";
 import { defaultSEO, getHomepageStructuredData, getOrganizationStructuredData } from "@/lib/seo";
@@ -144,7 +143,6 @@ export default function Home() {
   const [showLoadMore, setShowLoadMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
-  const [isFiltering, setIsFiltering] = useState(false);
   const { toast } = useToast();
   
   // Get current responsive columns and calculate initial visible count
@@ -156,17 +154,10 @@ export default function Home() {
     setShowAllProducts(false);
   }, [activeCategory]);
 
-  // Handle category change with smooth filtering animation
+  // Handle category change with instant filtering
   const handleCategoryChange = useCallback((categoryId: string) => {
     if (categoryId === activeCategory) return;
-    
-    setIsFiltering(true);
-    
-    // Add a short delay for smooth transition effect
-    setTimeout(() => {
-      setActiveCategory(categoryId);
-      setIsFiltering(false);
-    }, 150);
+    setActiveCategory(categoryId);
   }, [activeCategory]);
 
   // Fetch all products and categories from the database
@@ -335,33 +326,25 @@ export default function Home() {
         <div className="flex justify-center gap-4 mb-8 flex-wrap px-5">
           {filterCategories.map((category) => {
             return (
-              <motion.div
+              <div
                 key={category.id}
                 className={`flex flex-col items-center gap-2 cursor-pointer transition-all p-3 rounded-2xl min-w-20 ${
                   activeCategory === category.id
-                    ? 'bg-white text-red-500 border-2 border-white -translate-y-2 shadow-lg shadow-red-500/30 scale-105'
-                    : 'bg-white/10 hover:bg-white/20 hover:-translate-y-1 hover:scale-105'
+                    ? 'bg-white text-red-500 border-2 border-white'
+                    : 'bg-white/10 hover:bg-white/20'
                 }`}
                 onClick={() => handleCategoryChange(category.id)}
                 data-testid={`tab-category-${category.id}`}
-                whileHover={{ scale: 1.05, y: -4 }}
-                whileTap={{ scale: 0.95 }}
-                animate={activeCategory === category.id ? { y: -8, scale: 1.05 } : { y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <motion.span 
-                  className="text-3xl mb-1"
-                  animate={activeCategory === category.id ? { scale: 1.2, rotate: 360 } : { scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
+                <span className="text-3xl mb-1">
                   {category.icon}
-                </motion.span>
+                </span>
                 <span className={`text-sm font-bold transition-colors ${
                   activeCategory === category.id ? 'text-red-500' : 'text-white'
                 }`}>
                   {category.label}
                 </span>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -370,99 +353,26 @@ export default function Home() {
       {/* Main Content */}
       <main className="bg-white -mt-5 pt-10 pb-10 rounded-t-3xl min-h-screen">
         <div className="max-w-7xl mx-auto px-5">
-          {/* Filter Info Bar */}
-          {!categoriesLoading && !productsLoading && (
-            <motion.div 
-              className="flex items-center justify-between mb-8 p-4 bg-gray-50 rounded-2xl border border-gray-200"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">
-                  {filterCategories.find(cat => cat.id === activeCategory)?.icon || "⚡"}
-                </span>
-                <div>
-                  <h2 className="font-bold text-lg text-gray-800">
-                    {filterCategories.find(cat => cat.id === activeCategory)?.label || "همه"}
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    {filteredServices.length} محصول موجود
-                  </p>
-                </div>
-              </div>
-              
-              {/* Filter Loading Indicator */}
-              {isFiltering && (
-                <motion.div
-                  className="flex items-center gap-2 text-red-500"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <motion.div
-                    className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                  />
-                  <span className="text-sm font-medium">در حال فیلتر...</span>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
 
           {/* Loading States */}
           {(categoriesLoading || productsLoading) && (
             <div className="text-center py-20">
               <div className="inline-flex items-center gap-3 text-gray-600">
-                <motion.span 
-                  className="text-3xl"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
-                  ⏳
-                </motion.span>
+                <span className="text-3xl">⏳</span>
                 <p className="text-lg font-medium">در حال بارگذاری محصولات...</p>
               </div>
             </div>
           )}
 
           {/* Services Grid */}
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-10"
-            layout
-          >
-            <AnimatePresence>
-              {!categoriesLoading && !productsLoading && displayedServices.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative cursor-pointer"
-                  data-testid={`card-service-${service.id}`}
-                  onClick={() => handleCardClick(service)}
-                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                  animate={{ 
-                    opacity: isFiltering ? 0.3 : 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: { 
-                      delay: index * 0.05, // Staggered animation
-                      duration: 0.4,
-                      ease: "easeOut"
-                    }
-                  }}
-                  exit={{ 
-                    opacity: 0, 
-                    y: -30, 
-                    scale: 0.8,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileHover={{ 
-                    y: -8, 
-                    scale: 1.02, 
-                    transition: { duration: 0.2 }
-                  }}
-                  layout
-                >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-10">
+            {!categoriesLoading && !productsLoading && displayedServices.map((service, index) => (
+              <div
+                key={service.id}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 hover:-translate-y-2 hover:shadow-xl transition-all h-[480px] flex flex-col relative cursor-pointer"
+                data-testid={`card-service-${service.id}`}
+                onClick={() => handleCardClick(service)}
+              >
                 
                 
                 {/* Card Top */}
@@ -585,51 +495,24 @@ export default function Home() {
                     </a>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
-            </AnimatePresence>
-          </motion.div>
+          </div>
           
           {/* Show All Products Button */}
-          <AnimatePresence>
-            {!showAllProducts && filteredServices.length > initialVisibleCount && searchTerm === "" && (
-              <motion.div 
-                className="text-center mb-10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+          {!showAllProducts && filteredServices.length > initialVisibleCount && searchTerm === "" && (
+            <div className="text-center mb-10">
+              <button
+                onClick={() => setShowAllProducts(true)}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-2xl font-bold text-lg hover:from-red-500 hover:to-red-600 transition-all"
+                data-testid="button-show-all-products"
               >
-                <motion.button
-                  onClick={() => setShowAllProducts(true)}
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-2xl font-bold text-lg hover:from-red-500 hover:to-red-600 transition-all"
-                  data-testid="button-show-all-products"
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -4,
-                    boxShadow: "0 10px 25px rgba(239, 68, 68, 0.3)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <motion.span
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  >
-                    📦
-                  </motion.span>
-                  نمایش همه محصولات
-                  <motion.span 
-                    className="text-xl"
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    ←
-                  </motion.span>
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <span>📦</span>
+                نمایش همه محصولات
+                <span className="text-xl">←</span>
+              </button>
+            </div>
+          )}
           
           {filteredServices.length === 0 && (
             <div className="text-center py-20">

@@ -138,8 +138,8 @@ export default function BlogMainPage() {
     queryFn: async () => {
       const response = await fetch('/api/blog/tags/popular?limit=8');
       if (!response.ok) {
-        // Fallback with some default Persian tags
-        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی"];
+        // Fallback with 8 default Persian tags to match requirement
+        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی", "نرم‌افزار", "وب"];
       }
       const data = await response.json();
       return Array.isArray(data) ? data : data.tags || [];

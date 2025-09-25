@@ -1,5 +1,6 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Helmet } from "react-helmet-async";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Calendar, 
   Clock, 
@@ -30,8 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import BlogCard from "@/components/blog/BlogCard";
-import TableOfContents from "@/components/blog/TableOfContents";
-import PopularContent from "@/components/blog/PopularContent";
+import { ModernSidebar } from "@/components/blog/ModernSidebar";
 import BlogContentRenderer from "@/components/BlogContentRenderer";
 import { SEOService } from "@/lib/seo-service";
 import { useEffect, useState } from "react";
@@ -41,12 +41,73 @@ import { cn } from "@/lib/utils";
 
 export default function BlogPostPage() {
   const { slug } = useParams();
+  const [, setLocation] = useLocation();
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   
   // Fetch blog post data
   const { data: post, isLoading, error } = useBlogPostBySlug(slug || "");
   const { data: relatedPosts } = useRelatedBlogPosts(post || undefined, 3);
   const { data: navigation } = useBlogPostNavigation(post || undefined);
+
+  // Fetch popular posts for sidebar
+  const { 
+    data: popularPosts, 
+    isLoading: isLoadingPopular 
+  } = useQuery({
+    queryKey: ['/api/blog/posts/popular', 6],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/posts/popular?limit=6');
+      if (!response.ok) {
+        // Fallback to regular posts if popular endpoint doesn't exist
+        const fallbackResponse = await fetch('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          return fallbackData.posts || [];
+        }
+        return [];
+      }
+      return response.json();
+    },
+  });
+
+  // Fetch hot tags for sidebar
+  const { 
+    data: hotTags, 
+    isLoading: isLoadingTags 
+  } = useQuery({
+    queryKey: ['/api/blog/tags/popular', 8],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/tags/popular?limit=8');
+      if (!response.ok) {
+        // Fallback with 8 default Persian tags to match requirement
+        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی", "نرم‌افزار", "وب"];
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : data.tags || [];
+    },
+  });
+
+  // Fetch featured products for sidebar
+  const { 
+    data: featuredProducts, 
+    isLoading: isLoadingFeaturedProducts 
+  } = useQuery({
+    queryKey: ['/api/products/featured', 5],
+    queryFn: async () => {
+      const response = await fetch('/api/products?featured=true&limit=5&random=true');
+      if (!response.ok) {
+        // Fallback to first 5 products if featured endpoint fails
+        const fallbackResponse = await fetch('/api/products?limit=5');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          return fallbackData.products || [];
+        }
+        return [];
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   // Current URL for sharing
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -113,7 +174,7 @@ export default function BlogPostPage() {
       SEOService.updatePageSEO({
         title: post.seoTitle || post.title,
         description: post.seoDescription || post.excerpt || "",
-        image: post.ogImage || post.featuredImage,
+        image: post.ogImage || post.featuredImage || undefined,
         url: currentUrl,
         type: "article",
         schemas: [
@@ -125,7 +186,7 @@ export default function BlogPostPage() {
         publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
         modifiedAt: post.updatedAt ? new Date(post.updatedAt) : undefined,
         author: post.author?.name,
-        tags: post.tags,
+        tags: post.tags || undefined,
         category: post.category?.name,
         readingTime
       });
@@ -157,6 +218,28 @@ export default function BlogPostPage() {
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+  // Handle tag navigation
+  const handleTagClick = (tag: string) => {
+    setLocation(`/blog?search=${encodeURIComponent(tag)}`);
+  };
+
+  // Prepare sidebar data
+  const sidebarData = {
+    popularBlogs: (popularPosts || []).map((post: any) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug
+    })),
+    featuredProducts: (featuredProducts || []).map((product: any) => ({
+      id: product.id,
+      title: product.title,
+      price: Number(product.price),
+      originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+      slug: product.slug
+    })),
+    hotTags: hotTags || []
   };
 
   // Loading state
@@ -277,41 +360,20 @@ export default function BlogPostPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* Left Sidebar - Table of Contents */}
+            {/* Left Sidebar - Modern Sidebar */}
             <aside className="lg:col-span-3 order-2 lg:order-1">
               <div className="sticky top-24 space-y-6">
-                <TableOfContents 
-                  content={post.content}
-                  showOnMobile={false}
-                  sticky={false}
-                  className="hidden lg:block"
-                  data-testid="table-of-contents-sidebar"
+                <ModernSidebar
+                  popularBlogs={sidebarData.popularBlogs}
+                  featuredProducts={sidebarData.featuredProducts}
+                  hotTags={sidebarData.hotTags}
+                  onTagClick={handleTagClick}
                 />
-                
-                {/* Mobile TOC - collapsible */}
-                <div className="lg:hidden">
-                  <Card className="shadow-sm">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Menu className="w-5 h-5 text-blue-500" />
-                        <span>فهرست مطالب</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <TableOfContents 
-                        content={post.content}
-                        showOnMobile={true}
-                        collapsible={true}
-                        sticky={false}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
               </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="lg:col-span-6 order-1 lg:order-2">
+            <main className="lg:col-span-9 order-1 lg:order-2">
               <article className="space-y-6" data-testid={`blog-post-${post.slug}`}>
                 
                 {/* Article Header Card */}
@@ -605,25 +667,6 @@ export default function BlogPostPage() {
               </article>
             </main>
 
-            {/* Right Sidebar - Popular Content */}
-            <aside className="lg:col-span-3 order-3">
-              <div className="sticky top-24">
-                <PopularContent 
-                  currentPostId={post.id}
-                  maxItems={{ posts: 5, authors: 4, tags: 10 }}
-                  className="hidden lg:block"
-                  data-testid="popular-content-sidebar"
-                />
-                
-                {/* Mobile Popular Content */}
-                <div className="lg:hidden mt-6">
-                  <PopularContent 
-                    currentPostId={post.id}
-                    maxItems={{ posts: 3, authors: 3, tags: 6 }}
-                  />
-                </div>
-              </div>
-            </aside>
           </div>
         </div>
 

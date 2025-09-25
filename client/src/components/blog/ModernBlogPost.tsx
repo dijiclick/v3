@@ -4,11 +4,30 @@ import { Clock, Eye, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { BlogPost } from "@/types";
 
+// Import blog images
+import reactImage from "@assets/stock_images/react_javascript_pro_4fe483cb.jpg";
+import cssGridImage from "@assets/stock_images/css_grid_layout_web__ab23a733.jpg";
+import typescriptImage from "@assets/stock_images/typescript_programmi_1af42510.jpg";
+import webTechImage from "@assets/stock_images/web_technology_futur_6769e898.jpg";
+
 interface ModernBlogPostProps {
   post: BlogPost;
 }
 
 export function ModernBlogPost({ post }: ModernBlogPostProps) {
+  // Map blog post IDs to their corresponding images
+  const getPostImage = (postId: string, featuredImage?: string | null) => {
+    const imageMap: { [key: string]: string } = {
+      'post-1': reactImage,       // React.js آموزش
+      'post-2': cssGridImage,     // CSS Grid طراحی
+      'post-3': typescriptImage,  // TypeScript معرفی
+      'post-4': webTechImage,     // فناوری آینده
+    };
+
+    // Use mapped image if available, otherwise use featuredImage or fallback
+    return imageMap[postId] || featuredImage || reactImage;
+  };
+
   const formatDate = (date: Date | string | null) => {
     if (!date) return "";
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -45,12 +64,12 @@ export function ModernBlogPost({ post }: ModernBlogPostProps) {
       {/* Featured Image */}
       <div className="aspect-video relative overflow-hidden">
         <img
-          src={post.featuredImage || "/api/placeholder/400/225"}
+          src={getPostImage(post.id, post.featuredImage)}
           alt={post.featuredImageAlt || post.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = "/api/placeholder/400/225";
+            target.src = reactImage; // Fallback to React image instead of broken placeholder
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

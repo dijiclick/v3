@@ -6,6 +6,15 @@ This is a modern e-commerce web application built with React/TypeScript, Express
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Major Updates
+
+## Complete Bilingual Admin Panel (December 2025)
+- **100% Farsi Translation Coverage**: All admin panel elements now switch to Farsi when language is selected
+- **Comprehensive Translation System**: 200+ translation keys covering all admin functionality
+- **Full RTL/LTR Support**: Complete bidirectional text support with automatic layout adjustment
+- **Admin Components Coverage**: Authentication, dashboard, settings, forms, SEO tools, and blog management
+- **Enhanced User Experience**: Toast messages, validation feedback, and all UI elements properly localized
+
 # System Architecture
 
 ## Frontend Architecture

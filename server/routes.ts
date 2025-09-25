@@ -989,6 +989,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk operations for blog categories
+  app.post("/api/blog/categories/bulk-delete", requireAdmin, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid category IDs array" });
+      }
+      
+      const result = await storage.deleteBlogCategoriesBulk(ids);
+      res.json({ deletedCount: result });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error bulk deleting blog categories: " + error.message });
+    }
+  });
+
+  // Get blog categories with post counts
+  app.get("/api/blog/categories/with-stats", async (req, res) => {
+    try {
+      const categoriesWithStats = await storage.getBlogCategoriesWithStats();
+      res.json(categoriesWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog categories with stats: " + error.message });
+    }
+  });
+
   // Blog Tags routes
   app.get("/api/blog/tags", async (req, res) => {
     try {
@@ -1071,6 +1096,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: "Error deleting blog tag: " + error.message });
+    }
+  });
+
+  // Bulk operations for blog tags
+  app.post("/api/blog/tags/bulk-delete", requireAdmin, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid tag IDs array" });
+      }
+      
+      const result = await storage.deleteBlogTagsBulk(ids);
+      res.json({ deletedCount: result });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error bulk deleting blog tags: " + error.message });
+    }
+  });
+
+  // Get blog tags with usage counts
+  app.get("/api/blog/tags/with-stats", async (req, res) => {
+    try {
+      const tagsWithStats = await storage.getBlogTagsWithStats();
+      res.json(tagsWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching blog tags with stats: " + error.message });
     }
   });
 

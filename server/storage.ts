@@ -69,6 +69,8 @@ export interface IStorage {
   createBlogCategory(category: InsertBlogCategory): Promise<BlogCategory>;
   updateBlogCategory(id: string, category: Partial<InsertBlogCategory>): Promise<BlogCategory>;
   deleteBlogCategory(id: string): Promise<boolean>;
+  deleteBlogCategoriesBulk(ids: string[]): Promise<number>;
+  getBlogCategoriesWithStats(): Promise<(BlogCategory & { postCount: number })[]>;
   
   getBlogTags(): Promise<BlogTag[]>;
   getBlogTag(id: string): Promise<BlogTag | undefined>;
@@ -76,6 +78,8 @@ export interface IStorage {
   createBlogTag(tag: InsertBlogTag): Promise<BlogTag>;
   updateBlogTag(id: string, tag: Partial<InsertBlogTag>): Promise<BlogTag>;
   deleteBlogTag(id: string): Promise<boolean>;
+  deleteBlogTagsBulk(ids: string[]): Promise<number>;
+  getBlogTagsWithStats(): Promise<(BlogTag & { usageCount: number })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -983,6 +987,40 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount ? result.rowCount > 0 : false;
   }
 
+  async deleteBlogCategoriesBulk(ids: string[]): Promise<number> {
+    const result = await db.delete(blogCategories).where(
+      sql`${blogCategories.id} = ANY(${ids})`
+    );
+    return result.rowCount || 0;
+  }
+
+  async getBlogCategoriesWithStats(): Promise<(BlogCategory & { postCount: number })[]> {
+    const categoriesWithCounts = await db
+      .select({
+        id: blogCategories.id,
+        name: blogCategories.name,
+        slug: blogCategories.slug,
+        description: blogCategories.description,
+        parentId: blogCategories.parentId,
+        color: blogCategories.color,
+        seoTitle: blogCategories.seoTitle,
+        seoDescription: blogCategories.seoDescription,
+        seoKeywords: blogCategories.seoKeywords,
+        featured: blogCategories.featured,
+        active: blogCategories.active,
+        sortOrder: blogCategories.sortOrder,
+        createdAt: blogCategories.createdAt,
+        postCount: count(blogPosts.id),
+      })
+      .from(blogCategories)
+      .leftJoin(blogPosts, eq(blogCategories.id, blogPosts.categoryId))
+      .where(eq(blogCategories.active, true))
+      .groupBy(blogCategories.id)
+      .orderBy(asc(blogCategories.sortOrder), asc(blogCategories.name));
+    
+    return categoriesWithCounts;
+  }
+
   // Blog Tags methods
   async getBlogTags(): Promise<BlogTag[]> {
     return await db.select().from(blogTags).orderBy(asc(blogTags.name));
@@ -1019,6 +1057,39 @@ export class DatabaseStorage implements IStorage {
   async deleteBlogTag(id: string): Promise<boolean> {
     const result = await db.delete(blogTags).where(eq(blogTags.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async deleteBlogTagsBulk(ids: string[]): Promise<number> {
+    const result = await db.delete(blogTags).where(
+      sql`${blogTags.id} = ANY(${ids})`
+    );
+    return result.rowCount || 0;
+  }
+
+  async getBlogTagsWithStats(): Promise<(BlogTag & { usageCount: number })[]> {
+    // Get all tags first
+    const allTags = await db.select().from(blogTags).orderBy(asc(blogTags.name));
+    
+    // Get blog posts with their tags
+    const postsWithTags = await db.select({
+      tags: blogPosts.tags
+    }).from(blogPosts).where(sql`${blogPosts.tags} IS NOT NULL`);
+    
+    // Count tag usage
+    const tagUsageCounts: Record<string, number> = {};
+    postsWithTags.forEach(post => {
+      if (post.tags && Array.isArray(post.tags)) {
+        post.tags.forEach(tagSlug => {
+          tagUsageCounts[tagSlug] = (tagUsageCounts[tagSlug] || 0) + 1;
+        });
+      }
+    });
+    
+    // Combine tags with their usage counts
+    return allTags.map(tag => ({
+      ...tag,
+      usageCount: tagUsageCounts[tag.slug] || 0
+    }));
   }
 }
 

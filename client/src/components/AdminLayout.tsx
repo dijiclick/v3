@@ -10,7 +10,10 @@ import {
   Menu,
   X,
   Home,
-  BookOpen
+  BookOpen,
+  Hash,
+  Bookmark,
+  PenTool
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -21,7 +24,17 @@ const adminNavItems = [
   { path: "/admin/products", icon: Package, label: "Products" },
   { path: "/admin/categories", icon: FolderTree, label: "Categories" },
   { path: "/admin/pages", icon: FileText, label: "Pages" },
-  { path: "/admin/blog", icon: BookOpen, label: "Blog" },
+  { 
+    path: "/admin/blog", 
+    icon: BookOpen, 
+    label: "Blog",
+    subItems: [
+      { path: "/admin/blog", icon: PenTool, label: "Dashboard" },
+      { path: "/admin/blog/posts", icon: FileText, label: "Posts" },
+      { path: "/admin/blog/categories", icon: FolderTree, label: "Categories" },
+      { path: "/admin/blog/tags", icon: Hash, label: "Tags" },
+    ]
+  },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -75,24 +88,52 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="space-y-1">
             {adminNavItems.map((item) => {
               const isActive = location === item.path;
+              const isBlogSection = location.startsWith('/admin/blog');
+              const showSubItems = item.subItems && (isBlogSection || isActive);
+              
               return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                >
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={`w-full justify-start ${
-                      isActive 
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white" 
-                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                    }`}
-                    data-testid={`admin-nav-${item.label.toLowerCase()}`}
-                  >
-                    <item.icon className="mr-3 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
+                <div key={item.path}>
+                  <Link href={item.path}>
+                    <Button
+                      variant={isActive ? "secondary" : "ghost"}
+                      className={`w-full justify-start ${
+                        isActive || (item.subItems && isBlogSection)
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white" 
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      }`}
+                      data-testid={`admin-nav-${item.label.toLowerCase()}`}
+                    >
+                      <item.icon className="mr-3 h-4 w-4" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                  
+                  {/* Sub-navigation items */}
+                  {showSubItems && (
+                    <div className="ml-4 mt-1 space-y-1">
+                      {item.subItems.map((subItem) => {
+                        const isSubActive = location === subItem.path;
+                        return (
+                          <Link key={subItem.path} href={subItem.path}>
+                            <Button
+                              variant={isSubActive ? "secondary" : "ghost"}
+                              size="sm"
+                              className={`w-full justify-start ${
+                                isSubActive
+                                  ? "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white" 
+                                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                              }`}
+                              data-testid={`admin-nav-blog-${subItem.label.toLowerCase()}`}
+                            >
+                              <subItem.icon className="mr-3 h-3 w-3" />
+                              {subItem.label}
+                            </Button>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

@@ -24,6 +24,8 @@ import AdminSettings from "@/pages/AdminSettings";
 import AdminBlogDashboard from "@/pages/AdminBlogDashboard";
 import AdminBlogPosts from "@/pages/AdminBlogPosts";
 import AdminBlogEditor from "@/pages/AdminBlogEditor";
+import AdminBlogCategories from "@/pages/AdminBlogCategories";
+import AdminBlogTags from "@/pages/AdminBlogTags";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
@@ -42,6 +44,8 @@ function AdminRouter() {
           <Route path="/admin/pages" component={AdminPages} />
           <Route path="/admin/blog" component={AdminBlogDashboard} />
           <Route path="/admin/blog/posts" component={AdminBlogPosts} />
+          <Route path="/admin/blog/categories" component={AdminBlogCategories} />
+          <Route path="/admin/blog/tags" component={AdminBlogTags} />
           <Route path="/admin/blog/new" component={AdminBlogEditor} />
           <Route path="/admin/blog/edit/:id" component={AdminBlogEditor} />
           <Route path="/admin/settings" component={AdminSettings} />

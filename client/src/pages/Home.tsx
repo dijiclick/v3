@@ -241,23 +241,88 @@ export default function Home() {
     ]
   });
 
+  // Enhanced search function that normalizes Persian and English text
+  const normalizeSearchText = useCallback((text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      // Normalize Persian characters
+      .replace(/ک/g, 'ك')
+      .replace(/ی/g, 'ي')
+      // Remove diacritics and special characters for better matching
+      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+      // Handle common English-Persian character mappings
+      .replace(/youtube/gi, 'یوتیوب')
+      .replace(/netflix/gi, 'نتفلیکس')
+      .replace(/spotify/gi, 'اسپاتیفای')
+      .replace(/chatgpt/gi, 'جی‌پی‌تی')
+      .replace(/adobe/gi, 'ادوبی');
+  }, []);
+
+  // Enhanced search across multiple fields
+  const searchInAllFields = useCallback((service: ServiceCard, searchTerm: string) => {
+    const normalizedSearchTerm = normalizeSearchText(searchTerm);
+    
+    // Search in service name
+    if (normalizeSearchText(service.name).includes(normalizedSearchTerm)) {
+      return true;
+    }
+    
+    // Search in service type
+    if (normalizeSearchText(service.type).includes(normalizedSearchTerm)) {
+      return true;
+    }
+    
+    // Search in features
+    if (service.features.some(feature => 
+      normalizeSearchText(feature).includes(normalizedSearchTerm)
+    )) {
+      return true;
+    }
+    
+    // Search in category name (find category by service.category)
+    const serviceCategory = categories.find(cat => cat.slug === service.category);
+    if (serviceCategory && normalizeSearchText(serviceCategory.name).includes(normalizedSearchTerm)) {
+      return true;
+    }
+    
+    // Search by original product data if available
+    const originalProduct = products.find(p => p.id === service.id);
+    if (originalProduct) {
+      // Search in description
+      if (originalProduct.description && 
+          normalizeSearchText(originalProduct.description).includes(normalizedSearchTerm)) {
+        return true;
+      }
+      
+      // Search in featured features
+      if (originalProduct.featuredFeatures && 
+          originalProduct.featuredFeatures.some(feature => 
+            normalizeSearchText(feature).includes(normalizedSearchTerm)
+          )) {
+        return true;
+      }
+    }
+    
+    return false;
+  }, [normalizeSearchText, categories, products]);
+
   // Memoize the filtered services to prevent unnecessary re-computations
   const filteredServices = useMemo(() => {
     let filtered = services;
     
+    // Apply category filter first
     if (activeCategory !== "all") {
       filtered = filtered.filter(service => service.category === activeCategory);
     }
     
-    if (searchTerm) {
-      filtered = filtered.filter(service => 
-        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.type.includes(searchTerm)
-      );
+    // Apply search filter if search term exists
+    if (searchTerm && searchTerm.trim().length > 0) {
+      filtered = filtered.filter(service => searchInAllFields(service, searchTerm));
     }
     
     return filtered;
-  }, [searchTerm, activeCategory, services]);
+  }, [searchTerm, activeCategory, services, searchInAllFields]);
 
   // Display limited services - show initialVisibleCount initially unless showAllProducts is true
   const displayedServices = useMemo(() => {
@@ -316,8 +381,19 @@ export default function Home() {
             <button 
               className="bg-gradient-to-r from-red-400 to-red-500 text-white px-6 py-3 rounded-full text-sm font-semibold hover:from-red-500 hover:to-red-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-500/30 transition-all"
               data-testid="button-search"
+              onClick={() => {
+                // If there's a search term, clear it, otherwise focus the input
+                if (searchTerm) {
+                  setSearchTerm('');
+                } else {
+                  const searchInput = document.querySelector('[data-testid="input-search"]') as HTMLInputElement;
+                  if (searchInput) {
+                    searchInput.focus();
+                  }
+                }
+              }}
             >
-              جستجو
+              {searchTerm ? 'پاک کردن' : 'جستجو'}
             </button>
           </div>
         </div>
@@ -514,9 +590,38 @@ export default function Home() {
             </div>
           )}
           
-          {filteredServices.length === 0 && (
+          {filteredServices.length === 0 && !categoriesLoading && !productsLoading && (
             <div className="text-center py-20">
-              <p className="text-gray-500 text-lg" data-testid="text-no-results">سرویسی یافت نشد. لطفاً جستجوی دیگری امتحان کنید.</p>
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">نتیجه‌ای یافت نشد</h3>
+              <p className="text-gray-500 text-lg mb-4" data-testid="text-no-results">
+                {searchTerm ? 
+                  `هیچ محصولی برای "${searchTerm}" یافت نشد.` : 
+                  'سرویسی در این دسته‌بندی موجود نیست.'
+                }
+              </p>
+              {searchTerm && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    پیشنهادات:
+                  </p>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• املای کلمات را بررسی کنید</li>
+                    <li>• از کلمات کلیدی مختلف استفاده کنید</li>
+                    <li>• در دسته‌بندی "همه" جستجو کنید</li>
+                  </ul>
+                  <button 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setActiveCategory('all');
+                    }}
+                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                    data-testid="button-clear-search"
+                  >
+                    نمایش همه محصولات
+                  </button>
+                </div>
+              )}
             </div>
           )}
           

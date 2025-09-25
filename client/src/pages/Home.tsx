@@ -524,10 +524,10 @@ export default function Home() {
                               variant: "destructive"
                             });
                           }}
-                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide bg-gray-500 hover:bg-gray-600 text-center"
+                          className="block w-full py-4 px-4 rounded-xl text-base font-bold transition-all text-white uppercase tracking-wide hover:bg-gray-600 text-center bg-[#df2b2b]"
                           data-testid={`button-purchase-${service.id}`}
                         >
-                          تماس با پشتیبانی
+                          خرید
                         </button>
                       )}
                     </>

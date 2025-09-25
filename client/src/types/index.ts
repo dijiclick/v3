@@ -191,6 +191,7 @@ export interface BlogPost {
 export interface BlogAuthor {
   id: string;
   name: string;
+  slug: string;
   bio: string | null;
   email: string | null;
   avatar: string | null;

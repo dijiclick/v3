@@ -34,6 +34,7 @@ import AdminBlogTags from "@/pages/AdminBlogTags";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
+import BlogMainPage from "@/pages/BlogMainPage";
 import BlogPostPage from "@/pages/BlogPostPage";
 import BlogSearchPage from "@/pages/BlogSearchPage";
 import AuthorDirectoryPage from "@/pages/AuthorDirectoryPage";
@@ -151,7 +152,7 @@ function PublicRouter() {
       
       <Route path="/blog">
         <PersianLayout>
-          <BlogListPage />
+          <BlogMainPage />
         </PersianLayout>
       </Route>
       

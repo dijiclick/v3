@@ -11,7 +11,8 @@ import {
   Users,
   ChevronRight,
   Star,
-  Clock
+  Clock,
+  MessageCircle
 } from "lucide-react";
 import { BlogPost, BlogTag, BlogAuthor } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

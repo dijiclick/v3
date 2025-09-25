@@ -19,48 +19,51 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useToast } from "@/hooks/use-toast";
+import { AdminLanguageProvider, useAdminLanguage } from "@/contexts/AdminLanguageContext";
+import AdminLanguageSwitcher from "@/components/AdminLanguageSwitcher";
 
-const adminNavItems = [
-  { path: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { path: "/admin/products", icon: Package, label: "Products" },
-  { path: "/admin/categories", icon: FolderTree, label: "Categories" },
-  { path: "/admin/pages", icon: FileText, label: "Pages" },
+// Create navigation items function that uses translations
+const getAdminNavItems = (t: (key: string) => string) => [
+  { path: "/admin", icon: LayoutDashboard, label: t('nav.dashboard') },
+  { path: "/admin/products", icon: Package, label: t('nav.products') },
+  { path: "/admin/categories", icon: FolderTree, label: t('nav.categories') },
+  { path: "/admin/pages", icon: FileText, label: t('nav.pages') },
   { 
     path: "/admin/blog", 
     icon: BookOpen, 
-    label: "Blog",
+    label: t('nav.blog'),
     subItems: [
-      { path: "/admin/blog", icon: PenTool, label: "Dashboard" },
-      { path: "/admin/blog/posts", icon: FileText, label: "Posts" },
-      { path: "/admin/blog/authors", icon: Users, label: "Authors" },
-      { path: "/admin/blog/categories", icon: FolderTree, label: "Categories" },
-      { path: "/admin/blog/tags", icon: Hash, label: "Tags" },
+      { path: "/admin/blog", icon: PenTool, label: t('nav.blog.dashboard') },
+      { path: "/admin/blog/posts", icon: FileText, label: t('nav.blog.posts') },
+      { path: "/admin/blog/authors", icon: Users, label: t('nav.blog.authors') },
+      { path: "/admin/blog/categories", icon: FolderTree, label: t('nav.blog.categories') },
+      { path: "/admin/blog/tags", icon: Hash, label: t('nav.blog.tags') },
     ]
   },
-  { path: "/admin/settings", icon: Settings, label: "Settings" },
+  { path: "/admin/settings", icon: Settings, label: t('nav.settings') },
 ];
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function AdminLayout({ children }: AdminLayoutProps) {
+// Internal bilingual layout component
+function BilingualAdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location] = useLocation();
   const { logout } = useAdminAuth();
   const { toast } = useToast();
+  const { language, isRTL, t } = useAdminLanguage();
+  
+  const adminNavItems = getAdminNavItems(t);
 
   const handleLogout = () => {
     logout();
     toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
+      title: t('message.success.logout'),
+      description: t('message.success.logout_desc'),
     });
     window.location.href = "/admin";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -70,8 +73,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+      <div className={`fixed inset-y-0 ${isRTL ? 'right-0 border-l' : 'left-0 border-r'} z-50 w-64 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}`}>
+        <div className={`flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
             Limitpass
           </h1>
@@ -98,21 +101,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link href={item.path}>
                     <Button
                       variant={isActive ? "secondary" : "ghost"}
-                      className={`w-full justify-start ${
+                      className={`w-full ${isRTL ? 'justify-end' : 'justify-start'} ${isRTL ? 'flex-row-reverse' : 'flex-row'} ${
                         isActive || (item.subItems && isBlogSection)
                           ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white" 
                           : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                       }`}
                       data-testid={`admin-nav-${item.label.toLowerCase()}`}
                     >
-                      <item.icon className="mr-3 h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
                       {item.label}
                     </Button>
                   </Link>
                   
                   {/* Sub-navigation items */}
                   {showSubItems && (
-                    <div className="ml-4 mt-1 space-y-1">
+                    <div className={`${isRTL ? 'mr-4' : 'ml-4'} mt-1 space-y-1`}>
                       {item.subItems.map((subItem) => {
                         const isSubActive = location === subItem.path;
                         return (
@@ -120,14 +123,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             <Button
                               variant={isSubActive ? "secondary" : "ghost"}
                               size="sm"
-                              className={`w-full justify-start ${
+                              className={`w-full ${isRTL ? 'justify-end' : 'justify-start'} ${isRTL ? 'flex-row-reverse' : 'flex-row'} ${
                                 isSubActive
                                   ? "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white" 
                                   : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                               }`}
                               data-testid={`admin-nav-blog-${subItem.label.toLowerCase()}`}
                             >
-                              <subItem.icon className="mr-3 h-3 w-3" />
+                              <subItem.icon className={`h-3 w-3 ${isRTL ? 'ml-3' : 'mr-3'}`} />
                               {subItem.label}
                             </Button>
                           </Link>
@@ -144,31 +147,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <Link href="/">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className={`w-full ${isRTL ? 'justify-end' : 'justify-start'} ${isRTL ? 'flex-row-reverse' : 'flex-row'} text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white`}
                 data-testid="back-to-website"
               >
-                <Home className="mr-3 h-4 w-4" />
-                Back to Website
+                <Home className={`h-4 w-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+                {t('nav.back_to_website')}
               </Button>
             </Link>
             <Button
               variant="ghost"
-              className="w-full justify-start text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mt-1"
+              className={`w-full ${isRTL ? 'justify-end' : 'justify-start'} ${isRTL ? 'flex-row-reverse' : 'flex-row'} text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mt-1`}
               onClick={handleLogout}
               data-testid="admin-logout"
             >
-              <LogOut className="mr-3 h-4 w-4" />
-              Logout
+              <LogOut className={`h-4 w-4 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+              {t('nav.logout')}
             </Button>
           </div>
         </nav>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className={`lg:${isRTL ? 'pr-64' : 'pl-64'}`}>
         {/* Top bar */}
         <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+          <div className={`flex items-center justify-between h-16 px-4 sm:px-6 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
             <Button
               variant="ghost"
               size="sm"
@@ -179,10 +182,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Menu className="h-4 w-4" />
             </Button>
             
-            <div className="flex items-center space-x-4">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Admin Panel
+                {t('nav.admin_panel')}
               </span>
+              <AdminLanguageSwitcher />
             </div>
           </div>
         </div>
@@ -193,5 +197,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </main>
       </div>
     </div>
+  );
+}
+
+// Main AdminLayout component with language provider
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  return (
+    <AdminLanguageProvider>
+      <BilingualAdminLayout>{children}</BilingualAdminLayout>
+    </AdminLanguageProvider>
   );
 }

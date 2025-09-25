@@ -316,27 +316,6 @@ export default function BlogPostPage() {
                 
                 {/* Article Header Card */}
                 <Card className="shadow-lg border-0 overflow-hidden">
-                  {/* Featured Image */}
-                  {post.featuredImage && (
-                    <div className="relative">
-                      <img 
-                        src={post.featuredImage} 
-                        alt={post.featuredImageAlt || post.title}
-                        className="w-full h-64 md:h-80 lg:h-96 object-cover"
-                        data-testid="featured-image"
-                      />
-                      {post.featured && (
-                        <div className="absolute top-4 right-4">
-                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-md">
-                            ⭐ ویژه
-                          </Badge>
-                        </div>
-                      )}
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    </div>
-                  )}
-
                   <CardHeader className="pb-6">
                     {/* Category */}
                     {post.category && (
@@ -363,59 +342,97 @@ export default function BlogPostPage() {
                       {post.title}
                     </h1>
 
-                    {/* Meta Information */}
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-300 mb-6">
-                      {/* Author */}
-                      {post.author && (
+                    {/* Simplified Author Display */}
+                    {post.author && (
+                      <div className="mb-6">
                         <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-profile-link-${post.author.slug}`}>
-                          <div className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-2 -m-2 transition-colors cursor-pointer group">
-                            <Avatar className="w-10 h-10 ring-2 ring-gray-100 dark:ring-gray-700 group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all">
+                          <div className="flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg p-3 -mx-3 transition-colors cursor-pointer group">
+                            <Avatar className="w-12 h-12 ring-2 ring-gray-100 dark:ring-gray-700 group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all">
                               <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
-                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                              <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-lg font-bold">
                                 {getAuthorInitials(post.author.name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" data-testid="author-name">
+                              <div className="font-semibold text-lg text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" data-testid="author-name">
                                 {post.author.name}
                               </div>
                               {post.author.jobTitle && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400" data-testid="author-title">
+                                <div className="text-sm text-gray-500 dark:text-gray-400" data-testid="author-title">
                                   {post.author.jobTitle}
                                 </div>
                               )}
                             </div>
                           </div>
                         </Link>
-                      )}
+                      </div>
+                    )}
+                  </CardHeader>
 
-                      <Separator orientation="vertical" className="h-6 bg-gray-300 dark:bg-gray-600" />
-
-                      {/* Publication Date */}
-                      {post.publishedAt && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <time dateTime={post.publishedAt.toString()} data-testid="publish-date">
-                            {formatDate(post.publishedAt)}
-                          </time>
+                  {/* Featured Image */}
+                  {post.featuredImage && (
+                    <div className="relative">
+                      <img 
+                        src={post.featuredImage} 
+                        alt={post.featuredImageAlt || post.title}
+                        className="w-full h-64 md:h-80 lg:h-96 object-cover"
+                        data-testid="featured-image"
+                      />
+                      {post.featured && (
+                        <div className="absolute top-4 right-4">
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200 shadow-md">
+                            ⭐ ویژه
+                          </Badge>
                         </div>
                       )}
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+                  )}
 
-                      {/* Reading Time */}
-                      {post.readingTime && (
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span data-testid="reading-time">{formatReadingTime(post.readingTime)}</span>
-                        </div>
-                      )}
+                  <CardHeader className="pt-6 pb-6">
+                    {/* Publication Info - Single Line */}
+                    <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300">
+                        {/* Publication Date */}
+                        {post.publishedAt && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            <time dateTime={post.publishedAt.toString()} data-testid="publish-date">
+                              {formatDate(post.publishedAt)}
+                            </time>
+                          </div>
+                        )}
 
-                      {/* View Count */}
-                      {post.viewCount && post.viewCount > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Eye className="w-4 h-4" />
-                          <span data-testid="view-count">{post.viewCount.toLocaleString('fa-IR')}</span>
-                        </div>
-                      )}
+                        {/* Reading Time */}
+                        {post.readingTime && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span data-testid="reading-time">{formatReadingTime(post.readingTime)}</span>
+                          </div>
+                        )}
+
+                        {/* View Count */}
+                        {post.viewCount && post.viewCount > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Eye className="w-4 h-4" />
+                            <span data-testid="view-count">{post.viewCount.toLocaleString('fa-IR')}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Horizontal Social Sharing */}
+                      <div className="flex-shrink-0">
+                        <EnhancedSocialShare 
+                          post={post} 
+                          author={post.author}
+                          currentUrl={currentUrl}
+                          variant="compact"
+                          showLabels={false}
+                          onShare={handleSocialShare}
+                          className="flex gap-2"
+                        />
+                      </div>
                     </div>
 
                     {/* Excerpt */}
@@ -426,19 +443,6 @@ export default function BlogPostPage() {
                         </p>
                       </div>
                     )}
-
-                    {/* Enhanced Social Sharing */}
-                    <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                      <EnhancedSocialShare 
-                        post={post} 
-                        author={post.author}
-                        currentUrl={currentUrl}
-                        variant="default"
-                        showLabels={true}
-                        onShare={handleSocialShare}
-                        className="mb-2"
-                      />
-                    </div>
                   </CardHeader>
                 </Card>
 

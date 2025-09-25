@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useProducts, useCategories } from "@/lib/content-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 import { apiRequest } from "@/lib/queryClient";
 import { Product } from "@shared/schema";
 
@@ -23,6 +24,7 @@ export default function AdminProducts() {
   const { data: categories = [] } = useCategories();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { isRTL } = useAdminLanguage();
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,7 +118,7 @@ export default function AdminProducts() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6" dir="ltr">
+      <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -135,7 +137,7 @@ export default function AdminProducts() {
   }
 
   return (
-    <div className="space-y-6" dir="ltr">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

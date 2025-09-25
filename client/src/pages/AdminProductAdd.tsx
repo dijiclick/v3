@@ -6,7 +6,7 @@ import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 export default function AdminProductAdd() {
   const [, setLocation] = useLocation();
-  const { t } = useAdminLanguage();
+  const { t, isRTL } = useAdminLanguage();
 
   const handleSuccess = () => {
     setLocation("/admin/products");
@@ -17,7 +17,7 @@ export default function AdminProductAdd() {
   };
 
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
+    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center gap-4">
         <Button
           variant="outline"

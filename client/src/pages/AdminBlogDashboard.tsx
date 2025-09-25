@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 import type { BlogPost } from "@shared/schema";
 
 export default function AdminBlogDashboard() {
@@ -25,6 +26,7 @@ export default function AdminBlogDashboard() {
   const { data: categories = [] } = useBlogCategories();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isRTL } = useAdminLanguage();
 
   const publishedPosts = allPosts.posts?.filter(post => post.status === 'published') || [];
   const draftPosts = allPosts.posts?.filter(post => post.status === 'draft') || [];
@@ -154,7 +156,7 @@ export default function AdminBlogDashboard() {
   }
 
   return (
-    <div className="space-y-6" dir="ltr">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

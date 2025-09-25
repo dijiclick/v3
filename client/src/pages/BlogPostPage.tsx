@@ -30,6 +30,7 @@ import BlogCard from "@/components/blog/BlogCard";
 import { SEOService } from "@/lib/seo-service";
 import { useEffect } from "react";
 import EnhancedSocialShare from "@/components/blog/EnhancedSocialShare";
+import { ClientContentAnalytics } from "@/lib/content-analytics";
 
 interface BlogContentRendererProps {
   content: any;
@@ -167,75 +168,27 @@ export default function BlogPostPage() {
   // Update SEO when post loads
   useEffect(() => {
     if (post) {
-      // Initialize SEO service
-      const seoService = new SEOService();
-
-      // Calculate reading time and word count from content
-      const contentText = seoService.extractTextFromContent(post.content);
-      const wordCount = seoService.calculateWordCount(contentText);
-      const readingTime = seoService.calculateReadingTime(wordCount);
+      // Calculate reading time and word count from content using client-side analytics
+      const contentText = ClientContentAnalytics.extractTextFromContent(post.content);
+      const wordCount = ClientContentAnalytics.countWords(contentText);
+      const readingTime = ClientContentAnalytics.calculateReadingTime(wordCount);
 
       // Generate comprehensive schema markup
-      const organizationSchema = seoService.generateOrganizationSchema({
-        name: "لیمیت پس",
-        url: "https://limitplus.ir",
-        logo: "https://limitplus.ir/logo.png",
-        description: "پلتفرم جامع ارائه محصولات و خدمات دیجیتال",
-        contactInfo: {
-          email: "info@limitplus.ir",
-          phone: "+98-21-12345678",
-          address: {
-            streetAddress: "تهران، ایران",
-            addressLocality: "تهران", 
-            addressRegion: "تهران",
-            postalCode: "12345",
-            addressCountry: "IR"
-          }
-        },
-        socialProfiles: [
-          "https://t.me/limitplus",
-          "https://instagram.com/limitplus.ir"
-        ]
-      });
-
-      const authorSchema = post.author ? seoService.generatePersonSchema({
-        name: post.author.name,
-        description: post.author.bio || undefined,
-        url: post.author.website || undefined,
-        image: post.author.avatar || undefined,
-        jobTitle: post.author.jobTitle || undefined,
-        worksFor: post.author.company || undefined,
-        socialProfiles: [
-          post.author.twitter,
-          post.author.linkedin,
-          post.author.github,
-          post.author.telegram
-        ].filter(Boolean)
-      }) : undefined;
-
-      const blogPostSchema = seoService.generateArticleSchema({
-        headline: post.seoTitle || post.title,
-        description: post.seoDescription || post.excerpt || "",
-        content: contentText,
-        author: post.author ? {
-          name: post.author.name,
-          url: post.author.website || undefined,
-          image: post.author.avatar || undefined
-        } : undefined,
-        datePublished: post.publishedAt || post.createdAt || new Date(),
-        dateModified: post.updatedAt || undefined,
-        image: post.ogImage || post.featuredImage || undefined,
-        category: post.category?.name,
-        tags: post.tags || undefined,
-        keywords: post.seoKeywords || undefined,
-        url: currentUrl,
-        wordCount,
-        readingTime,
-        language: "fa-IR",
-        inLanguage: "fa-IR"
-      });
-
-      const breadcrumbSchema = seoService.generateBreadcrumbSchema([
+      const organizationSchema = SEOService.generateOrganizationSchema();
+      
+      // Generate website schema
+      const websiteSchema = SEOService.generateWebsiteSchema();
+      
+      // Generate blog post schema
+      const blogPostSchema = SEOService.generateBlogPostSchema(
+        post,
+        post.author,
+        post.category,
+        relatedPosts
+      );
+      
+      // Generate breadcrumb schema
+      const breadcrumbSchema = SEOService.generateBreadcrumbSchema([
         { name: "خانه", url: "https://limitplus.ir" },
         { name: "وبلاگ", url: "https://limitplus.ir/blog" },
         ...(post.category ? [{ 
@@ -244,59 +197,41 @@ export default function BlogPostPage() {
         }] : []),
         { name: post.title, url: currentUrl }
       ]);
-
-      // Generate enhanced meta tags
-      const metaTags = seoService.generateMetaTags({
+      
+      // Generate advanced meta tags
+      const advancedMeta = SEOService.generateAdvancedMeta({
         title: post.seoTitle || post.title,
         description: post.seoDescription || post.excerpt || "",
-        keywords: post.seoKeywords || post.tags || [],
-        canonical: currentUrl,
-        language: "fa-IR",
-        textDirection: "rtl",
-        robots: "index,follow"
-      });
-
-      // Generate Open Graph tags
-      const ogTags = seoService.generateOpenGraphTags({
-        title: post.ogTitle || post.title,
-        description: post.ogDescription || post.excerpt || "",
+        image: post.ogImage || post.featuredImage,
         url: currentUrl,
         type: "article",
-        image: post.ogImage || post.featuredImage || undefined,
-        siteName: "لیمیت پس",
-        locale: "fa_IR",
-        article: {
-          author: post.author?.name,
-          publishedTime: post.publishedAt || post.createdAt || new Date(),
-          modifiedTime: post.updatedAt || undefined,
-          section: post.category?.name,
-          tags: post.tags || undefined
-        }
+        publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
+        modifiedAt: post.updatedAt ? new Date(post.updatedAt) : undefined,
+        author: post.author?.name,
+        tags: post.tags,
+        category: post.category?.name,
+        readingTime
       });
-
-      // Generate Twitter Card tags
-      const twitterTags = seoService.generateTwitterCardTags({
-        card: "summary_large_image",
-        title: post.title,
-        description: post.excerpt || "",
-        image: post.ogImage || post.featuredImage || undefined,
-        site: "@limitplus_ir",
-        creator: post.author?.twitter || undefined
-      });
-
-      // Apply all SEO enhancements
-      seoService.updatePageSEO({
-        title: `${post.seoTitle || post.title} - وبلاگ لیمیت پس`,
-        metaTags,
-        openGraphTags: ogTags,
-        twitterCardTags: twitterTags,
-        structuredData: [
+      
+      // Update page SEO
+      SEOService.updatePageSEO({
+        title: post.seoTitle || post.title,
+        description: post.seoDescription || post.excerpt || "",
+        image: post.ogImage || post.featuredImage,
+        url: currentUrl,
+        type: "article",
+        schemas: [
           organizationSchema,
-          ...(authorSchema ? [authorSchema] : []),
+          websiteSchema,
           blogPostSchema,
           breadcrumbSchema
         ],
-        jsonLd: true
+        publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
+        modifiedAt: post.updatedAt ? new Date(post.updatedAt) : undefined,
+        author: post.author?.name,
+        tags: post.tags,
+        category: post.category?.name,
+        readingTime
       });
     }
   }, [post, currentUrl]);

@@ -302,7 +302,6 @@ export default function BlogAuthorForm({ authorId, onSave, onCancel }: BlogAutho
                           <Textarea 
                             placeholder="Tell us about this author..."
                             className="min-h-[100px]"
-                            dir="rtl"
                             {...field}
                             data-testid="textarea-bio"
                           />

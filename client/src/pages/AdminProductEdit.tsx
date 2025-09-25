@@ -11,7 +11,7 @@ export default function AdminProductEdit() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
   const { toast } = useToast();
-  const { t } = useAdminLanguage();
+  const { t, isRTL } = useAdminLanguage();
 
   const { data: product, isLoading, error } = useQuery<Product>({
     queryKey: [`/api/products/${id}`],
@@ -31,7 +31,7 @@ export default function AdminProductEdit() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" dir="ltr">
+      <div className="flex items-center justify-center min-h-screen" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="flex items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>{t('product.loading')}</span>
@@ -42,7 +42,7 @@ export default function AdminProductEdit() {
 
   if (error || !product) {
     return (
-      <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
+      <div className="space-y-6 p-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
@@ -64,7 +64,7 @@ export default function AdminProductEdit() {
   }
 
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir="ltr">
+    <div className="space-y-6 p-6 max-w-6xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex items-center gap-4">
         <Button
           variant="outline"

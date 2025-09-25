@@ -281,44 +281,9 @@ export default function BlogMainPage() {
             {/* Featured Posts Carousel */}
             {featuredPosts && featuredPosts.length > 0 && (
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 font-vazir">
-                  <Star className="w-6 h-6 text-yellow-400" />
-                  مقالات ویژه
-                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {featuredPosts.slice(0, 3).map((post: BlogPost) => (
                     <Link href={`/blog/${post.slug}`} key={post.id}>
-                      <div className="group hover:scale-105 transition-all duration-300 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden text-white">
-                        {post.featuredImage && (
-                          <div className="aspect-[16/10] overflow-hidden">
-                            <img
-                              src={post.featuredImage}
-                              alt={post.featuredImageAlt || post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              loading="lazy"
-                            />
-                          </div>
-                        )}
-                        <div className="p-4">
-                          <h3 className="font-bold text-lg line-clamp-2 group-hover:text-yellow-300 transition-colors font-vazir">
-                            {post.title}
-                          </h3>
-                          <div className="flex items-center gap-4 mt-3 text-xs text-red-200">
-                            {post.publishedAt && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                <span className="font-vazir">{formatDate(post.publishedAt)}</span>
-                              </span>
-                            )}
-                            {post.readingTime && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                <span className="font-vazir">{formatReadingTime(post.readingTime)}</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
                     </Link>
                   ))}
                 </div>

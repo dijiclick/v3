@@ -280,13 +280,16 @@ export function AdvancedBlogEditor({
         fileInput.files = dataTransfer.files;
         
         // Create a proper change event
-        const event = new Event('change', { bubbles: true });
-        Object.defineProperty(event, 'target', {
-          writable: false,
-          value: fileInput
-        });
+        const event = {
+          target: fileInput,
+          currentTarget: fileInput,
+          bubbles: true,
+          cancelable: true,
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        } as React.ChangeEvent<HTMLInputElement>;
         
-        handleFileChange(event as React.ChangeEvent<HTMLInputElement>);
+        handleFileChange(event);
       }
     }
   }, [handleFileChange]);

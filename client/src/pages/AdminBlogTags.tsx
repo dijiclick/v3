@@ -433,7 +433,7 @@ export default function AdminBlogTags() {
 
       {/* Add Tag Modal */}
       <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Blog Tag</DialogTitle>
           </DialogHeader>
@@ -446,7 +446,7 @@ export default function AdminBlogTags() {
 
       {/* Edit Tag Modal */}
       <Dialog open={!!editingTag} onOpenChange={handleCloseEditModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Blog Tag</DialogTitle>
           </DialogHeader>

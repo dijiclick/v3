@@ -392,7 +392,7 @@ export default function AdminBlogCategories() {
 
       {/* Add Category Modal */}
       <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Blog Category</DialogTitle>
           </DialogHeader>
@@ -405,7 +405,7 @@ export default function AdminBlogCategories() {
 
       {/* Edit Category Modal */}
       <Dialog open={!!editingCategory} onOpenChange={handleCloseEditModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Blog Category</DialogTitle>
           </DialogHeader>

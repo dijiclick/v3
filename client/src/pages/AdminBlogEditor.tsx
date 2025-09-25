@@ -721,26 +721,173 @@ export default function AdminBlogEditor() {
                 </CardContent>
               </Card>
 
-              {/* Featured Image */}
+              {/* Enhanced Featured Image Upload */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Featured Image</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Featured Image
+                  </CardTitle>
+                  <CardDescription>
+                    Upload and manage your blog post's featured image
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="featuredImage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="https://example.com/image.jpg" data-testid="featured-image-input" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Current Featured Image Preview */}
+                  {form.watch("featuredImage") && (
+                    <div className="relative group">
+                      <div className="relative overflow-hidden rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                        <img
+                          src={form.watch("featuredImage")}
+                          alt={form.watch("featuredImageAlt") || "Featured image preview"}
+                          className="w-full h-48 object-cover"
+                        />
+                        {/* Image Overlay with Actions */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              const input = document.querySelector('[data-testid="featured-image-file-input"]') as HTMLInputElement;
+                              input?.click();
+                            }}
+                            data-testid="replace-featured-image"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Replace
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              form.setValue("featuredImage", "");
+                              form.setValue("featuredImageAlt", "");
+                            }}
+                            data-testid="remove-featured-image"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
+                  {/* Upload Section */}
+                  {!form.watch("featuredImage") && (
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors">
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+
+                          // Validation
+                          if (!file.type.startsWith('image/')) {
+                            toast({ title: "Error", description: "Please select an image file", variant: "destructive" });
+                            return;
+                          }
+
+                          if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                            toast({ title: "Error", description: "Image must be smaller than 10MB", variant: "destructive" });
+                            return;
+                          }
+
+                          try {
+                            const formData = new FormData();
+                            formData.append('image', file);
+
+                            // Show upload progress (simplified)
+                            const uploadToast = toast({ 
+                              title: "Uploading...", 
+                              description: "Please wait while we upload your image"
+                            });
+
+                            const response = await fetch('/api/images', {
+                              method: 'POST',
+                              body: formData,
+                              credentials: 'include'
+                            });
+
+                            if (!response.ok) {
+                              throw new Error('Upload failed');
+                            }
+
+                            const data = await response.json();
+                            form.setValue("featuredImage", data.url);
+                            
+                            toast({ 
+                              title: "Success!", 
+                              description: "Featured image uploaded successfully" 
+                            });
+                          } catch (error) {
+                            console.error('Upload error:', error);
+                            toast({ 
+                              title: "Upload Failed", 
+                              description: "Failed to upload image. Please try again.", 
+                              variant: "destructive" 
+                            });
+                          }
+                        }}
+                        data-testid="featured-image-file-input"
+                      />
+                      
+                      <div className="text-center">
+                        <div className="mx-auto w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+                          <Plus className="w-8 h-8 text-blue-500" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                          Upload Featured Image
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">
+                          Drag and drop an image, or click to browse
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            const input = document.querySelector('[data-testid="featured-image-file-input"]') as HTMLInputElement;
+                            input?.click();
+                          }}
+                          data-testid="upload-featured-image-button"
+                          className="mb-2"
+                        >
+                          Choose Image
+                        </Button>
+                        <p className="text-xs text-gray-400">
+                          PNG, JPG, WebP up to 10MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual URL Input (Alternative) */}
+                  <div className="border-t pt-4">
+                    <FormField
+                      control={form.control}
+                      name="featuredImage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Or paste image URL</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="https://example.com/image.jpg" 
+                              data-testid="featured-image-url-input"
+                              className="text-sm"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Alt Text Field */}
                   <FormField
                     control={form.control}
                     name="featuredImageAlt"
@@ -748,10 +895,14 @@ export default function AdminBlogEditor() {
                       <FormItem>
                         <FormLabel>Alt Text</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Describe the image" data-testid="featured-image-alt-input" />
+                          <Input
+                            {...field}
+                            placeholder="Describe the image for accessibility"
+                            data-testid="featured-image-alt-input"
+                          />
                         </FormControl>
                         <FormDescription>
-                          Alt text for accessibility
+                          Brief description for screen readers and SEO (recommended)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

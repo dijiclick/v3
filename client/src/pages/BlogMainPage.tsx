@@ -336,87 +336,110 @@ export default function BlogMainPage() {
                 <>
                   <div className={cn(
                     viewMode === 'grid' 
-                      ? "grid grid-cols-1 md:grid-cols-2 gap-6" 
-                      : "space-y-6"
+                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8" 
+                      : "space-y-8"
                   )}>
                     {posts.map((post: BlogPost) => (
                       <Card 
                         key={post.id} 
-                        className="group hover:shadow-lg transition-all duration-300 bg-white dark:bg-card border-0 shadow-md"
+                        className="group hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 bg-white dark:bg-card border-0 shadow-lg hover:-translate-y-2 rounded-xl overflow-hidden"
                         data-testid={`blog-post-${post.id}`}
                       >
-                        {/* Featured Image */}
+                        {/* Featured Image - Larger and more prominent */}
                         {post.featuredImage && (
-                          <div className="relative overflow-hidden aspect-[16/10] rounded-t-lg">
+                          <div className="relative overflow-hidden aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
                             <img 
                               src={post.featuredImage} 
                               alt={post.featuredImageAlt || post.title}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                               loading="lazy"
                             />
                             
-                            {/* Category Badge */}
+                            {/* Gradient overlay for better text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            
+                            {/* Category Badge - Enhanced styling */}
                             {post.category && (
-                              <div className="absolute top-3 left-3">
+                              <div className="absolute top-4 left-4">
                                 <Badge 
                                   variant="outline" 
-                                  className="bg-white/90 backdrop-blur-sm border-white/20"
-                                  style={{ backgroundColor: post.category.color ? `${post.category.color}20` : undefined }}
+                                  className="bg-white/95 backdrop-blur-md border-white/30 shadow-lg font-medium px-3 py-1 text-sm"
+                                  style={{ 
+                                    backgroundColor: post.category.color ? `${post.category.color}15` : undefined,
+                                    borderColor: post.category.color || undefined,
+                                    color: post.category.color || undefined
+                                  }}
                                 >
                                   {post.category.name}
                                 </Badge>
                               </div>
                             )}
 
-                            {/* Featured Badge */}
+                            {/* Featured Badge - Enhanced styling */}
                             {post.featured && (
-                              <div className="absolute top-3 right-3">
-                                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                                  <Star className="w-3 h-3 ml-1" />
+                              <div className="absolute top-4 right-4">
+                                <Badge variant="secondary" className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 shadow-lg font-medium px-3 py-1">
+                                  <Star className="w-3 h-3 ml-1 fill-current" />
                                   ویژه
                                 </Badge>
                               </div>
                             )}
+
+                            {/* Read More Overlay */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                                <ArrowRight className="w-6 h-6 text-white" />
+                              </div>
+                            </div>
                           </div>
                         )}
 
-                        <CardContent className="p-6">
-                          {/* Title */}
+                        <CardContent className="p-8">
+                          {/* Enhanced Author Info - Moved to top for prominence */}
+                          {post.author && (
+                            <div className="flex items-center gap-3 mb-4">
+                              <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-link-${post.author.slug}`}>
+                                <div className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-full p-2 -ml-2 transition-colors cursor-pointer">
+                                  <Avatar className="w-10 h-10 ring-2 ring-white dark:ring-gray-700 shadow-md">
+                                    <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
+                                    <AvatarFallback className="text-sm bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+                                      {getAuthorInitials(post.author.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-gray-900 dark:text-foreground text-sm">{post.author.name}</p>
+                                    {post.author.jobTitle && (
+                                      <p className="text-xs text-gray-500 dark:text-muted-foreground">{post.author.jobTitle}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </Link>
+                            </div>
+                          )}
+
+                          {/* Title - Enhanced typography */}
                           <Link href={`/blog/${post.slug}`} data-testid={`blog-link-${post.slug}`}>
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 line-clamp-2 leading-tight mb-3">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-tight mb-4 group-hover:text-blue-600">
                               {post.title}
                             </h3>
                           </Link>
 
-                          {/* Excerpt */}
+                          {/* Excerpt - Enhanced readability */}
                           {post.excerpt && (
-                            <p className="text-gray-600 dark:text-muted-foreground line-clamp-3 leading-relaxed mb-4" data-testid={`excerpt-${post.id}`}>
+                            <p className="text-gray-600 dark:text-muted-foreground line-clamp-3 leading-relaxed mb-6 text-base" data-testid={`excerpt-${post.id}`}>
                               {post.excerpt}
                             </p>
                           )}
 
-                          {/* Meta Info */}
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-muted-foreground mb-4">
-                            {/* Author */}
-                            {post.author && (
-                              <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-link-${post.author.slug}`}>
-                                <div className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
-                                  <Avatar className="w-6 h-6">
-                                    <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
-                                    <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
-                                      {getAuthorInitials(post.author.name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span>{post.author.name}</span>
-                                </div>
-                              </Link>
-                            )}
-
+                          {/* Enhanced Meta Info */}
+                          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-muted-foreground">
                             {/* Publication Date */}
                             {post.publishedAt && (
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                <time dateTime={post.publishedAt.toString()}>
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <time dateTime={post.publishedAt.toString()} className="font-medium">
                                   {formatDate(post.publishedAt)}
                                 </time>
                               </div>
@@ -424,34 +447,38 @@ export default function BlogMainPage() {
 
                             {/* Reading Time */}
                             {post.readingTime && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                <span>{formatReadingTime(post.readingTime)}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-full">
+                                  <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <span className="font-medium">{formatReadingTime(post.readingTime)}</span>
                               </div>
                             )}
 
                             {/* View Count */}
                             {post.viewCount && post.viewCount > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{post.viewCount.toLocaleString('fa-IR')}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-full">
+                                  <Eye className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                                <span className="font-medium">{post.viewCount.toLocaleString('fa-IR')}</span>
                               </div>
                             )}
                           </div>
 
-                          {/* Tags */}
+                          {/* Enhanced Tags */}
                           {post.tags && post.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-4">
+                            <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
                               {post.tags.slice(0, 3).map((tag, index) => (
                                 <Link key={index} href={`/blog/tag/${tag}`} data-testid={`tag-link-${tag}`}>
-                                  <Badge variant="secondary" className="text-xs hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                  <Badge variant="secondary" className="text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 transition-all duration-200 cursor-pointer px-3 py-1.5 rounded-full">
                                     <Tag className="w-3 h-3 ml-1" />
                                     {tag}
                                   </Badge>
                                 </Link>
                               ))}
                               {post.tags.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs px-3 py-1.5 rounded-full">
                                   +{post.tags.length - 3} بیشتر
                                 </Badge>
                               )}

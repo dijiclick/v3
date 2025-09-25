@@ -1,53 +1,63 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import { Link } from "wouter";
 import { 
-  Search, 
-  TrendingUp, 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  User, 
-  Eye, 
-  Tag, 
   Star,
+  Calendar,
+  Clock,
   Filter,
   Grid,
   List,
   Rss,
-  ArrowRight
+  RefreshCw
 } from "lucide-react";
 import { BlogPost, Product } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import PopularContent from "@/components/blog/PopularContent";
-import BlogPagination from "@/components/blog/BlogPagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
+
+// Import new modern components
+import { Newsletter } from "@/components/blog/Newsletter";
+import { ModernPagination } from "@/components/blog/ModernPagination";
+import { ModernSearchBar } from "@/components/blog/ModernSearchBar";
+import { ModernSidebar } from "@/components/blog/ModernSidebar";
+import { ModernBlogPost } from "@/components/blog/ModernBlogPost";
+import { ModernCategoryFilter } from "@/components/blog/ModernCategoryFilter";
+import { ModernEmptyState } from "@/components/blog/ModernEmptyState";
 
 const POSTS_PER_PAGE = 8; // 2x4 grid = 8 posts per page
 
 export default function BlogMainPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // Debounce search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   
-  // Reset page when search changes
+  // Reset page when search or category changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, selectedCategory]);
 
-  // Fetch blog posts with pagination
+  // Fetch blog categories
+  const { 
+    data: categories, 
+    isLoading: isLoadingCategories 
+  } = useQuery({
+    queryKey: ['/api/blog/categories'],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/categories');
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      return response.json();
+    },
+  });
+
+  // Fetch blog posts with pagination and filtering
   const { 
     data: postsResponse, 
     isLoading: isLoadingPosts, 
@@ -57,6 +67,7 @@ export default function BlogMainPage() {
       page: currentPage,
       limit: POSTS_PER_PAGE,
       search: debouncedSearchQuery || undefined,
+      category: selectedCategory || undefined,
       status: 'published',
       sortBy: 'publishedAt',
       sortOrder: 'desc'
@@ -72,6 +83,10 @@ export default function BlogMainPage() {
       
       if (debouncedSearchQuery) {
         params.append('search', debouncedSearchQuery);
+      }
+      
+      if (selectedCategory) {
+        params.append('category', selectedCategory);
       }
       
       const response = await fetch(`/api/blog/posts?${params}`);
@@ -93,16 +108,41 @@ export default function BlogMainPage() {
     },
   });
 
-  // Fetch popular products for sidebar
+  // Fetch popular posts for sidebar
   const { 
-    data: popularProducts, 
-    isLoading: isLoadingProducts 
+    data: popularPosts, 
+    isLoading: isLoadingPopular 
   } = useQuery({
-    queryKey: ['/api/products/featured', 6],
+    queryKey: ['/api/blog/posts/popular', 6],
     queryFn: async () => {
-      const response = await fetch('/api/products/featured?limit=6');
-      if (!response.ok) throw new Error('Failed to fetch popular products');
+      const response = await fetch('/api/blog/posts/popular?limit=6');
+      if (!response.ok) {
+        // Fallback to regular posts if popular endpoint doesn't exist
+        const fallbackResponse = await fetch('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          return fallbackData.posts || [];
+        }
+        return [];
+      }
       return response.json();
+    },
+  });
+
+  // Fetch hot tags for sidebar
+  const { 
+    data: hotTags, 
+    isLoading: isLoadingTags 
+  } = useQuery({
+    queryKey: ['/api/blog/tags/popular', 8],
+    queryFn: async () => {
+      const response = await fetch('/api/blog/tags/popular?limit=8');
+      if (!response.ok) {
+        // Fallback with some default Persian tags
+        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی"];
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : data.tags || [];
     },
   });
 
@@ -121,11 +161,7 @@ export default function BlogMainPage() {
 
   const formatReadingTime = (minutes: number | null) => {
     if (!minutes) return '';
-    return minutes === 1 ? '۱ دقیقه' : `${minutes} دقیقه`;
-  };
-
-  const getAuthorInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return minutes === 1 ? '۱ دقیقه' : `${minutes.toLocaleString('fa-IR')} دقیقه`;
   };
 
   const handlePageChange = (page: number) => {
@@ -133,10 +169,32 @@ export default function BlogMainPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCategorySelect = (categorySlug: string | null) => {
+    setSelectedCategory(categorySlug);
+  };
+
+  const handleTagClick = (tag: string) => {
+    setSearchQuery(tag);
+  };
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory(null);
+    setCurrentPage(1);
+  };
+
   // Generate page metadata
   const getPageTitle = () => {
     if (searchQuery) {
       return `نتایج جستجو "${searchQuery}" - وبلاگ گیم گو`;
+    }
+    if (selectedCategory) {
+      const category = categories?.find((cat: any) => cat.slug === selectedCategory);
+      return `${category?.name || selectedCategory} - وبلاگ گیم گو`;
     }
     return "وبلاگ گیم گو - آخرین مقالات و راهنمایی‌های بازی";
   };
@@ -145,7 +203,28 @@ export default function BlogMainPage() {
     if (searchQuery) {
       return `نتایج جستجوی "${searchQuery}" در وبلاگ گیم گو - یافتن مقالات مرتبط و کاربردی`;
     }
+    if (selectedCategory) {
+      const category = categories?.find((cat: any) => cat.slug === selectedCategory);
+      return `مطالب دسته‌بندی ${category?.name || selectedCategory} در وبلاگ گیم گو`;
+    }
     return "وبلاگ گیم گو - مقالات آموزشی، راهنمایی‌های بازی، اخبار و نکات کاربردی. منبع کاملی از اطلاعات روزآمد برای گیمرها.";
+  };
+
+  // Prepare sidebar data
+  const sidebarData = {
+    popularBlogs: (popularPosts || []).map((post: BlogPost) => ({
+      id: post.id,
+      title: post.title,
+      slug: post.slug
+    })),
+    subscriptionServices: [
+      { name: "Netflix", color: "bg-red-500" },
+      { name: "Disney Plus", color: "bg-blue-600" },
+      { name: "HBO Max", color: "bg-purple-600" },
+      { name: "Amazon Prime", color: "bg-yellow-500", textColor: "text-black" },
+      { name: "Apple TV+", color: "bg-gray-800" }
+    ],
+    hotTags: hotTags || []
   };
 
   return (
@@ -186,15 +265,15 @@ export default function BlogMainPage() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-background" dir="rtl">
+      <div className="min-h-screen bg-gray-50" dir="rtl">
         {/* Hero Section */}
-        <div className="bg-gradient-to-b from-blue-600 to-blue-700 text-white py-16">
+        <div className="bg-gradient-to-b from-red-500 to-red-600 text-white py-16" data-testid="blog-hero">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="blog-hero-title">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-vazir" data-testid="blog-hero-title">
                 وبلاگ
               </h1>
-              <p className="text-xl text-blue-100 max-w-2xl mx-auto" data-testid="blog-hero-description">
+              <p className="text-xl text-red-100 max-w-2xl mx-auto font-vazir" data-testid="blog-hero-description">
                 آخرین مقالات، راهنمایی‌ها و اخبار دنیای بازی‌های دیجیتال
               </p>
             </div>
@@ -202,16 +281,16 @@ export default function BlogMainPage() {
             {/* Featured Posts Carousel */}
             {featuredPosts && featuredPosts.length > 0 && (
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 font-vazir">
                   <Star className="w-6 h-6 text-yellow-400" />
                   مقالات ویژه
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {featuredPosts.slice(0, 3).map((post: BlogPost) => (
                     <Link href={`/blog/${post.slug}`} key={post.id}>
-                      <Card className="group hover:scale-105 transition-all duration-300 bg-white/10 backdrop-blur-sm border-white/20 text-white">
+                      <div className="group hover:scale-105 transition-all duration-300 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden text-white">
                         {post.featuredImage && (
-                          <div className="aspect-[16/10] overflow-hidden rounded-t-lg">
+                          <div className="aspect-[16/10] overflow-hidden">
                             <img
                               src={post.featuredImage}
                               alt={post.featuredImageAlt || post.title}
@@ -220,31 +299,31 @@ export default function BlogMainPage() {
                             />
                           </div>
                         )}
-                        <CardContent className="p-4">
-                          <h3 className="font-bold text-lg line-clamp-2 group-hover:text-yellow-300 transition-colors">
+                        <div className="p-4">
+                          <h3 className="font-bold text-lg line-clamp-2 group-hover:text-yellow-300 transition-colors font-vazir">
                             {post.title}
                           </h3>
                           {post.excerpt && (
-                            <p className="text-blue-100 text-sm mt-2 line-clamp-2">
+                            <p className="text-red-100 text-sm mt-2 line-clamp-2 font-vazir">
                               {post.excerpt}
                             </p>
                           )}
-                          <div className="flex items-center gap-4 mt-3 text-xs text-blue-200">
+                          <div className="flex items-center gap-4 mt-3 text-xs text-red-200">
                             {post.publishedAt && (
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
-                                {formatDate(post.publishedAt)}
+                                <span className="font-vazir">{formatDate(post.publishedAt)}</span>
                               </span>
                             )}
                             {post.readingTime && (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {formatReadingTime(post.readingTime)}
+                                <span className="font-vazir">{formatReadingTime(post.readingTime)}</span>
                               </span>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -253,29 +332,64 @@ export default function BlogMainPage() {
           </div>
         </div>
 
+        {/* Main Content */}
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content - Blog Posts */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Search and Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="جستجو در مقالات..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10"
-                    data-testid="blog-search-input"
+              {/* Search Bar */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <ModernSearchBar
+                  placeholder="جستجو در مقالات..."
+                  value={searchQuery}
+                  onSearch={handleSearch}
+                />
+              </div>
+
+              {/* Category Filter */}
+              {categories && categories.length > 0 && (
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <ModernCategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onCategorySelect={handleCategorySelect}
                   />
                 </div>
+              )}
+
+              {/* Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                {/* Search/Filter Results Info */}
+                <div className="flex items-center gap-2">
+                  {(searchQuery || selectedCategory) && (
+                    <p className="text-gray-600 font-vazir" data-testid="search-results-count">
+                      {isLoadingPosts ? 
+                        'در حال جستجو...' : 
+                        `${totalPosts.toLocaleString('fa-IR')} نتیجه${searchQuery ? ` برای "${searchQuery}"` : ''}`
+                      }
+                    </p>
+                  )}
+                  {(searchQuery || selectedCategory) && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={resetFilters}
+                      className="font-vazir"
+                      data-testid="reset-filters"
+                    >
+                      <RefreshCw className="w-4 h-4 ml-2" />
+                      پاک کردن فیلترها
+                    </Button>
+                  )}
+                </div>
                 
+                {/* View Mode Controls */}
                 <div className="flex items-center gap-2">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
+                    className={viewMode === 'grid' ? 'bg-red-500 hover:bg-red-600' : ''}
                     data-testid="view-mode-grid"
                   >
                     <Grid className="w-4 h-4" />
@@ -284,30 +398,22 @@ export default function BlogMainPage() {
                     variant={viewMode === 'list' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('list')}
+                    className={viewMode === 'list' ? 'bg-red-500 hover:bg-red-600' : ''}
                     data-testid="view-mode-list"
                   >
                     <List className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" data-testid="rss-button">
+                  <Button variant="outline" size="sm" data-testid="rss-button" className="font-vazir">
                     <Rss className="w-4 h-4 ml-2" />
                     RSS
                   </Button>
                 </div>
               </div>
 
-              {/* Search Results Info */}
-              {searchQuery && (
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-600 dark:text-muted-foreground" data-testid="search-results-count">
-                    {isLoadingPosts ? 'در حال جستجو...' : `${totalPosts.toLocaleString('fa-IR')} نتیجه برای "${searchQuery}"`}
-                  </p>
-                </div>
-              )}
-
               {/* Posts Grid/List */}
               {postsError ? (
                 <Alert variant="destructive" data-testid="posts-error">
-                  <AlertDescription>
+                  <AlertDescription className="font-vazir">
                     خطا در بارگذاری مقالات. لطفاً صفحه را تازه‌سازی کنید.
                   </AlertDescription>
                 </Alert>
@@ -318,303 +424,60 @@ export default function BlogMainPage() {
                     : "space-y-4"
                 )}>
                   {Array(8).fill(0).map((_, index) => (
-                    <Card key={index} className="animate-pulse">
-                      <div className="aspect-[16/10] bg-gray-200 dark:bg-gray-700" />
-                      <CardContent className="p-4 space-y-3">
+                    <div key={index} className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
+                      <div className="aspect-video bg-gray-200" />
+                      <div className="p-5 space-y-3">
                         <Skeleton className="h-6 w-3/4" />
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-2/3" />
                         <div className="flex items-center gap-4">
-                          <Skeleton className="h-3 w-16" />
-                          <Skeleton className="h-3 w-16" />
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-24" />
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : posts.length > 0 ? (
                 <>
                   <div className={cn(
                     viewMode === 'grid' 
-                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8" 
+                      ? "grid grid-cols-1 md:grid-cols-2 gap-8" 
                       : "space-y-8"
-                  )}>
+                  )} data-testid="blog-posts-container">
                     {posts.map((post: BlogPost) => (
-                      <Card 
-                        key={post.id} 
-                        className="group hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 bg-white dark:bg-card border-0 shadow-lg hover:-translate-y-2 rounded-xl overflow-hidden"
-                        data-testid={`blog-post-${post.id}`}
-                      >
-                        {/* Featured Image - Larger and more prominent */}
-                        {post.featuredImage && (
-                          <div className="relative overflow-hidden aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
-                            <img 
-                              src={post.featuredImage} 
-                              alt={post.featuredImageAlt || post.title}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                              loading="lazy"
-                            />
-                            
-                            {/* Gradient overlay for better text readability */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            
-                            {/* Category Badge - Enhanced styling */}
-                            {post.category && (
-                              <div className="absolute top-4 left-4">
-                                <Badge 
-                                  variant="outline" 
-                                  className="bg-white/95 backdrop-blur-md border-white/30 shadow-lg font-medium px-3 py-1 text-sm"
-                                  style={{ 
-                                    backgroundColor: post.category.color ? `${post.category.color}15` : undefined,
-                                    borderColor: post.category.color || undefined,
-                                    color: post.category.color || undefined
-                                  }}
-                                >
-                                  {post.category.name}
-                                </Badge>
-                              </div>
-                            )}
-
-                            {/* Featured Badge - Enhanced styling */}
-                            {post.featured && (
-                              <div className="absolute top-4 right-4">
-                                <Badge variant="secondary" className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 shadow-lg font-medium px-3 py-1">
-                                  <Star className="w-3 h-3 ml-1 fill-current" />
-                                  ویژه
-                                </Badge>
-                              </div>
-                            )}
-
-                            {/* Read More Overlay */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                                <ArrowRight className="w-6 h-6 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        <CardContent className="p-8">
-                          {/* Enhanced Author Info - Moved to top for prominence */}
-                          {post.author && (
-                            <div className="flex items-center gap-3 mb-4">
-                              <Link href={`/blog/author/${post.author.slug}`} data-testid={`author-link-${post.author.slug}`}>
-                                <div className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-full p-2 -ml-2 transition-colors cursor-pointer">
-                                  <Avatar className="w-10 h-10 ring-2 ring-white dark:ring-gray-700 shadow-md">
-                                    <AvatarImage src={post.author.avatar || undefined} alt={post.author.name} />
-                                    <AvatarFallback className="text-sm bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
-                                      {getAuthorInitials(post.author.name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-gray-900 dark:text-foreground text-sm">{post.author.name}</p>
-                                    {post.author.jobTitle && (
-                                      <p className="text-xs text-gray-500 dark:text-muted-foreground">{post.author.jobTitle}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </Link>
-                            </div>
-                          )}
-
-                          {/* Title - Enhanced typography */}
-                          <Link href={`/blog/${post.slug}`} data-testid={`blog-link-${post.slug}`}>
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 line-clamp-2 leading-tight mb-4 group-hover:text-blue-600">
-                              {post.title}
-                            </h3>
-                          </Link>
-
-                          {/* Excerpt - Enhanced readability */}
-                          {post.excerpt && (
-                            <p className="text-gray-600 dark:text-muted-foreground line-clamp-3 leading-relaxed mb-6 text-base" data-testid={`excerpt-${post.id}`}>
-                              {post.excerpt}
-                            </p>
-                          )}
-
-                          {/* Enhanced Meta Info */}
-                          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-muted-foreground">
-                            {/* Publication Date */}
-                            {post.publishedAt && (
-                              <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                                  <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <time dateTime={post.publishedAt.toString()} className="font-medium">
-                                  {formatDate(post.publishedAt)}
-                                </time>
-                              </div>
-                            )}
-
-                            {/* Reading Time */}
-                            {post.readingTime && (
-                              <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-full">
-                                  <Clock className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <span className="font-medium">{formatReadingTime(post.readingTime)}</span>
-                              </div>
-                            )}
-
-                            {/* View Count */}
-                            {post.viewCount && post.viewCount > 0 && (
-                              <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-full">
-                                  <Eye className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                <span className="font-medium">{post.viewCount.toLocaleString('fa-IR')}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Enhanced Tags */}
-                          {post.tags && post.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-                              {post.tags.slice(0, 3).map((tag, index) => (
-                                <Link key={index} href={`/blog/tag/${tag}`} data-testid={`tag-link-${tag}`}>
-                                  <Badge variant="secondary" className="text-xs hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 transition-all duration-200 cursor-pointer px-3 py-1.5 rounded-full">
-                                    <Tag className="w-3 h-3 ml-1" />
-                                    {tag}
-                                  </Badge>
-                                </Link>
-                              ))}
-                              {post.tags.length > 3 && (
-                                <Badge variant="outline" className="text-xs px-3 py-1.5 rounded-full">
-                                  +{post.tags.length - 3} بیشتر
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Read More Button */}
-                          <Link href={`/blog/${post.slug}`} data-testid={`read-more-${post.slug}`}>
-                            <Button 
-                              variant="outline" 
-                              className="w-full group-hover:bg-blue-50 dark:group-hover:bg-blue-950 transition-colors"
-                            >
-                              مطالعه بیشتر
-                              <ArrowRight className="w-4 h-4 mr-2" />
-                            </Button>
-                          </Link>
-                        </CardContent>
-                      </Card>
+                      <ModernBlogPost key={post.id} post={post} />
                     ))}
                   </div>
-
+                  
                   {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="mt-8">
-                      <BlogPagination
-                        pagination={{
-                          page: currentPage,
-                          limit: POSTS_PER_PAGE,
-                          total: totalPosts,
-                          totalPages,
-                          hasNext: currentPage < totalPages,
-                          hasPrev: currentPage > 1
-                        }}
-                        onPageChange={handlePageChange}
-                        showPageInfo={true}
-                        maxVisiblePages={5}
-                      />
-                    </div>
-                  )}
+                  <ModernPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    totalPosts={totalPosts}
+                    postsPerPage={POSTS_PER_PAGE}
+                  />
                 </>
               ) : (
-                <Card className="p-12 text-center">
-                  <CardContent className="space-y-4">
-                    <BookOpen className="w-16 h-16 mx-auto text-gray-400" />
-                    <h3 className="text-xl font-medium text-gray-900 dark:text-foreground">
-                      {searchQuery ? 'نتیجه‌ای یافت نشد' : 'مقاله‌ای موجود نیست'}
-                    </h3>
-                    <p className="text-gray-500 dark:text-muted-foreground">
-                      {searchQuery 
-                        ? `متأسفانه نتیجه‌ای برای "${searchQuery}" یافت نشد. کلمات کلیدی دیگری امتحان کنید.`
-                        : 'در حال حاضر مقاله‌ای منتشر نشده است.'
-                      }
-                    </p>
-                    {searchQuery && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setSearchQuery('')}
-                        data-testid="clear-search"
-                      >
-                        مشاهده همه مقالات
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
+                <ModernEmptyState
+                  type={searchQuery ? "search" : selectedCategory ? "category" : "general"}
+                  query={searchQuery}
+                  onReset={resetFilters}
+                />
               )}
             </div>
 
-            {/* Right Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Popular Subscriptions/Products */}
-              <Card className="shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                    <span>اشتراک‌های محبوب</span>
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  {isLoadingProducts ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="flex gap-3">
-                          <Skeleton className="w-12 h-12 rounded-lg" />
-                          <div className="flex-1 space-y-2">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-3 w-2/3" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : popularProducts && popularProducts.length > 0 ? (
-                    <div className="space-y-3">
-                      {popularProducts.slice(0, 5).map((product: Product) => (
-                        <Link href={`/${product.slug}`} key={product.id}>
-                          <div className="group flex gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
-                            {product.image && (
-                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                <img
-                                  src={product.image}
-                                  alt={product.title}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors line-clamp-2">
-                                {product.title}
-                              </h3>
-                              <p className="text-xs text-green-600 font-semibold mt-1">
-                                {product.price} تومان
-                              </p>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                      <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">محصولی یافت نشد.</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Popular Blog Posts */}
-              <PopularContent
-                showPopularPosts={true}
-                showPopularAuthors={false}
-                showHotTags={true}
-                maxItems={{
-                  posts: 5,
-                  tags: 8
-                }}
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <ModernSidebar
+                popularBlogs={sidebarData.popularBlogs}
+                subscriptionServices={sidebarData.subscriptionServices}
+                hotTags={sidebarData.hotTags}
+                onTagClick={handleTagClick}
               />
             </div>
           </div>

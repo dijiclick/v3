@@ -8,6 +8,7 @@ import { insertProductSchema, insertCategorySchema, insertPageSchema, insertProd
 import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCookieOptions } from "./auth";
 import { sitemapGenerator, sitemapCache } from "./sitemap";
 import { rssGenerator, rssCache } from "./rss";
+import { contentAnalyticsService } from "./content-analytics";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -836,6 +837,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: "Error deleting blog post: " + error.message });
+    }
+  });
+
+  // Enhanced Blog API Endpoints for Content Discovery and Navigation
+
+  // Get related posts for a specific post
+  app.get("/api/blog/posts/:slug/related", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { limit = "6" } = req.query;
+      
+      const post = await storage.getBlogPostBySlug(slug);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+
+      const relatedPosts = await contentAnalyticsService.getRelatedPosts(
+        post, 
+        parseInt(limit as string, 10)
+      );
+
+      res.json(relatedPosts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching related posts: " + error.message });
+    }
+  });
+
+  // Get navigation (previous/next) posts for a specific post
+  app.get("/api/blog/posts/:slug/navigation", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      const post = await storage.getBlogPostBySlug(slug);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+
+      // Get posts from the same category, ordered by publication date
+      const categoryId = post.categoryId;
+      const publishedAt = post.publishedAt;
+
+      if (!publishedAt) {
+        return res.json({ previous: null, next: null });
+      }
+
+      // Get previous post (earlier publication date)
+      const previousResult = await storage.getBlogPosts({
+        status: 'published',
+        categoryIds: categoryId ? [categoryId] : undefined,
+        endDate: new Date(publishedAt).toISOString(),
+        sortBy: 'publishedAt',
+        sortOrder: 'desc',
+        limit: 1,
+        offset: 0
+      });
+
+      // Get next post (later publication date)
+      const nextResult = await storage.getBlogPosts({
+        status: 'published',
+        categoryIds: categoryId ? [categoryId] : undefined,
+        startDate: new Date(publishedAt).toISOString(),
+        sortBy: 'publishedAt',
+        sortOrder: 'asc',
+        limit: 1,
+        offset: 0
+      });
+
+      const previousPost = previousResult.posts.find(p => p.id !== post.id) || null;
+      const nextPost = nextResult.posts.find(p => p.id !== post.id) || null;
+
+      res.json({
+        previous: previousPost,
+        next: nextPost
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching post navigation: " + error.message });
+    }
+  });
+
+  // Get popular posts by category
+  app.get("/api/blog/popular", async (req, res) => {
+    try {
+      const { 
+        categoryId, 
+        timeframe = "30d", 
+        limit = "10" 
+      } = req.query;
+
+      if (!categoryId) {
+        return res.status(400).json({ message: "Category ID is required" });
+      }
+
+      const popularPosts = await contentAnalyticsService.getPopularPostsByCategory(
+        categoryId as string,
+        timeframe as '7d' | '30d' | '90d' | 'all',
+        parseInt(limit as string, 10)
+      );
+
+      res.json(popularPosts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching popular posts: " + error.message });
+    }
+  });
+
+  // Get posts by author (for "More from this Author" sections)
+  app.get("/api/blog/authors/:authorId/recent-posts", async (req, res) => {
+    try {
+      const { authorId } = req.params;
+      const { limit = "6", exclude } = req.query;
+      
+      const excludeIds = exclude ? (typeof exclude === 'string' ? exclude.split(',') : exclude) : [];
+      
+      const posts = await contentAnalyticsService.getPostsByAuthor(
+        authorId,
+        parseInt(limit as string, 10),
+        excludeIds as string[]
+      );
+
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching author posts: " + error.message });
+    }
+  });
+
+  // Get recently updated posts
+  app.get("/api/blog/recently-updated", async (req, res) => {
+    try {
+      const { limit = "10" } = req.query;
+      
+      const posts = await contentAnalyticsService.getRecentlyUpdatedPosts(
+        parseInt(limit as string, 10)
+      );
+
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching recently updated posts: " + error.message });
+    }
+  });
+
+  // Get blog archive data
+  app.get("/api/blog/archive", async (req, res) => {
+    try {
+      const archiveData = await contentAnalyticsService.getArchiveData();
+      res.json(archiveData);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching archive data: " + error.message });
+    }
+  });
+
+  // Track post view (for analytics)
+  app.post("/api/blog/posts/:id/view", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userAgent = req.headers['user-agent'];
+      
+      await contentAnalyticsService.trackPostView(id, userAgent);
+      res.json({ message: "View tracked successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error tracking post view: " + error.message });
+    }
+  });
+
+  // Get content recommendations based on reading patterns
+  app.get("/api/blog/recommendations", async (req, res) => {
+    try {
+      const { 
+        basedOn, // comma-separated post IDs that user has read
+        limit = "10",
+        categoryId 
+      } = req.query;
+
+      if (!basedOn) {
+        // Fallback to popular posts if no reading history
+        const { posts } = await storage.getBlogPosts({
+          status: 'published',
+          categoryIds: categoryId ? [categoryId as string] : undefined,
+          sortBy: 'viewCount',
+          sortOrder: 'desc',
+          limit: parseInt(limit as string, 10),
+          offset: 0
+        });
+        return res.json(posts);
+      }
+
+      const basePostIds = (basedOn as string).split(',');
+      const recommendations = new Set();
+      
+      // Get related posts for each base post
+      for (const postId of basePostIds) {
+        try {
+          const basePost = await storage.getBlogPost(postId);
+          if (basePost) {
+            const related = await contentAnalyticsService.getRelatedPosts(
+              basePost, 
+              Math.ceil(parseInt(limit as string, 10) / basePostIds.length)
+            );
+            related.forEach(post => recommendations.add(JSON.stringify(post)));
+          }
+        } catch (error) {
+          console.warn(`Could not get recommendations for post ${postId}:`, error);
+        }
+      }
+
+      const recommendedPosts = Array.from(recommendations)
+        .map(postStr => JSON.parse(postStr as string))
+        .slice(0, parseInt(limit as string, 10));
+
+      res.json(recommendedPosts);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating recommendations: " + error.message });
+    }
+  });
+
+  // Get breadcrumb data for a specific post
+  app.get("/api/blog/breadcrumb/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      const post = await storage.getBlogPostBySlug(slug);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+
+      const breadcrumbs = [
+        { label: "خانه", href: "/" },
+        { label: "وبلاگ", href: "/blog" }
+      ];
+
+      // Add category if exists
+      if (post.categoryId) {
+        try {
+          const category = await storage.getBlogCategory(post.categoryId);
+          if (category) {
+            breadcrumbs.push({
+              label: category.name,
+              href: `/blog/category/${category.slug}`
+            });
+          }
+        } catch (error) {
+          console.warn("Could not fetch category for breadcrumb:", error);
+        }
+      }
+
+      // Add current post
+      breadcrumbs.push({
+        label: post.title,
+        href: `/blog/${slug}`,
+        current: true
+      });
+
+      res.json(breadcrumbs);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error generating breadcrumb: " + error.message });
+    }
+  });
+
+  // Get content analytics for a specific post
+  app.get("/api/blog/posts/:id/analytics", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const post = await storage.getBlogPost(id);
+      if (!post) {
+        return res.status(404).json({ message: "Blog post not found" });
+      }
+
+      const analytics = contentAnalyticsService.analyzeContent(post.content);
+      
+      res.json({
+        ...analytics,
+        viewCount: post.viewCount || 0,
+        shareCount: post.shareCount || 0
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching post analytics: " + error.message });
     }
   });
 

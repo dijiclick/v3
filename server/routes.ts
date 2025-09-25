@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Only image files (JPEG, PNG, WebP, GIF) are allowed'), false);
+        cb(new Error('Only image files (JPEG, PNG, WebP, GIF) are allowed'));
       }
     },
     limits: {
@@ -715,12 +715,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         featured: featured ? featured === 'true' : undefined,
         // Support both old single ID format and new array format for backward compatibility
         categoryIds: categoryIds ? 
-          (typeof categoryIds === 'string' ? categoryIds.split(',') : categoryIds) : 
+          (typeof categoryIds === 'string' ? categoryIds.split(',') : Array.isArray(categoryIds) ? categoryIds as string[] : [String(categoryIds)]) : 
           (categoryId ? [categoryId as string] : undefined),
         authorIds: authorIds ? 
-          (typeof authorIds === 'string' ? authorIds.split(',') : authorIds) : 
+          (typeof authorIds === 'string' ? authorIds.split(',') : Array.isArray(authorIds) ? authorIds as string[] : [String(authorIds)]) : 
           (authorId ? [authorId as string] : undefined),
-        tags: tags ? (typeof tags === 'string' ? tags.split(',') : tags) : undefined,
+        tags: tags ? (typeof tags === 'string' ? tags.split(',') : Array.isArray(tags) ? tags as string[] : [String(tags)]) : undefined,
         searchQuery: search as string,
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
@@ -966,7 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const previousResult = await storage.getBlogPosts({
         status: 'published',
         categoryIds: categoryId ? [categoryId] : undefined,
-        endDate: new Date(publishedAt).toISOString(),
+        endDate: new Date(publishedAt),
         sortBy: 'publishedAt',
         sortOrder: 'desc',
         limit: 1,
@@ -977,7 +977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nextResult = await storage.getBlogPosts({
         status: 'published',
         categoryIds: categoryId ? [categoryId] : undefined,
-        startDate: new Date(publishedAt).toISOString(),
+        startDate: new Date(publishedAt),
         sortBy: 'publishedAt',
         sortOrder: 'asc',
         limit: 1,
@@ -1163,8 +1163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add current post
       breadcrumbs.push({
         label: post.title,
-        href: `/blog/${slug}`,
-        current: true
+        href: `/blog/${slug}`
       });
 
       res.json(breadcrumbs);

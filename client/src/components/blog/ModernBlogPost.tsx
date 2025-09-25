@@ -3,19 +3,20 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Eye, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { BlogPost } from "@/types";
+import { sanitizeImageUrl } from "@/lib/utils";
 
-// Import blog images
-import reactImage from "@assets/stock_images/react_javascript_pro_4fe483cb.jpg";
-import cssGridImage from "@assets/stock_images/css_grid_layout_web__ab23a733.jpg";
-import typescriptImage from "@assets/stock_images/typescript_programmi_1af42510.jpg";
-import webTechImage from "@assets/stock_images/web_technology_futur_6769e898.jpg";
+// Use public image paths that are accessible from the browser
+const reactImage = "/images/react_javascript_pro_4fe483cb.jpg";
+const cssGridImage = "/images/css_grid_layout_web__ab23a733.jpg";
+const typescriptImage = "/images/typescript_programmi_1af42510.jpg";
+const webTechImage = "/images/web_technology_futur_6769e898.jpg";
 
 interface ModernBlogPostProps {
   post: BlogPost;
 }
 
 export function ModernBlogPost({ post }: ModernBlogPostProps) {
-  // Map blog post IDs to their corresponding images
+  // Map blog post IDs to their corresponding images with URL sanitization
   const getPostImage = (postId: string, featuredImage?: string | null) => {
     const imageMap: { [key: string]: string } = {
       'post-1': reactImage,       // React.js آموزش
@@ -24,8 +25,8 @@ export function ModernBlogPost({ post }: ModernBlogPostProps) {
       'post-4': webTechImage,     // فناوری آینده
     };
 
-    // Use mapped image if available, otherwise use featuredImage or fallback
-    return imageMap[postId] || featuredImage || reactImage;
+    // Use mapped image if available, otherwise sanitize featuredImage or fallback
+    return imageMap[postId] || sanitizeImageUrl(featuredImage) || reactImage;
   };
 
   const formatDate = (date: Date | string | null) => {

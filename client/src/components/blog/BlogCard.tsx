@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { sanitizeImageUrl } from "@/lib/utils";
 
 interface BlogCardProps {
   post: BlogPost;
@@ -34,14 +35,21 @@ export default function BlogCard({ post, showExcerpt = true, className = "" }: B
 
   return (
     <Card className={`group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white dark:bg-card ${className}`} dir="rtl" data-testid={`blog-card-${post.id}`}>
-      {/* Featured Image */}
-      {post.featuredImage && (
+      {/* Featured Image with URL sanitization */}
+      {sanitizeImageUrl(post.featuredImage) && (
         <div className="relative overflow-hidden rounded-t-lg aspect-[16/10]">
           <img 
-            src={post.featuredImage} 
+            src={sanitizeImageUrl(post.featuredImage)} 
             alt={post.featuredImageAlt || post.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              // Fallback to original URL if sanitized URL fails
+              const target = e.target as HTMLImageElement;
+              if (target.src !== post.featuredImage && post.featuredImage) {
+                target.src = post.featuredImage;
+              }
+            }}
           />
           
           {/* Featured Badge */}
@@ -104,7 +112,7 @@ export default function BlogCard({ post, showExcerpt = true, className = "" }: B
           )}
 
           {/* Reading Time */}
-          {post.readingTime && (
+          {post.readingTime !== null && post.readingTime !== undefined && (
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
               <span data-testid={`reading-time-${post.id}`}>{formatReadingTime(post.readingTime)}</span>
@@ -112,7 +120,7 @@ export default function BlogCard({ post, showExcerpt = true, className = "" }: B
           )}
 
           {/* View Count */}
-          {post.viewCount && post.viewCount > 0 && (
+          {post.viewCount !== null && post.viewCount !== undefined && (
             <div className="flex items-center gap-1">
               <Eye className="w-4 h-4" />
               <span data-testid={`view-count-${post.id}`}>{post.viewCount.toLocaleString('fa-IR')}</span>

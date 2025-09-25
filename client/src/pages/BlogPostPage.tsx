@@ -36,14 +36,15 @@ import BlogContentRenderer from "@/components/BlogContentRenderer";
 import TableOfContents from "@/components/blog/TableOfContents";
 import { SEOService } from "@/lib/seo-service";
 import { useEffect, useState } from "react";
-import EnhancedSocialShare from "@/components/blog/EnhancedSocialShare";
 import { ClientContentAnalytics } from "@/lib/content-analytics";
-import { cn } from "@/lib/utils";
+import { cn, sanitizeImageUrl, copyToClipboard, nativeShare } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function BlogPostPage() {
   const { slug } = useParams();
   const [, setLocation] = useLocation();
   const [showScrollToTop, setShowScrollToTop] = useState(false);
+  const { toast } = useToast();
   
   // Fetch blog post data
   const { data: post, isLoading, error } = useBlogPostBySlug(slug || "");
@@ -432,14 +433,21 @@ export default function BlogPostPage() {
                     )}
                   </CardHeader>
 
-                  {/* Featured Image */}
-                  {post.featuredImage && (
+                  {/* Featured Image with URL sanitization */}
+                  {sanitizeImageUrl(post.featuredImage) && (
                     <div className="relative">
                       <img 
-                        src={post.featuredImage} 
+                        src={sanitizeImageUrl(post.featuredImage)} 
                         alt={post.featuredImageAlt || post.title}
                         className="w-full h-64 md:h-80 lg:h-96 object-cover"
                         data-testid="featured-image"
+                        onError={(e) => {
+                          // Fallback to original URL if sanitized URL fails
+                          const target = e.target as HTMLImageElement;
+                          if (target.src !== post.featuredImage && post.featuredImage) {
+                            target.src = post.featuredImage;
+                          }
+                        }}
                       />
                       {post.featured && (
                         <div className="absolute top-4 right-4">
@@ -468,7 +476,7 @@ export default function BlogPostPage() {
                         )}
 
                         {/* Reading Time */}
-                        {post.readingTime && (
+                        {post.readingTime !== null && post.readingTime !== undefined && (
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
                             <span data-testid="reading-time">{formatReadingTime(post.readingTime)}</span>
@@ -476,7 +484,7 @@ export default function BlogPostPage() {
                         )}
 
                         {/* View Count */}
-                        {post.viewCount && post.viewCount > 0 && (
+                        {post.viewCount !== null && post.viewCount !== undefined && (
                           <div className="flex items-center gap-2">
                             <Eye className="w-4 h-4" />
                             <span data-testid="view-count">{post.viewCount.toLocaleString('fa-IR')}</span>
@@ -484,17 +492,51 @@ export default function BlogPostPage() {
                         )}
                       </div>
 
-                      {/* Horizontal Social Sharing */}
+                      {/* Single Share Button - Robust Implementation */}
                       <div className="flex-shrink-0">
-                        <EnhancedSocialShare 
-                          post={post} 
-                          author={post.author}
-                          currentUrl={currentUrl}
-                          variant="compact"
-                          showLabels={false}
-                          onShare={handleSocialShare}
-                          className="flex gap-2"
-                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            // Try native sharing first
+                            const shareData = {
+                              title: post.title,
+                              text: post.excerpt || '',
+                              url: currentUrl,
+                            };
+                            
+                            const nativeShareSuccess = await nativeShare(shareData);
+                            
+                            if (nativeShareSuccess) {
+                              handleSocialShare('native_share', currentUrl);
+                              return;
+                            }
+                            
+                            // Fallback to clipboard copy with robust error handling
+                            const clipboardSuccess = await copyToClipboard(currentUrl);
+                            
+                            if (clipboardSuccess) {
+                              toast({ 
+                                title: 'لینک کپی شد', 
+                                description: 'آدرس مقاله در کلیپ‌بورد کپی شد.',
+                                duration: 3000
+                              });
+                              handleSocialShare('copy_link', currentUrl);
+                            } else {
+                              toast({ 
+                                title: 'خطا در اشتراک‌گذاری', 
+                                description: 'متأسفانه امکان اشتراک‌گذاری وجود ندارد. لطفاً آدرس را دستی کپی کنید.',
+                                variant: 'destructive',
+                                duration: 5000
+                              });
+                            }
+                          }}
+                          className="hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
+                          data-testid="share-button"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          <span className="mr-2 text-sm font-medium">اشتراک</span>
+                        </Button>
                       </div>
                     </div>
 

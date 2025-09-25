@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Major Updates
 
+## Enhanced Blog System & Search Improvements (September 2025)
+- **Fixed Search Functionality**: Comprehensive search now correctly finds all content including "ChatGPT" tools and products
+- **Modern Blog Card Design**: Updated blog main page with larger featured images (4:3 aspect ratio), enhanced author displays, and professional styling
+- **Advanced Admin Image Management**: Full-featured image upload system in blog editor with drag-and-drop, preview, validation, and URL input options
+- **Enhanced Author Presentation**: Prominent author profiles with larger avatars, gradient backgrounds, and job titles for better visibility
+- **Visual Polish**: Modern hover effects, shadow-2xl transitions, improved typography, and responsive grid layouts (1-2-3 columns)
+- **Professional UI/UX**: Enhanced metadata display with colorful icons, improved category badges, and smooth 500ms transitions
+
 ## Complete Bilingual Admin Panel (December 2025)
 - **100% Farsi Translation Coverage**: All admin panel elements now switch to Farsi when language is selected
 - **Comprehensive Translation System**: 200+ translation keys covering all admin functionality

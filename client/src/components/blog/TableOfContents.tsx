@@ -167,7 +167,7 @@ export default function TableOfContents({
   return (
     <div className={cn(
       "toc-container",
-      sticky && "sticky top-20",
+      sticky && "sticky top-16",
       !showOnMobile && "hidden lg:block",
       className
     )}>

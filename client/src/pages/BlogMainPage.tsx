@@ -10,7 +10,8 @@ import {
   Grid,
   List,
   Rss,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { BlogPost, Product } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
+import { BlogErrorBoundaryWrapper } from "@/components/ui/error-boundary";
+import { BlogPostGridSkeleton, CategoryFilterSkeleton, SidebarSkeleton } from "@/components/ui/blog-skeleton";
+import { BlogErrorHandler, fetchWithRetry } from "@/lib/error-utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Import new modern components
 import { Newsletter } from "@/components/blog/Newsletter";
@@ -35,6 +40,7 @@ export default function BlogMainPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { toast } = useToast();
   
   // Debounce search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -44,24 +50,38 @@ export default function BlogMainPage() {
     setCurrentPage(1);
   }, [debouncedSearchQuery, selectedCategory]);
 
-  // Fetch blog categories
+  // Fetch blog categories with enhanced error handling
   const { 
     data: categories, 
-    isLoading: isLoadingCategories 
+    isLoading: isLoadingCategories,
+    error: categoriesError,
+    refetch: refetchCategories
   } = useQuery({
     queryKey: ['/api/blog/categories'],
     queryFn: async () => {
-      const response = await fetch('/api/blog/categories');
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      return response.json();
+      try {
+        const response = await fetchWithRetry('/api/blog/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        return response.json();
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:categories');
+        throw error;
+      }
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch blog posts with pagination and filtering
+  // Fetch blog posts with pagination and filtering - enhanced error handling
   const { 
     data: postsResponse, 
     isLoading: isLoadingPosts, 
-    error: postsError 
+    error: postsError,
+    refetch: refetchPosts
   } = useQuery({
     queryKey: ['/api/blog/posts', {
       page: currentPage,
@@ -73,99 +93,159 @@ export default function BlogMainPage() {
       sortOrder: 'desc'
     }],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        offset: ((currentPage - 1) * POSTS_PER_PAGE).toString(),
-        limit: POSTS_PER_PAGE.toString(),
-        status: 'published',
-        sortBy: 'publishedAt',
-        sortOrder: 'desc'
-      });
-      
-      if (debouncedSearchQuery) {
-        params.append('search', debouncedSearchQuery);
+      try {
+        const params = new URLSearchParams({
+          offset: ((currentPage - 1) * POSTS_PER_PAGE).toString(),
+          limit: POSTS_PER_PAGE.toString(),
+          status: 'published',
+          sortBy: 'publishedAt',
+          sortOrder: 'desc'
+        });
+        
+        if (debouncedSearchQuery) {
+          params.append('search', debouncedSearchQuery);
+        }
+        
+        if (selectedCategory) {
+          params.append('category', selectedCategory);
+        }
+        
+        const response = await fetchWithRetry(`/api/blog/posts?${params}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog posts');
+        }
+        return response.json();
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:posts', {
+          search: debouncedSearchQuery,
+          category: selectedCategory,
+          page: currentPage
+        });
+        throw error;
       }
-      
-      if (selectedCategory) {
-        params.append('category', selectedCategory);
-      }
-      
-      const response = await fetch(`/api/blog/posts?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch blog posts');
-      return response.json();
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch featured blog posts for hero section
+  // Fetch featured blog posts for hero section with enhanced error handling
   const { 
     data: featuredPosts, 
-    isLoading: isLoadingFeatured 
+    isLoading: isLoadingFeatured,
+    error: featuredError,
+    refetch: refetchFeatured
   } = useQuery({
     queryKey: ['/api/blog/posts/featured', 3],
     queryFn: async () => {
-      const response = await fetch('/api/blog/posts/featured?limit=3');
-      if (!response.ok) throw new Error('Failed to fetch featured posts');
-      return response.json();
+      try {
+        const response = await fetchWithRetry('/api/blog/posts/featured?limit=3');
+        if (!response.ok) {
+          throw new Error('Failed to fetch featured posts');
+        }
+        return response.json();
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:featured');
+        throw error;
+      }
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch popular posts for sidebar
+  // Fetch popular posts for sidebar with enhanced error handling
   const { 
     data: popularPosts, 
-    isLoading: isLoadingPopular 
+    isLoading: isLoadingPopular,
+    error: popularPostsError,
+    refetch: refetchPopularPosts
   } = useQuery({
     queryKey: ['/api/blog/posts/popular', 6],
     queryFn: async () => {
-      const response = await fetch('/api/blog/posts/popular?limit=6');
-      if (!response.ok) {
-        // Fallback to regular posts if popular endpoint doesn't exist
-        const fallbackResponse = await fetch('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          return fallbackData.posts || [];
+      try {
+        const response = await fetchWithRetry('/api/blog/posts/popular?limit=6');
+        if (!response.ok) {
+          // Fallback to regular posts if popular endpoint doesn't exist
+          const fallbackResponse = await fetchWithRetry('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            return fallbackData.posts || [];
+          }
+          throw new Error('Failed to fetch popular posts and fallback');
         }
-        return [];
+        return response.json();
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:popularPosts');
+        throw error;
       }
-      return response.json();
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch hot tags for sidebar
+  // Fetch hot tags for sidebar with enhanced error handling
   const { 
     data: hotTags, 
-    isLoading: isLoadingTags 
+    isLoading: isLoadingTags,
+    error: hotTagsError,
+    refetch: refetchHotTags
   } = useQuery({
     queryKey: ['/api/blog/tags/popular', 8],
     queryFn: async () => {
-      const response = await fetch('/api/blog/tags/popular?limit=8');
-      if (!response.ok) {
-        // Fallback with 8 default Persian tags to match requirement
-        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی", "نرم‌افزار", "وب"];
+      try {
+        const response = await fetchWithRetry('/api/blog/tags/popular?limit=8');
+        if (!response.ok) {
+          throw new Error('Failed to fetch hot tags');
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : data.tags || [];
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:hotTags');
+        throw error;
       }
-      const data = await response.json();
-      return Array.isArray(data) ? data : data.tags || [];
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch featured products for sidebar
+  // Fetch featured products for sidebar with enhanced error handling
   const { 
     data: featuredProducts, 
-    isLoading: isLoadingFeaturedProducts 
+    isLoading: isLoadingFeaturedProducts,
+    error: featuredProductsError,
+    refetch: refetchFeaturedProducts
   } = useQuery({
     queryKey: ['/api/products/featured', 5],
     queryFn: async () => {
-      const response = await fetch('/api/products?featured=true&limit=5&random=true');
-      if (!response.ok) {
-        // Fallback to first 5 products if featured endpoint fails
-        const fallbackResponse = await fetch('/api/products?limit=5');
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          return fallbackData.products || [];
+      try {
+        const response = await fetchWithRetry('/api/products?featured=true&limit=5&random=true');
+        if (!response.ok) {
+          // Fallback to first 5 products if featured endpoint fails
+          const fallbackResponse = await fetchWithRetry('/api/products?limit=5');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            return fallbackData.products || [];
+          }
+          throw new Error('Failed to fetch featured products and fallback');
         }
-        return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogMainPage:featuredProducts');
+        throw error;
       }
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const posts = postsResponse?.posts || [];
@@ -392,37 +472,39 @@ export default function BlogMainPage() {
                 </div>
               </div>
 
-              {/* Posts Grid/List */}
+              {/* Posts Grid/List with Enhanced Error Handling */}
               {postsError ? (
-                <Alert variant="destructive" data-testid="posts-error">
-                  <AlertDescription className="font-vazir">
-                    خطا در بارگذاری مقالات. لطفاً صفحه را تازه‌سازی کنید.
-                  </AlertDescription>
-                </Alert>
-              ) : isLoadingPosts ? (
-                <div className={cn(
-                  viewMode === 'grid' 
-                    ? "grid grid-cols-1 md:grid-cols-2 gap-6" 
-                    : "space-y-4"
-                )}>
-                  {Array(8).fill(0).map((_, index) => (
-                    <div key={index} className="bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
-                      <div className="aspect-video bg-gray-200" />
-                      <div className="p-5 space-y-3">
-                        <Skeleton className="h-6 w-3/4" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-2/3" />
-                        <div className="flex items-center gap-4">
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                          <div className="space-y-1">
-                            <Skeleton className="h-3 w-16" />
-                            <Skeleton className="h-3 w-24" />
-                          </div>
-                        </div>
+                <BlogErrorBoundaryWrapper context="BlogMainPage:posts">
+                  <Alert variant="destructive" data-testid="posts-error">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="font-vazir">
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {BlogErrorHandler.getErrorMessage(postsError, 'blogPosts')}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            refetchPosts();
+                            toast({
+                              title: "تلاش مجدد",
+                              description: "در حال بارگذاری مطالب...",
+                              duration: 2000,
+                            });
+                          }}
+                          className="font-vazir text-xs"
+                          data-testid="retry-posts-button"
+                        >
+                          <RefreshCw className="w-3 h-3 ml-1" />
+                          تلاش مجدد
+                        </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </AlertDescription>
+                  </Alert>
+                </BlogErrorBoundaryWrapper>
+              ) : isLoadingPosts ? (
+                <BlogPostGridSkeleton count={POSTS_PER_PAGE} />
               ) : posts.length > 0 ? (
                 <>
                   <div className={cn(
@@ -453,14 +535,52 @@ export default function BlogMainPage() {
               )}
             </div>
 
-            {/* Sidebar */}
+            {/* Sidebar with Enhanced Error Handling */}
             <div className="lg:col-span-1">
-              <ModernSidebar
-                popularBlogs={sidebarData.popularBlogs}
-                featuredProducts={sidebarData.featuredProducts}
-                hotTags={sidebarData.hotTags}
-                onTagClick={handleTagClick}
-              />
+              <BlogErrorBoundaryWrapper context="BlogMainPage:sidebar">
+                <ModernSidebar
+                  popularBlogs={sidebarData.popularBlogs}
+                  featuredProducts={sidebarData.featuredProducts}
+                  hotTags={sidebarData.hotTags}
+                  onTagClick={handleTagClick}
+                  popularBlogsState={{
+                    loading: isLoadingPopular,
+                    error: popularPostsError,
+                    onRetry: () => {
+                      refetchPopularPosts();
+                      toast({
+                        title: "تلاش مجدد",
+                        description: "در حال بارگذاری مطالب محبوب...",
+                        duration: 2000,
+                      });
+                    }
+                  }}
+                  featuredProductsState={{
+                    loading: isLoadingFeaturedProducts,
+                    error: featuredProductsError,
+                    onRetry: () => {
+                      refetchFeaturedProducts();
+                      toast({
+                        title: "تلاش مجدد",
+                        description: "در حال بارگذاری محصولات ویژه...",
+                        duration: 2000,
+                      });
+                    }
+                  }}
+                  hotTagsState={{
+                    loading: isLoadingTags,
+                    error: hotTagsError,
+                    onRetry: () => {
+                      refetchHotTags();
+                      toast({
+                        title: "تلاش مجدد",
+                        description: "در حال بارگذاری برچسب‌های داغ...",
+                        duration: 2000,
+                      });
+                    }
+                  }}
+                />
+              </BlogErrorBoundaryWrapper>
             </div>
           </div>
         </div>

@@ -16,7 +16,8 @@ import {
   MessageCircle,
   Bookmark,
   ChevronUp,
-  Menu
+  Menu,
+  RefreshCw
 } from "lucide-react";
 import { 
   useBlogPostBySlug, 
@@ -30,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import BlogCard from "@/components/blog/BlogCard";
 import { ModernSidebar } from "@/components/blog/ModernSidebar";
 import BlogContentRenderer from "@/components/BlogContentRenderer";
@@ -39,6 +41,9 @@ import { useEffect, useState } from "react";
 import { ClientContentAnalytics } from "@/lib/content-analytics";
 import { cn, sanitizeImageUrl, copyToClipboard, nativeShare } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { BlogErrorBoundaryWrapper } from "@/components/ui/error-boundary";
+import { BlogPostPageSkeleton } from "@/components/ui/blog-skeleton";
+import { BlogErrorHandler, fetchWithRetry } from "@/lib/error-utils";
 
 export default function BlogPostPage() {
   const { slug } = useParams();
@@ -46,69 +51,101 @@ export default function BlogPostPage() {
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const { toast } = useToast();
   
-  // Fetch blog post data
-  const { data: post, isLoading, error } = useBlogPostBySlug(slug || "");
-  const { data: relatedPosts } = useRelatedBlogPosts(post || undefined, 3);
-  const { data: navigation } = useBlogPostNavigation(post || undefined);
+  // Fetch blog post data with enhanced error handling
+  const { data: post, isLoading, error, refetch: refetchPost } = useBlogPostBySlug(slug || "");
+  const { data: relatedPosts, isLoading: isLoadingRelated, error: relatedError, refetch: refetchRelated } = useRelatedBlogPosts(post || undefined, 3);
+  const { data: navigation, isLoading: isLoadingNavigation, error: navigationError, refetch: refetchNavigation } = useBlogPostNavigation(post || undefined);
 
-  // Fetch popular posts for sidebar
+  // Fetch popular posts for sidebar with enhanced error handling
   const { 
     data: popularPosts, 
-    isLoading: isLoadingPopular 
+    isLoading: isLoadingPopular,
+    error: popularPostsError,
+    refetch: refetchPopularPosts
   } = useQuery({
     queryKey: ['/api/blog/posts/popular', 6],
     queryFn: async () => {
-      const response = await fetch('/api/blog/posts/popular?limit=6');
-      if (!response.ok) {
-        // Fallback to regular posts if popular endpoint doesn't exist
-        const fallbackResponse = await fetch('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          return fallbackData.posts || [];
+      try {
+        const response = await fetchWithRetry('/api/blog/posts/popular?limit=6');
+        if (!response.ok) {
+          // Fallback to regular posts if popular endpoint doesn't exist
+          const fallbackResponse = await fetchWithRetry('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            return fallbackData.posts || [];
+          }
+          throw new Error('Failed to fetch popular posts and fallback');
         }
-        return [];
+        return response.json();
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogPostPage:popularPosts');
+        throw error;
       }
-      return response.json();
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch hot tags for sidebar
+  // Fetch hot tags for sidebar with enhanced error handling
   const { 
     data: hotTags, 
-    isLoading: isLoadingTags 
+    isLoading: isLoadingTags,
+    error: hotTagsError,
+    refetch: refetchHotTags
   } = useQuery({
     queryKey: ['/api/blog/tags/popular', 8],
     queryFn: async () => {
-      const response = await fetch('/api/blog/tags/popular?limit=8');
-      if (!response.ok) {
-        // Fallback with 8 default Persian tags to match requirement
-        return ["بازی", "تکنولوژی", "آموزش", "راهنما", "اخبار", "بررسی", "نرم‌افزار", "وب"];
+      try {
+        const response = await fetchWithRetry('/api/blog/tags/popular?limit=8');
+        if (!response.ok) {
+          throw new Error('Failed to fetch hot tags');
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : data.tags || [];
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogPostPage:hotTags');
+        throw error;
       }
-      const data = await response.json();
-      return Array.isArray(data) ? data : data.tags || [];
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Fetch featured products for sidebar
+  // Fetch featured products for sidebar with enhanced error handling
   const { 
     data: featuredProducts, 
-    isLoading: isLoadingFeaturedProducts 
+    isLoading: isLoadingFeaturedProducts,
+    error: featuredProductsError,
+    refetch: refetchFeaturedProducts
   } = useQuery({
     queryKey: ['/api/products/featured', 5],
     queryFn: async () => {
-      const response = await fetch('/api/products?featured=true&limit=5&random=true');
-      if (!response.ok) {
-        // Fallback to first 5 products if featured endpoint fails
-        const fallbackResponse = await fetch('/api/products?limit=5');
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          return fallbackData.products || [];
+      try {
+        const response = await fetchWithRetry('/api/products?featured=true&limit=5&random=true');
+        if (!response.ok) {
+          // Fallback to first 5 products if featured endpoint fails
+          const fallbackResponse = await fetchWithRetry('/api/products?limit=5');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            return fallbackData.products || [];
+          }
+          throw new Error('Failed to fetch featured products and fallback');
         }
-        return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        BlogErrorHandler.logError(error, 'BlogPostPage:featuredProducts');
+        throw error;
       }
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
     },
+    retry: (failureCount, error) => {
+      return failureCount < 3 && BlogErrorHandler.isRetryableError(error);
+    },
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Current URL for sharing
@@ -244,49 +281,69 @@ export default function BlogPostPage() {
     hotTags: hotTags || []
   };
 
-  // Loading state
+  // Enhanced loading state with skeleton
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardContent className="p-8 text-center">
-            <Loader2 className="mx-auto h-8 w-8 text-blue-500 mb-4 animate-spin" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              در حال بارگذاری...
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              لطفاً صبر کنید تا محتوا بارگذاری شود.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <BlogPostPageSkeleton />;
   }
 
-  // Error state
+  // Enhanced error state with retry functionality
   if (error || !post) {
+    const errorMessage = error ? BlogErrorHandler.getErrorMessage(error, 'general') : 'مطلب پیدا نشد';
+    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md shadow-xl">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
-              مطلب پیدا نشد
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4" dir="rtl">
-              {error ? 
-                `خطا در بارگذاری محتوا: ${(error as Error).message}` : 
-                `مطلب با آدرس "${slug}" پیدا نشد.`
-              }
-            </p>
-            <Link href="/blog">
-              <Button variant="outline">
-                بازگشت به وبلاگ
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <BlogErrorBoundaryWrapper context="BlogPostPage:main">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900" data-testid="blog-post-error">
+          <Card className="w-full max-w-md shadow-xl">
+            <CardContent className="p-8 text-center">
+              <AlertCircle className="mx-auto h-8 w-8 text-red-500 mb-4" />
+              <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2 font-vazir">
+                خطا در بارگذاری مطلب
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 font-vazir" dir="rtl">
+                {errorMessage}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                {/* Retry button */}
+                <Button 
+                  onClick={() => {
+                    refetchPost();
+                    toast({
+                      title: "تلاش مجدد",
+                      description: "در حال تلاش برای بارگذاری مطلب...",
+                      duration: 2000,
+                    });
+                  }}
+                  variant="default"
+                  className="w-full font-vazir"
+                  data-testid="retry-post-button"
+                >
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  تلاش مجدد
+                </Button>
+                
+                {/* Back to blog button */}
+                <Link href="/blog" className="w-full">
+                  <Button variant="outline" className="w-full font-vazir" data-testid="back-to-blog-button">
+                    بازگشت به وبلاگ
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Development error details */}
+              {process.env.NODE_ENV === 'development' && error && (
+                <details className="mt-4 p-3 bg-gray-100 rounded text-sm text-left">
+                  <summary className="cursor-pointer font-bold">Error Details (Dev Only)</summary>
+                  <pre className="mt-2 text-xs overflow-auto">
+                    {error.message}
+                    {error.stack && '\n\nStack:\n' + error.stack}
+                  </pre>
+                </details>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </BlogErrorBoundaryWrapper>
     );
   }
 
@@ -362,15 +419,53 @@ export default function BlogPostPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* Left Sidebar - Modern Sidebar */}
+            {/* Left Sidebar - Modern Sidebar with Enhanced Error Handling */}
             <aside className="lg:col-span-3 order-2 lg:order-1">
               <div className="sticky top-24 space-y-6">
-                <ModernSidebar
-                  popularBlogs={sidebarData.popularBlogs}
-                  featuredProducts={sidebarData.featuredProducts}
-                  hotTags={sidebarData.hotTags}
-                  onTagClick={handleTagClick}
-                />
+                <BlogErrorBoundaryWrapper context="BlogPostPage:sidebar">
+                  <ModernSidebar
+                    popularBlogs={sidebarData.popularBlogs}
+                    featuredProducts={sidebarData.featuredProducts}
+                    hotTags={sidebarData.hotTags}
+                    onTagClick={handleTagClick}
+                    popularBlogsState={{
+                      loading: isLoadingPopular,
+                      error: popularPostsError,
+                      onRetry: () => {
+                        refetchPopularPosts();
+                        toast({
+                          title: "تلاش مجدد",
+                          description: "در حال بارگذاری مطالب محبوب...",
+                          duration: 2000,
+                        });
+                      }
+                    }}
+                    featuredProductsState={{
+                      loading: isLoadingFeaturedProducts,
+                      error: featuredProductsError,
+                      onRetry: () => {
+                        refetchFeaturedProducts();
+                        toast({
+                          title: "تلاش مجدد",
+                          description: "در حال بارگذاری محصولات ویژه...",
+                          duration: 2000,
+                        });
+                      }
+                    }}
+                    hotTagsState={{
+                      loading: isLoadingTags,
+                      error: hotTagsError,
+                      onRetry: () => {
+                        refetchHotTags();
+                        toast({
+                          title: "تلاش مجدد",
+                          description: "در حال بارگذاری برچسب‌های داغ...",
+                          duration: 2000,
+                        });
+                      }
+                    }}
+                  />
+                </BlogErrorBoundaryWrapper>
               </div>
             </aside>
 
@@ -712,7 +807,7 @@ export default function BlogPostPage() {
 
             {/* Right Sidebar - Table of Contents */}
             <aside className="lg:col-span-3 order-3 hidden lg:block">
-              <div className="sticky top-16 space-y-6">
+              <div className="space-y-6">
                 <TableOfContents
                   content={post.content}
                   sticky={true}

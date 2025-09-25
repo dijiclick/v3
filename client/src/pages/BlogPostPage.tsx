@@ -33,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import BlogCard from "@/components/blog/BlogCard";
 import { ModernSidebar } from "@/components/blog/ModernSidebar";
 import BlogContentRenderer from "@/components/BlogContentRenderer";
+import TableOfContents from "@/components/blog/TableOfContents";
 import { SEOService } from "@/lib/seo-service";
 import { useEffect, useState } from "react";
 import EnhancedSocialShare from "@/components/blog/EnhancedSocialShare";
@@ -373,7 +374,7 @@ export default function BlogPostPage() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="lg:col-span-9 order-1 lg:order-2">
+            <main className="lg:col-span-6 order-1 lg:order-2">
               <article className="space-y-6" data-testid={`blog-post-${post.slug}`}>
                 
                 {/* Article Header Card */}
@@ -666,6 +667,22 @@ export default function BlogPostPage() {
                 )}
               </article>
             </main>
+
+            {/* Right Sidebar - Table of Contents */}
+            <aside className="lg:col-span-3 order-3 hidden lg:block">
+              <div className="sticky top-24 space-y-6">
+                <TableOfContents
+                  content={post.content}
+                  sticky={true}
+                  collapsible={true}
+                  showOnMobile={false}
+                  maxLevel={4}
+                  minItems={2}
+                  className="shadow-lg border-0"
+                  data-testid="blog-post-toc"
+                />
+              </div>
+            </aside>
 
           </div>
         </div>

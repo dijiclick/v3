@@ -8,9 +8,9 @@ export default function PersianHeader() {
     <header className="bg-red-500 py-3 text-white font-vazir" dir="rtl">
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-5">
         {/* Logo */}
-        <div className="text-2xl font-bold text-white" data-testid="logo-persian">
+        <Link href="/" className="text-2xl font-bold text-white hover:opacity-90 transition-opacity cursor-pointer" data-testid="logo-persian">
           لیمیت پس
-        </div>
+        </Link>
         
         {/* Navigation Links */}
         <div className="flex items-center gap-8">

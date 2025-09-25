@@ -411,6 +411,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Blog-specific image upload endpoint with dedicated storage
+  const blogUpload = multer({
+    storage: multer.diskStorage({
+      destination: 'public/uploads/blog/',
+      filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, uniqueName);
+      }
+    }),
+    fileFilter: (req, file, cb) => {
+      // Allow only images for blog content
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files (JPEG, PNG, WebP, GIF) are allowed'), false);
+      }
+    },
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit for blog images
+    }
+  });
+
+  app.post("/api/admin/blog/upload-image", requireAdmin, blogUpload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          message: "No image file provided",
+          success: false 
+        });
+      }
+      
+      const imageUrl = `/uploads/blog/${req.file.filename}`;
+      
+      // Optional: Save to database for tracking blog images
+      const imageData = {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        url: imageUrl,
+        productId: undefined, // Not associated with products
+      };
+      
+      try {
+        await storage.createImage(imageData);
+      } catch (dbError) {
+        // Continue even if database save fails - the file upload succeeded
+        console.warn('Failed to save image metadata to database:', dbError);
+      }
+      
+      res.json({ 
+        success: true, 
+        url: imageUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimeType: req.file.mimetype,
+        message: "Blog image uploaded successfully" 
+      });
+    } catch (error: any) {
+      console.error('Blog image upload error:', error);
+      res.status(500).json({ 
+        message: "Error uploading blog image: " + error.message,
+        success: false 
+      });
+    }
+  });
+
 
   // Health check endpoint for deployment diagnostics
   app.get('/healthz', (req, res) => {

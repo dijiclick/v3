@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { insertBlogPostSchema } from "@shared/schema";
 import type { BlogPost } from "@shared/schema";
+import AdvancedBlogEditor from "@/components/AdvancedBlogEditor";
+import BlogContentRenderer from "@/components/BlogContentRenderer";
 
 // Form schema extending the base schema with UI-specific fields
 const blogPostFormSchema = insertBlogPostSchema.extend({
@@ -341,40 +343,41 @@ export default function AdminBlogEditor() {
                 </CardContent>
               </Card>
 
-              {/* Content */}
+              {/* Advanced Content Editor */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Content</CardTitle>
+                  <CardTitle>محتوای مطلب</CardTitle>
                   <CardDescription>
-                    Write your blog post content
+                    ویرایشگر پیشرفته برای نوشتن محتوای وبلاگ با پشتیبانی کامل از زبان فارسی
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <FormField
                     control={form.control}
                     name="content"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            value={typeof field.value === 'string' ? field.value : JSON.stringify(field.value, null, 2)}
-                            onChange={(e) => {
-                              try {
-                                // Try to parse as JSON, fall back to plain text
-                                const parsed = JSON.parse(e.target.value);
-                                field.onChange(parsed);
-                              } catch {
-                                field.onChange(e.target.value);
-                              }
+                          <AdvancedBlogEditor
+                            value={typeof field.value === 'string' ? field.value : 
+                                   (field.value && typeof field.value === 'object' ? JSON.stringify(field.value) : '')}
+                            onChange={(htmlContent) => {
+                              // Store as HTML string for better compatibility with React Quill
+                              field.onChange(htmlContent);
                             }}
-                            placeholder="Write your blog post content here..."
-                            className="min-h-[400px]"
-                            data-testid="content-textarea"
+                            placeholder="شروع به نوشتن محتوای وبلاگ خود کنید..."
+                            onAutoSave={(content) => {
+                              // Auto-save functionality - could trigger a draft save API call
+                              console.log('Auto-saving content:', content.length, 'characters');
+                              // You could add draft saving here:
+                              // saveDraft({ ...form.getValues(), content });
+                            }}
+                            autoSaveInterval={30000} // 30 seconds
+                            data-testid="advanced-content-editor"
                           />
                         </FormControl>
-                        <FormDescription>
-                          Rich text content for your blog post
+                        <FormDescription className="p-4 text-xs text-gray-500 dark:text-gray-400">
+                          ویرایشگر پیشرفته با پشتیبانی از آپلود تصویر، پیش‌نمایش زنده، حالت تمام‌صفحه و ذخیره خودکار
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

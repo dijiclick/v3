@@ -166,7 +166,7 @@ export function ModernSidebar({
 
   return (
     <BlogErrorBoundaryWrapper context="ModernSidebar">
-      <aside className="space-y-8 mt-72" dir="rtl" data-testid="modern-sidebar">
+      <aside className="space-y-8 mt-[0px] mb-[0px]" dir="rtl" data-testid="modern-sidebar">
         {/* Popular Blogs Section */}
         <div className="bg-white rounded-xl p-6 shadow-sm" data-testid="popular-blogs">
           <div className="flex items-center gap-2 mb-4">

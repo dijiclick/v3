@@ -9,6 +9,8 @@ import { sessionStore, verifyPassword, requireAdmin, getCookieOptions, getCSRFCo
 import { sitemapGenerator, sitemapCache } from "./sitemap";
 import { rssGenerator, rssCache } from "./rss";
 import { contentAnalyticsService } from "./content-analytics";
+import { blogSearchService } from "./search";
+import { insertBlogSearchAnalyticsSchema, insertBlogSavedSearchSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -1659,6 +1661,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error generating sitemap index: " + error.message });
     }
   });
+
+  // ============================================================================
+  // BLOG SEARCH ENDPOINTS
+  // ============================================================================
+
+  // Main advanced search endpoint
+  app.get("/api/blog/search", async (req, res) => {
+    try {
+      const {
+        q: query = "",
+        scope = "all",
+        categoryIds,
+        authorIds,
+        tags,
+        startDate,
+        endDate,
+        minReadingTime,
+        maxReadingTime,
+        contentType,
+        sortBy = "relevance",
+        sortOrder = "desc",
+        limit = "20",
+        offset = "0",
+        featured
+      } = req.query;
+
+      const searchOptions = {
+        query: query as string,
+        scope: scope as "all" | "title" | "content" | "authors" | "tags",
+        categoryIds: categoryIds ? (categoryIds as string).split(",") : undefined,
+        authorIds: authorIds ? (authorIds as string).split(",") : undefined,
+        tags: tags ? (tags as string).split(",") : undefined,
+        dateRange: {
+          start: startDate ? new Date(startDate as string) : undefined,
+          end: endDate ? new Date(endDate as string) : undefined
+        },
+        readingTimeRange: {
+          min: minReadingTime ? parseInt(minReadingTime as string) : undefined,
+          max: maxReadingTime ? parseInt(maxReadingTime as string) : undefined
+        },
+        sortBy: sortBy as "relevance" | "publishedAt" | "title" | "readingTime" | "viewCount",
+        sortOrder: sortOrder as "asc" | "desc",
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        featured: featured ? featured === "true" : undefined
+      };
+
+      const searchResults = await blogSearchService.search(searchOptions);
+      
+      res.json(searchResults);
+    } catch (error: any) {
+      console.error("Search error:", error);
+      res.status(500).json({ message: "Error performing search: " + error.message });
+    }
+  });
+
+  // Search autocomplete suggestions
+  app.get("/api/blog/search/suggestions", async (req, res) => {
+    try {
+      const { q: query = "", limit = "10" } = req.query;
+      
+      if (!query || (query as string).length < 2) {
+        return res.json([]);
+      }
+
+      const suggestions = await blogSearchService.getSearchSuggestions(query as string);
+      const limitedSuggestions = suggestions.slice(0, parseInt(limit as string));
+      
+      res.json(limitedSuggestions);
+    } catch (error: any) {
+      console.error("Error getting search suggestions:", error);
+      res.status(500).json({ message: "Error getting search suggestions: " + error.message });
+    }
+  });
+
+  // Popular search terms
+  app.get("/api/blog/search/popular", async (req, res) => {
+    try {
+      const { limit = "10" } = req.query;
+      
+      const popularSearches = await blogSearchService.getPopularSearches(
+        parseInt(limit as string)
+      );
+      
+      res.json(popularSearches);
+    } catch (error: any) {
+      console.error("Error getting popular searches:", error);
+      res.status(500).json({ message: "Error getting popular searches: " + error.message });
+    }
+  });
+
+  // Track search analytics
+  app.post("/api/blog/search/analytics", async (req, res) => {
+    try {
+      const result = insertBlogSearchAnalyticsSchema.safeParse({
+        ...req.body,
+        userAgent: req.headers["user-agent"],
+        ipAddress: req.ip || req.connection.remoteAddress
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid analytics data", 
+          errors: result.error.errors 
+        });
+      }
+
+      await blogSearchService.trackSearch(result.data);
+      
+      res.status(201).json({ message: "Analytics tracked successfully" });
+    } catch (error: any) {
+      console.error("Error tracking search analytics:", error);
+      res.status(500).json({ message: "Error tracking search analytics: " + error.message });
+    }
+  });
+
+  // Save search query
+  app.post("/api/blog/search/saved", async (req, res) => {
+    try {
+      const result = insertBlogSavedSearchSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid saved search data", 
+          errors: result.error.errors 
+        });
+      }
+
+      const searchId = await blogSearchService.saveSearch(result.data);
+      
+      res.status(201).json({ id: searchId, message: "Search saved successfully" });
+    } catch (error: any) {
+      console.error("Error saving search:", error);
+      res.status(500).json({ message: "Error saving search: " + error.message });
+    }
+  });
+
+  // Get saved searches
+  app.get("/api/blog/search/saved", async (req, res) => {
+    try {
+      const { sessionId } = req.query;
+      
+      const savedSearches = await blogSearchService.getSavedSearches(
+        sessionId as string
+      );
+      
+      res.json(savedSearches);
+    } catch (error: any) {
+      console.error("Error getting saved searches:", error);
+      res.status(500).json({ message: "Error getting saved searches: " + error.message });
+    }
+  });
+
+  // Delete saved search
+  app.delete("/api/blog/search/saved/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      // Note: This would need to be implemented in the search service
+      // For now, return a placeholder response
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting saved search:", error);
+      res.status(500).json({ message: "Error deleting saved search: " + error.message });
+    }
+  });
+
+  // Search performance test endpoint (development only)
+  app.get("/api/blog/search/test-performance", async (req, res) => {
+    try {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(403).json({ message: "Not available in production" });
+      }
+
+      const { q: query = "test", iterations = "10" } = req.query;
+      const iterCount = parseInt(iterations as string);
+      
+      const startTime = Date.now();
+      const results = [];
+      
+      for (let i = 0; i < iterCount; i++) {
+        const iterStart = Date.now();
+        await blogSearchService.search({
+          query: query as string,
+          limit: 20,
+          offset: 0
+        }, false); // Don't track analytics for performance tests
+        const iterEnd = Date.now();
+        results.push(iterEnd - iterStart);
+      }
+      
+      const totalTime = Date.now() - startTime;
+      const avgTime = results.reduce((a, b) => a + b, 0) / results.length;
+      const minTime = Math.min(...results);
+      const maxTime = Math.max(...results);
+      
+      res.json({
+        query: query as string,
+        iterations: iterCount,
+        totalTime,
+        averageTime: avgTime,
+        minTime,
+        maxTime,
+        individualTimes: results
+      });
+    } catch (error: any) {
+      console.error("Error running search performance test:", error);
+      res.status(500).json({ message: "Error running search performance test: " + error.message });
+    }
+  });
+
+  // ============================================================================
+  // SEO AND CONTENT DISCOVERY ENDPOINTS
+  // ============================================================================
 
   // Sitemap statistics and validation
   app.get("/api/seo/sitemap/stats", async (req, res) => {

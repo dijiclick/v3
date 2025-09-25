@@ -33,6 +33,7 @@ import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
 import BlogPostPage from "@/pages/BlogPostPage";
+import BlogSearchPage from "@/pages/BlogSearchPage";
 import AuthorDirectoryPage from "@/pages/AuthorDirectoryPage";
 import AuthorProfilePage from "@/pages/AuthorProfilePage";
 
@@ -106,6 +107,12 @@ function PublicRouter() {
       </Route>
       
       {/* Blog routes - specific routes come before generic ones */}
+      <Route path="/blog/search">
+        <PersianLayout>
+          <BlogSearchPage />
+        </PersianLayout>
+      </Route>
+      
       <Route path="/blog/category/:categorySlug">
         <PersianLayout>
           <BlogListPage />

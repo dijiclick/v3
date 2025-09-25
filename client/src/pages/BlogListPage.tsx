@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation, useRoute, useSearch } from "wouter";
 import { Helmet } from "react-helmet-async";
-import { AlertCircle, Loader2, Rss, TrendingUp, BookOpen } from "lucide-react";
+import { AlertCircle, Loader2, Rss, TrendingUp, BookOpen, Search } from "lucide-react";
 import { 
   useBlogPosts, 
   useFeaturedBlogPosts, 
@@ -16,6 +16,7 @@ import BlogCard from "@/components/blog/BlogCard";
 import BlogFiltersComponent from "@/components/blog/BlogFilters";
 import BlogSearch from "@/components/blog/BlogSearch";
 import BlogPagination from "@/components/blog/BlogPagination";
+import { AdvancedBlogSearch } from "@/components/blog/AdvancedBlogSearch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

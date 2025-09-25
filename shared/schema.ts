@@ -425,6 +425,86 @@ export type BlogTag = typeof blogTags.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
 
+// Blog Search Analytics Tables
+export const blogSearchAnalytics = pgTable("blog_search_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  searchQuery: text("search_query").notNull(),
+  searchScope: text("search_scope").default("all"), // all, title, content, authors, tags
+  filters: jsonb("filters"), // Applied filters as JSON
+  resultsCount: integer("results_count").notNull(),
+  clickedResultId: varchar("clicked_result_id"), // If user clicked on a result
+  sessionId: text("session_id"), // For tracking user sessions
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  responseTime: integer("response_time"), // milliseconds
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const blogSearchSuggestions = pgTable("blog_search_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  query: text("query").notNull().unique(),
+  frequency: integer("frequency").default(1),
+  lastUsed: timestamp("last_used").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const blogSavedSearches = pgTable("blog_saved_searches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // User-defined name for the search
+  searchQuery: text("search_query").notNull(),
+  filters: jsonb("filters"), // Search filters as JSON
+  sessionId: text("session_id"), // For guest users
+  isPublic: boolean("is_public").default(false),
+  useCount: integer("use_count").default(1),
+  lastUsed: timestamp("last_used").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Search Analytics Schemas
+export const insertBlogSearchAnalyticsSchema = createInsertSchema(blogSearchAnalytics).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  searchQuery: z.string().min(1, "Search query is required"),
+  searchScope: z.enum(["all", "title", "content", "authors", "tags"]).optional(),
+  filters: z.any().optional(),
+  resultsCount: z.number().int().min(0),
+  clickedResultId: z.string().optional(),
+  sessionId: z.string().optional(),
+  userAgent: z.string().optional(),
+  ipAddress: z.string().optional(),
+  responseTime: z.number().int().min(0).optional(),
+});
+
+export const insertBlogSearchSuggestionSchema = createInsertSchema(blogSearchSuggestions).omit({
+  id: true,
+  createdAt: true,
+  lastUsed: true,
+}).extend({
+  query: z.string().min(1, "Search query is required"),
+  frequency: z.number().int().min(1).optional(),
+});
+
+export const insertBlogSavedSearchSchema = createInsertSchema(blogSavedSearches).omit({
+  id: true,
+  createdAt: true,
+  lastUsed: true,
+}).extend({
+  name: z.string().min(1, "Search name is required"),
+  searchQuery: z.string().min(1, "Search query is required"),
+  filters: z.any().optional(),
+  sessionId: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  useCount: z.number().int().min(1).optional(),
+});
+
+export type InsertBlogSearchAnalytics = z.infer<typeof insertBlogSearchAnalyticsSchema>;
+export type BlogSearchAnalytics = typeof blogSearchAnalytics.$inferSelect;
+export type InsertBlogSearchSuggestion = z.infer<typeof insertBlogSearchSuggestionSchema>;
+export type BlogSearchSuggestion = typeof blogSearchSuggestions.$inferSelect;
+export type InsertBlogSavedSearch = z.infer<typeof insertBlogSavedSearchSchema>;
+export type BlogSavedSearch = typeof blogSavedSearches.$inferSelect;
+
 // Cart types for frontend
 export const cartItemSchema = z.object({
   id: z.string(),

@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Newsletter } from "./Newsletter";
 import { TrendingUp, Star } from "lucide-react";
 import { Link } from "wouter";
 
@@ -33,9 +32,6 @@ export function ModernSidebar({
 }: ModernSidebarProps) {
   return (
     <aside className="space-y-8" dir="rtl" data-testid="modern-sidebar">
-      {/* Newsletter */}
-      <Newsletter />
-
       {/* Popular Blogs */}
       <div className="bg-white rounded-xl p-6 shadow-sm" data-testid="popular-blogs">
         <div className="flex items-center gap-2 mb-4">

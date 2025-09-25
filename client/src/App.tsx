@@ -21,6 +21,9 @@ import AdminProductEdit from "@/pages/AdminProductEdit";
 import AdminCategories from "@/pages/AdminCategories";
 import AdminPages from "@/pages/AdminPages";
 import AdminSettings from "@/pages/AdminSettings";
+import AdminBlogDashboard from "@/pages/AdminBlogDashboard";
+import AdminBlogPosts from "@/pages/AdminBlogPosts";
+import AdminBlogEditor from "@/pages/AdminBlogEditor";
 import NotFound from "@/pages/not-found";
 import CategoryPage from "@/pages/CategoryPage";
 import BlogListPage from "@/pages/BlogListPage";
@@ -37,6 +40,10 @@ function AdminRouter() {
           <Route path="/admin/products/edit/:id" component={AdminProductEdit} />
           <Route path="/admin/categories" component={AdminCategories} />
           <Route path="/admin/pages" component={AdminPages} />
+          <Route path="/admin/blog" component={AdminBlogDashboard} />
+          <Route path="/admin/blog/posts" component={AdminBlogPosts} />
+          <Route path="/admin/blog/new" component={AdminBlogEditor} />
+          <Route path="/admin/blog/edit/:id" component={AdminBlogEditor} />
           <Route path="/admin/settings" component={AdminSettings} />
         </Switch>
       </AdminLayout>

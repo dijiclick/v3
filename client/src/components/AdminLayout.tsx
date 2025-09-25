@@ -9,7 +9,8 @@ import {
   LogOut,
   Menu,
   X,
-  Home
+  Home,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -20,6 +21,7 @@ const adminNavItems = [
   { path: "/admin/products", icon: Package, label: "Products" },
   { path: "/admin/categories", icon: FolderTree, label: "Categories" },
   { path: "/admin/pages", icon: FileText, label: "Pages" },
+  { path: "/admin/blog", icon: BookOpen, label: "Blog" },
   { path: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 

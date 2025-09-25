@@ -172,7 +172,7 @@ export default function BlogMainPage() {
           const fallbackResponse = await fetchWithRetry('/api/blog/posts?limit=6&sortBy=viewCount&sortOrder=desc');
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
-            return fallbackData.posts || [];
+            return Array.isArray(fallbackData) ? fallbackData : fallbackData.posts || [];
           }
           throw new Error('Failed to fetch popular posts and fallback');
         }
@@ -231,7 +231,7 @@ export default function BlogMainPage() {
           const fallbackResponse = await fetchWithRetry('/api/products?limit=5');
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
-            return fallbackData.products || [];
+            return Array.isArray(fallbackData) ? fallbackData : [];
           }
           throw new Error('Failed to fetch featured products and fallback');
         }

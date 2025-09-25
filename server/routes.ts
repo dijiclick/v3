@@ -1382,6 +1382,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/blog/tags/popular", async (req, res) => {
+    try {
+      const { limit = "8" } = req.query;
+      const limitNum = parseInt(limit as string, 10);
+      
+      // Get all tags and prioritize featured ones
+      const tags = await storage.getBlogTags();
+      
+      // Sort by featured first, then alphabetically
+      const sortedTags = tags.sort((a: any, b: any) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      // Return just the tag names for the hot tags display
+      const popularTagNames = sortedTags
+        .slice(0, limitNum)
+        .map((tag: any) => tag.name);
+      
+      res.json(popularTagNames);
+    } catch (error: any) {
+      res.status(500).json({ message: "Error fetching popular blog tags: " + error.message });
+    }
+  });
+
   app.get("/api/blog/tags/:id", async (req, res) => {
     try {
       const tag = await storage.getBlogTag(req.params.id);

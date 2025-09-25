@@ -39,10 +39,12 @@ export default function AdminBlogEditor() {
   const isEditing = Boolean(params?.id);
   const postId = params?.id;
   
-  const { data: post, isLoading: postLoading } = useBlogPost(postId || "", { enabled: isEditing });
-  const { data: authors = [] } = useBlogAuthors();
+  const { data: post, isLoading: postLoading } = useBlogPost(postId || "");
+  const { data: authorsData = { authors: [], total: 0 } } = useBlogAuthors();
   const { data: categories = [] } = useBlogCategories();
   const { data: tags = [] } = useBlogTags();
+  
+  const authors = authorsData.authors || [];
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -133,14 +135,16 @@ export default function AdminBlogEditor() {
       };
 
       if (isEditing && postId) {
-        return apiRequest('PUT', `/api/blog/posts/${postId}`, submitData);
+        const response = await apiRequest('PUT', `/api/blog/posts/${postId}`, submitData);
+        return response.json();
       } else {
-        return apiRequest('POST', '/api/blog/posts', submitData);
+        const response = await apiRequest('POST', '/api/blog/posts', submitData);
+        return response.json();
       }
     },
     onSuccess: (savedPost) => {
       queryClient.invalidateQueries({ queryKey: ['/api/blog/posts'] });
-      if (!isEditing) {
+      if (!isEditing && savedPost?.id) {
         queryClient.invalidateQueries({ queryKey: ['/api/blog/posts', savedPost.id] });
       }
       toast({

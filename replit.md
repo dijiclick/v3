@@ -9,6 +9,9 @@ Preferred communication style: Simple, everyday language.
 # Recent Major Updates
 
 ## Enhanced Blog System & Search Improvements (September 2025)
+- **Intelligent Text Direction Detection**: Implemented automatic LTR/RTL text direction switching in search components based on input language (English = LTR, Persian = RTL) with real-time detection and layout adjustment
+- **Fixed Search API Integration**: Resolved search API calling issue where query parameters were incorrectly constructed, enabling successful ChatGPT product discovery through comprehensive search
+- **Comprehensive Search Testing**: Added Playwright end-to-end tests to verify ChatGPT product searchability and text direction functionality across different input languages
 - **Fixed Search Component Styling**: Resolved white text on white background issue in both ComprehensiveSearch and SearchInput components by adding explicit text color classes for proper contrast across light and dark themes
 - **Fixed Search Functionality**: Comprehensive search now correctly finds all content including "ChatGPT" tools and products
 - **Modern Blog Card Design**: Updated blog main page with larger featured images (4:3 aspect ratio), enhanced author displays, and professional styling

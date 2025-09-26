@@ -25,7 +25,7 @@ const renderRichText = (richText: any): string => {
   
   // If it's a structured rich text object, convert to HTML
   if (richText && typeof richText === 'object') {
-    // Handle rich text content structures
+    // Handle Sanity Portable Text or similar structures
     if (Array.isArray(richText)) {
       return richText.map((block: any) => {
         if (block.style === 'h1') return `<h1>${block.children?.[0]?.text || ''}</h1>`;

@@ -9,6 +9,7 @@ Preferred communication style: Simple, everyday language.
 # Recent Major Updates
 
 ## Enhanced Blog System & Search Improvements (September 2025)
+- **Fixed Search Component Styling**: Resolved white text on white background issue in both ComprehensiveSearch and SearchInput components by adding explicit text color classes for proper contrast across light and dark themes
 - **Fixed Search Functionality**: Comprehensive search now correctly finds all content including "ChatGPT" tools and products
 - **Modern Blog Card Design**: Updated blog main page with larger featured images (4:3 aspect ratio), enhanced author displays, and professional styling
 - **Advanced Admin Image Management**: Full-featured image upload system in blog editor with drag-and-drop, preview, validation, and URL input options

@@ -3,12 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { isSanityConfigured } from "@/hooks/use-sanity";
 import { useAdminLanguage } from "@/contexts/AdminLanguageContext";
 
 export default function AdminSettings() {
   const { t, isRTL } = useAdminLanguage();
-  const sanityEnabled = isSanityConfigured();
   const { toast } = useToast();
 
   const handleConfigure = (cardTitle: string) => {
@@ -16,9 +14,7 @@ export default function AdminSettings() {
       case t('settings.card.content_management.title'):
         toast({
           title: t('settings.toast.content_management.title'),
-          description: sanityEnabled 
-            ? t('settings.toast.content_management.desc_sanity')
-            : t('settings.toast.content_management.desc_database'),
+          description: t('settings.toast.content_management.desc_database'),
         });
         break;
       case t('settings.card.website.title'):
@@ -52,11 +48,11 @@ export default function AdminSettings() {
       title: t('settings.card.content_management.title'),
       description: t('settings.card.content_management.desc'),
       icon: Database,
-      status: sanityEnabled ? t('settings.card.content_management.status.sanity') : t('settings.card.content_management.status.database'),
-      statusVariant: sanityEnabled ? "success" : "info" as const,
+      status: t('settings.card.content_management.status.database'),
+      statusVariant: "info" as const,
       items: [
-        sanityEnabled ? t('settings.card.content_management.item.content_source_sanity') : t('settings.card.content_management.item.content_source_db'),
-        sanityEnabled ? t('settings.card.content_management.item.auto_sync_enabled') : t('settings.card.content_management.item.auto_sync_manual'),
+        t('settings.card.content_management.item.content_source_db'),
+        t('settings.card.content_management.item.auto_sync_manual'),
         t('settings.card.content_management.item.content_types')
       ]
     },
@@ -145,11 +141,11 @@ export default function AdminSettings() {
               <div className="text-sm text-gray-600 dark:text-gray-400">{t('settings.status.admin_panel_active')}</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl font-bold ${sanityEnabled ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
-                {sanityEnabled ? '✓' : '○'}
+              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                ○
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {sanityEnabled ? t('settings.status.sanity_cms_active') : t('settings.status.database_mode')}
+                {t('settings.status.database_mode')}
               </div>
             </div>
           </div>
@@ -217,27 +213,21 @@ export default function AdminSettings() {
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">
-                  {sanityEnabled ? t('settings.cms.sanity_integration') : t('settings.cms.database_management')}
+                  {t('settings.cms.database_management')}
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {sanityEnabled 
-                    ? t('settings.cms.sanity_desc')
-                    : t('settings.cms.database_desc')
-                  }
+                  {t('settings.cms.database_desc')}
                 </p>
               </div>
-              <Badge variant={sanityEnabled ? "success" : "info"}>
-                {sanityEnabled ? t('settings.cms.status.cms_active') : t('settings.cms.status.database_mode')}
+              <Badge variant="info">
+                {t('settings.cms.status.database_mode')}
               </Badge>
             </div>
             
             <div className="text-sm text-gray-500 dark:text-gray-400">
               <p>
                 <strong>{t('settings.cms.features_available')}</strong>{" "}
-                {sanityEnabled 
-                  ? t('settings.cms.features_sanity')
-                  : t('settings.cms.features_database')
-                }
+                {t('settings.cms.features_database')}
               </p>
             </div>
           </div>

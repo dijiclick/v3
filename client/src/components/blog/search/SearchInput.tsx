@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, detectTextDirection } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 interface SearchSuggestion {
@@ -35,6 +35,7 @@ export function SearchInput({
 }: SearchInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
+  const [textDirection, setTextDirection] = useState<'rtl' | 'ltr'>('rtl');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -58,6 +59,8 @@ export function SearchInput({
 
   useEffect(() => {
     setLocalValue(value);
+    const direction = detectTextDirection(value);
+    setTextDirection(direction);
   }, [value]);
 
   useEffect(() => {
@@ -75,6 +78,8 @@ export function SearchInput({
     setLocalValue(newValue);
     onChange(newValue);
     setIsOpen(true);
+    const direction = detectTextDirection(newValue);
+    setTextDirection(direction);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -120,9 +125,12 @@ export function SearchInput({
   ];
 
   return (
-    <div ref={containerRef} className={cn("relative", className)}>
+    <div ref={containerRef} className={cn("relative", className)} dir={textDirection}>
       <div className="relative">
-        <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className={cn(
+          "absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground",
+          textDirection === 'rtl' ? 'right-3' : 'left-3'
+        )} />
         <Input
           ref={inputRef}
           value={localValue}
@@ -130,8 +138,11 @@ export function SearchInput({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
-          className="pl-3 pr-10 text-right bg-background text-foreground border-border placeholder:text-muted-foreground"
-          dir="rtl"
+          className={cn(
+            "bg-background text-foreground border-border placeholder:text-muted-foreground",
+            textDirection === 'rtl' ? 'pl-3 pr-10 text-right' : 'pr-3 pl-10 text-left'
+          )}
+          dir={textDirection}
           autoFocus={autoFocus}
           data-testid="search-input"
         />
@@ -140,7 +151,10 @@ export function SearchInput({
             variant="ghost"
             size="sm"
             onClick={clearSearch}
-            className="absolute left-1 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+            className={cn(
+              "absolute top-1/2 h-6 w-6 -translate-y-1/2 p-0",
+              textDirection === 'rtl' ? 'left-1' : 'right-1'
+            )}
             data-testid="clear-search"
           >
             <X className="h-3 w-3" />

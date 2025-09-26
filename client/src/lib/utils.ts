@@ -81,3 +81,59 @@ export async function nativeShare(data: ShareData): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Detects text direction based on character analysis
+ * Returns 'rtl' for Persian/Arabic text, 'ltr' for Latin text
+ */
+export function detectTextDirection(text: string): 'rtl' | 'ltr' {
+  if (!text || text.trim().length === 0) {
+    return 'rtl'; // Default to RTL for empty text (Persian UI context)
+  }
+
+  // Remove whitespace and punctuation for analysis
+  const cleanText = text.replace(/[\s\u0020-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E]/g, '');
+  
+  if (cleanText.length === 0) {
+    return 'rtl'; // Default to RTL for whitespace-only text
+  }
+
+  let rtlCount = 0;
+  let ltrCount = 0;
+
+  for (const char of cleanText) {
+    const code = char.charCodeAt(0);
+    
+    // Persian/Arabic character ranges
+    if (
+      (code >= 0x0600 && code <= 0x06FF) || // Arabic
+      (code >= 0x0750 && code <= 0x077F) || // Arabic Supplement
+      (code >= 0x08A0 && code <= 0x08FF) || // Arabic Extended-A
+      (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
+      (code >= 0xFE70 && code <= 0xFEFF) || // Arabic Presentation Forms-B
+      (code >= 0x06F0 && code <= 0x06F9)    // Persian digits
+    ) {
+      rtlCount++;
+    }
+    // Latin character ranges
+    else if (
+      (code >= 0x0041 && code <= 0x005A) || // Uppercase A-Z
+      (code >= 0x0061 && code <= 0x007A) || // Lowercase a-z
+      (code >= 0x0030 && code <= 0x0039) || // Digits 0-9
+      (code >= 0x00C0 && code <= 0x024F)    // Latin Extended
+    ) {
+      ltrCount++;
+    }
+  }
+
+  // Determine direction based on character count
+  // If more than 50% of characters are RTL, use RTL direction
+  const totalDirectionalChars = rtlCount + ltrCount;
+  
+  if (totalDirectionalChars === 0) {
+    return 'rtl'; // Default to RTL for non-directional characters
+  }
+  
+  const rtlPercentage = rtlCount / totalDirectionalChars;
+  return rtlPercentage > 0.5 ? 'rtl' : 'ltr';
+}

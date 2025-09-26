@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, detectTextDirection } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { format } from "date-fns";
 
@@ -67,6 +67,7 @@ export default function ComprehensiveSearch({
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [textDirection, setTextDirection] = useState<'rtl' | 'ltr'>('rtl');
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
@@ -77,6 +78,16 @@ export default function ComprehensiveSearch({
   // Get search results
   const { data: searchData, isLoading } = useQuery<ComprehensiveSearchResponse>({
     queryKey: ['/api/search/comprehensive', debouncedQuery],
+    queryFn: async () => {
+      const params = new URLSearchParams({ q: debouncedQuery, limit: '5' });
+      const res = await fetch(`/api/search/comprehensive?${params}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        throw new Error('Search failed');
+      }
+      return await res.json();
+    },
     enabled: debouncedQuery.length >= 2,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -112,6 +123,12 @@ export default function ComprehensiveSearch({
   useEffect(() => {
     setSelectedIndex(-1);
   }, [debouncedQuery]);
+
+  // Update text direction when query changes
+  useEffect(() => {
+    const direction = detectTextDirection(query);
+    setTextDirection(direction);
+  }, [query]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -209,10 +226,13 @@ export default function ComprehensiveSearch({
   const hasResults = searchData && (searchData.products.length > 0 || searchData.blogArticles.length > 0);
 
   return (
-    <div className={cn("relative", className)} ref={dropdownRef} dir="rtl">
+    <div className={cn("relative", className)} ref={dropdownRef} dir={textDirection}>
       {/* Search Input */}
       <div className="relative">
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+        <div className={cn(
+          "absolute top-1/2 transform -translate-y-1/2 text-gray-400",
+          textDirection === 'rtl' ? 'right-3' : 'left-3'
+        )}>
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" data-testid="search-loading" />
           ) : (
@@ -229,7 +249,11 @@ export default function ComprehensiveSearch({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="pr-12 pl-12 h-14 text-right text-lg bg-white dark:bg-card text-foreground dark:text-card-foreground border-2 border-gray-200 dark:border-border focus:border-blue-400 dark:focus:border-blue-500 transition-colors rounded-xl shadow-sm placeholder:text-muted-foreground"
+          className={cn(
+            "pr-12 pl-12 h-14 text-lg bg-white dark:bg-card text-foreground dark:text-card-foreground border-2 border-gray-200 dark:border-border focus:border-blue-400 dark:focus:border-blue-500 transition-colors rounded-xl shadow-sm placeholder:text-muted-foreground",
+            textDirection === 'rtl' ? 'text-right' : 'text-left'
+          )}
+          dir={textDirection}
           data-testid="comprehensive-search-input"
         />
         
@@ -238,7 +262,10 @@ export default function ComprehensiveSearch({
             variant="ghost"
             size="sm"
             onClick={clearSearch}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className={cn(
+              "absolute top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800",
+              textDirection === 'rtl' ? 'left-3' : 'right-3'
+            )}
             data-testid="clear-search"
           >
             <X className="w-4 h-4" />

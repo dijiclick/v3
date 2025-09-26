@@ -130,7 +130,7 @@ export function SearchInput({
           onKeyDown={handleKeyDown}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
-          className="pl-3 pr-10 text-right"
+          className="pl-3 pr-10 text-right bg-background text-foreground border-border placeholder:text-muted-foreground"
           dir="rtl"
           autoFocus={autoFocus}
           data-testid="search-input"

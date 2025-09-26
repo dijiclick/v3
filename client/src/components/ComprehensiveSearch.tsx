@@ -229,7 +229,7 @@ export default function ComprehensiveSearch({
           onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="pr-12 pl-12 h-14 text-right text-lg bg-white dark:bg-card border-2 border-gray-200 dark:border-border focus:border-blue-400 dark:focus:border-blue-500 transition-colors rounded-xl shadow-sm"
+          className="pr-12 pl-12 h-14 text-right text-lg bg-white dark:bg-card text-foreground dark:text-card-foreground border-2 border-gray-200 dark:border-border focus:border-blue-400 dark:focus:border-blue-500 transition-colors rounded-xl shadow-sm placeholder:text-muted-foreground"
           data-testid="comprehensive-search-input"
         />
         

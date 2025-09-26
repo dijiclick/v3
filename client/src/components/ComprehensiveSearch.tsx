@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, detectTextDirection } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useCategories } from "@/lib/content-service";
 import { format } from "date-fns";
 
 interface ProductResult {
@@ -71,6 +72,9 @@ export default function ComprehensiveSearch({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [, setLocation] = useLocation();
+
+  // Get categories data for constructing product URLs
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
 
   // Debounced search query
   const debouncedQuery = useDebounce(query, 300);
@@ -161,8 +165,22 @@ export default function ComprehensiveSearch({
   // Navigate to result
   const navigateToResult = useCallback((result: ProductResult | BlogResult) => {
     if (result.type === 'product') {
-      // Navigate to product page (assuming the route structure)
-      setLocation(`/product/${result.slug}`);
+      // Construct proper product URL using category slug
+      if (categories && result.categoryId) {
+        const category = categories.find(cat => cat.id === result.categoryId);
+        if (category) {
+          // Navigate using the correct pattern: /{categorySlug}/{productSlug}
+          setLocation(`/${category.slug}/${result.slug}`);
+        } else {
+          // Fallback: if category not found, don't navigate to avoid 404
+          console.warn(`Category not found for product ${result.title} (categoryId: ${result.categoryId})`);
+          return;
+        }
+      } else {
+        // Fallback: if categories not loaded or no categoryId, don't navigate
+        console.warn(`Cannot navigate to product ${result.title}: categories not loaded or missing categoryId`);
+        return;
+      }
     } else {
       // Navigate to blog post page
       setLocation(`/blog/${result.slug}`);
@@ -172,7 +190,7 @@ export default function ComprehensiveSearch({
     if (inputRef.current) {
       inputRef.current.blur();
     }
-  }, [setLocation]);
+  }, [setLocation, categories]);
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
